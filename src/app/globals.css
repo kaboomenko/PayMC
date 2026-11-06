@@ -1,0 +1,313 @@
+@import "tailwindcss";
+@import "@fontsource-variable/onest";
+@import "@fontsource-variable/jetbrains-mono";
+
+/*
+ * PayMC design tokens.
+ * The default Tailwind palette is DISABLED on purpose (`--color-*: initial`).
+ * Only the colors below exist — this keeps every screen inside the brand:
+ * near-black blue-tinted surfaces, azure (primary blue), ice (light blue / cyan), white.
+ */
+@theme {
+  --color-*: initial;
+
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  /* Surfaces — layered by lightness, all slightly blue-tinted */
+  --color-canvas: #05070b;
+  --color-surface: #0a0d14;
+  --color-surface-2: #0e121b;
+  --color-surface-3: #141a26;
+  --color-surface-4: #1b2231;
+
+  /* Hairlines */
+  --color-line-soft: rgb(148 166 204 / 0.06);
+  --color-line: rgb(148 166 204 / 0.11);
+  --color-line-strong: rgb(148 166 204 / 0.2);
+
+  /* Text */
+  --color-fg: #edf1f8;
+  --color-fg-2: #a6b1c4;
+  --color-fg-3: #6c788d;
+  --color-fg-4: #475166;
+
+  /* Azure — primary blue */
+  --color-azure-50: #eef5ff;
+  --color-azure-100: #d9e8ff;
+  --color-azure-200: #b9d4ff;
+  --color-azure-300: #8cb9ff;
+  --color-azure-400: #5c98ff;
+  --color-azure-500: #3377ff;
+  --color-azure-600: #215fed;
+  --color-azure-700: #1b4cc4;
+  --color-azure-800: #1a3e98;
+  --color-azure-900: #162d6a;
+  --color-azure-950: #0d1a3d;
+
+  /* Ice — light blue / cyan accent */
+  --color-ice-100: #dcf6ff;
+  --color-ice-200: #b5ecff;
+  --color-ice-300: #86e0ff;
+  --color-ice-400: #55cfff;
+  --color-ice-500: #22b8f0;
+  --color-ice-600: #0e93c4;
+  --color-ice-900: #0a3347;
+
+  /* Semantic */
+  --color-ok: #3fd18f;
+  --color-ok-soft: rgb(63 209 143 / 0.12);
+  --color-warn: #f3b84d;
+  --color-warn-soft: rgb(243 184 77 / 0.12);
+  --color-bad: #f2616f;
+  --color-bad-soft: rgb(242 97 111 / 0.12);
+
+  /* Typography */
+  --font-sans: "Onest Variable", "Onest", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 1rem;
+  --text-micro--letter-spacing: 0.04em;
+
+  --text-display: clamp(2.75rem, 6.4vw, 5.25rem);
+  --text-display--line-height: 0.98;
+  --text-display--letter-spacing: -0.045em;
+  --text-display--font-weight: 600;
+
+  --text-h1: clamp(2.25rem, 4.6vw, 3.75rem);
+  --text-h1--line-height: 1.02;
+  --text-h1--letter-spacing: -0.04em;
+  --text-h1--font-weight: 600;
+
+  --text-h2: clamp(1.875rem, 3.4vw, 2.75rem);
+  --text-h2--line-height: 1.06;
+  --text-h2--letter-spacing: -0.035em;
+  --text-h2--font-weight: 600;
+
+  --text-h3: 1.375rem;
+  --text-h3--line-height: 1.25;
+  --text-h3--letter-spacing: -0.02em;
+  --text-h3--font-weight: 600;
+
+  /* Radii — small and consistent; no bubbly 24px cards */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --radius-2xl: 18px;
+
+  /* Elevation */
+  --shadow-raise: inset 0 1px 0 0 rgb(255 255 255 / 0.04), 0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --shadow-pop: 0 0 0 1px rgb(148 166 204 / 0.12), 0 16px 40px -12px rgb(0 0 0 / 0.7), 0 4px 12px -2px rgb(0 0 0 / 0.4);
+  --shadow-glow: 0 0 0 1px rgb(51 119 255 / 0.55), 0 0 28px -6px rgb(51 119 255 / 0.55);
+  --shadow-glow-ice: 0 0 0 1px rgb(85 207 255 / 0.45), 0 0 24px -6px rgb(85 207 255 / 0.5);
+
+  /* Motion */
+  --ease-snappy: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+
+  --animate-pulse-dot: pulse-dot 2s var(--ease-out-quart) infinite;
+  --animate-marquee: marquee 40s linear infinite;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-fade-up: fade-up 0.6s var(--ease-snappy) both;
+  --animate-blink: blink 1.1s steps(1) infinite;
+
+  @keyframes pulse-dot {
+    0% { box-shadow: 0 0 0 0 currentColor; }
+    70% { box-shadow: 0 0 0 6px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes shimmer {
+    from { background-position: -200% 0; }
+    to { background-position: 200% 0; }
+  }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    50.01%, 100% { opacity: 0; }
+  }
+  @keyframes sheet-in-right {
+    from { transform: translateX(24px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes sheet-in-left {
+    from { transform: translateX(-24px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes accordion-down {
+    from { height: 0; }
+    to { height: var(--radix-accordion-content-height); }
+  }
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height); }
+    to { height: 0; }
+  }
+  @keyframes scan {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(100%); }
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  html {
+    background: var(--color-canvas);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    background: var(--color-canvas);
+    min-height: 100dvh;
+  }
+  ::selection {
+    background: rgb(51 119 255 / 0.38);
+    color: #fff;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-azure-400);
+    outline-offset: 2px;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(148 166 204 / 0.18) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: rgb(148 166 204 / 0.16);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--font-mono);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ---------- Layout ---------- */
+
+@utility container-page {
+  width: 100%;
+  max-width: 1240px;
+  margin-inline: auto;
+  padding-inline: 1rem;
+  @media (width >= 640px) {
+    padding-inline: 1.5rem;
+  }
+  @media (width >= 1024px) {
+    padding-inline: 2rem;
+  }
+}
+
+/* Mono uppercase label — section eyebrows, table heads, meta */
+@utility label-mono {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* ---------- Surfaces & textures ---------- */
+
+/* Engineering grid — used sparingly behind hero/feature visuals */
+@utility bg-grid {
+  background-image:
+    linear-gradient(to right, rgb(148 166 204 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(148 166 204 / 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+@utility bg-grid-sm {
+  background-image:
+    linear-gradient(to right, rgb(148 166 204 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(148 166 204 / 0.05) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+@utility bg-dots {
+  background-image: radial-gradient(rgb(148 166 204 / 0.14) 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+
+/* Film grain — apply on a pseudo/overlay element at low opacity */
+@utility bg-noise {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size: 160px 160px;
+}
+
+@utility mask-fade-b {
+  mask-image: linear-gradient(to bottom, #000 60%, transparent);
+}
+@utility mask-fade-t {
+  mask-image: linear-gradient(to top, #000 60%, transparent);
+}
+@utility mask-fade-x {
+  mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+}
+@utility mask-fade-y {
+  mask-image: linear-gradient(to bottom, transparent, #000 15%, #000 85%, transparent);
+}
+@utility mask-radial {
+  mask-image: radial-gradient(ellipse at center, #000 30%, transparent 72%);
+}
+
+/* Skeleton shimmer */
+@utility skeleton {
+  background: linear-gradient(90deg, rgb(148 166 204 / 0.06) 0%, rgb(148 166 204 / 0.12) 50%, rgb(148 166 204 / 0.06) 100%);
+  background-size: 200% 100%;
+  animation: var(--animate-shimmer);
+}
+
+/* Tabular figures for any numeric UI */
+@utility nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
