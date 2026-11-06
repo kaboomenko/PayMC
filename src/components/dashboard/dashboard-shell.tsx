@@ -15,10 +15,12 @@ export function DashboardShell({ data, now, children }: { data: ShellData; now: 
   const router = useRouter();
   const pathname = usePathname();
 
-  // close mobile menu on navigation
-  React.useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
+  // close the mobile menu when the route changes (state-during-render pattern, no effect)
+  const [menuPath, setMenuPath] = React.useState(pathname);
+  if (menuPath !== pathname) {
+    setMenuPath(pathname);
+    if (menuOpen) setMenuOpen(false);
+  }
 
   // ⌘K / Ctrl+K — palette; "g" + key — jump to section
   React.useEffect(() => {
