@@ -14,10 +14,12 @@ import {
   Download,
   FileSpreadsheet,
   Loader2,
+  PackagePlus,
   Plug,
   Plus,
   Terminal,
   Trash2,
+  Upload,
   Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -34,7 +36,8 @@ import { CopyButton } from "@/components/ui/copy-button";
 import { inputBase } from "@/components/ui/input";
 import { toast } from "@/components/ui/toaster";
 import { GameChip } from "@/components/dashboard/game-chip";
-import { MIGRATION_SOURCES, migrationLog, starterPacks, type MigrationSource, type StarterPack } from "./starter-packs";
+import { EmptyState } from "@/components/ui/empty-state";
+import { GAME_SETUP, MIGRATION_SOURCES, migrationLog, starterPacks, type MigrationSource, type PackItem, type StarterPack } from "./starter-packs";
 
 /* ───────────── state ───────────── */
 
@@ -46,6 +49,9 @@ interface Member {
   name: string;
   pct: number;
 }
+
+const customOk = (it: PackItem) => it.name.trim().length > 0 && it.command.trim().length > 0;
+const priceOk = (price: number) => price >= 10 && price <= 100_000;
 
 const STEPS = [
   { key: "game", label: "Игра и проект" },
@@ -112,15 +118,18 @@ export function OnboardingWizard({ initialGame }: { initialGame: GameId }) {
   const [slugEdited, setSlugEdited] = React.useState(false);
 
   // 2 — server
-  const [mode, setMode] = React.useState<"plugin" | "rcon">("plugin");
+  const [mode, setMode] = React.useState<"plugin" | "rcon">(GAME_SETUP[initialGame].agent ? "plugin" : "rcon");
   const [connect, setConnect] = React.useState<ConnectStatus>("idle");
   const [connectLog, setConnectLog] = React.useState(0);
-  const [rcon, setRcon] = React.useState({ host: "", port: "25575", password: "" });
+  const [rcon, setRcon] = React.useState({ host: "", port: GAME_SETUP[initialGame].rconPort, password: "" });
 
   // 3 — products
   const [prodMode, setProdMode] = React.useState<"starter" | "migrate">("starter");
   const [packs, setPacks] = React.useState<(StarterPack & { on: boolean })[]>(() => starterPacks(initialGame).map((p) => ({ ...p, on: true })));
+  const [custom, setCustom] = React.useState<PackItem[]>([]);
   const [source, setSource] = React.useState<MigrationSource>("easydonate");
+  const [sourceKey, setSourceKey] = React.useState("");
+  const [csvFile, setCsvFile] = React.useState<string | null>(null);
   const [migration, setMigration] = React.useState<{ status: "idle" | "running" | "done"; lines: number }>({ status: "idle", lines: 0 });
 
   // 4 — payouts
@@ -145,10 +154,15 @@ export function OnboardingWizard({ initialGame }: { initialGame: GameId }) {
   const sErr = slugError(effectiveSlug);
   const nErr = name.trim().length < 2 ? "Название проекта — как его знают игроки" : null;
   const meta = GAMES[game];
-  const connectorLabel = game === "gta5" ? "Ресурс" : game === "valheim" || game === "dayz" ? "Мод" : "Плагин";
+  const setup = GAME_SETUP[game];
+  const connectorLabel = setup.label;
+  const isHttpApi = game === "gta5";
 
-  const pricesOk = packs.every((p) => !p.on || p.items.every((i) => i.price >= 10 && i.price <= 100_000));
-  const activeItems = packs.filter((p) => p.on).flatMap((p) => p.items);
+  const pricesOk = packs.every((p) => !p.on || p.items.every((i) => priceOk(i.price))) && custom.every((i) => priceOk(i.price));
+  const customComplete = custom.every(customOk);
+  const activeItems = [...packs.filter((p) => p.on).flatMap((p) => p.items), ...custom.filter(customOk)];
+  const sourceMeta = MIGRATION_SOURCES.find((s) => s.id === source) ?? MIGRATION_SOURCES[0];
+  const sourceReady = sourceMeta.key ? sourceKey.trim().length >= 8 : csvFile !== null;
   const phoneDigits = phone.replace(/\D/g, "");
   const cardDigits = card.replace(/\D/g, "");
   const payErr = payTo === "sbp" ? (phoneDigits.length === 10 ? null : "Номер из 10 цифр после +7") : cardDigits.length === 16 ? null : "Номер карты — 16 цифр";
@@ -158,7 +172,7 @@ export function OnboardingWizard({ initialGame }: { initialGame: GameId }) {
   const valid = [
     !nErr && !sErr,
     connect === "ok",
-    prodMode === "starter" ? activeItems.length > 0 && pricesOk : migration.status === "done",
+    prodMode === "starter" ? activeItems.length > 0 && pricesOk && customComplete : migration.status === "done",
     !payErr && !splitErr,
     true,
   ];
@@ -176,7 +190,7 @@ export function OnboardingWizard({ initialGame }: { initialGame: GameId }) {
   }
 
   function checkRcon() {
-    if (!rcon.host.trim() || !rcon.password) {
+    if (!rcon.host.trim() || (!isHttpApi && !rcon.password)) {
       setTouched(true);
       return;
     }
@@ -185,6 +199,10 @@ export function OnboardingWizard({ initialGame }: { initialGame: GameId }) {
   }
 
   function runMigration() {
+    if (!sourceReady) {
+      setTouched(true);
+      return;
+    }
     setMigration({ status: "running", lines: 0 });
     const total = migrationLog(source, game).length;
     for (let i = 1; i <= total; i++) later(() => setMigration({ status: i === total ? "done" : "running", lines: i }), i * 520);
@@ -196,10 +214,22 @@ export function OnboardingWizard({ initialGame }: { initialGame: GameId }) {
   }
 
   function chooseGame(g: GameId) {
+    if (g === game) return;
     setGame(g);
     setPacks(starterPacks(g).map((p) => ({ ...p, on: true })));
-    setRcon((r) => ({ ...r, port: g === "rust" ? "28016" : g === "minecraft" ? "25575" : "27015" }));
-    if (g === "gta5") setMode("plugin");
+    setRcon((r) => ({ ...r, port: GAME_SETUP[g].rconPort }));
+    // a different game means a different agent — the old connection doesn't count
+    setConnect("idle");
+    setConnectLog(0);
+    if (!GAME_SETUP[g].agent) setMode("rcon");
+    else if (g === "gta5") setMode("plugin");
+  }
+
+  const customSeq = React.useRef(0);
+  function addCustom() {
+    customSeq.current += 1;
+    const id = `custom-${customSeq.current}`;
+    setCustom((all) => [...all, { id, name: "", price: 199, command: "" }]);
   }
 
   const go = React.useCallback(
@@ -343,36 +373,76 @@ export function OnboardingWizard({ initialGame }: { initialGame: GameId }) {
               ) : null}
 
               {step === 1 ? (
-                <StepShell title="Подключите сервер" lead={`${meta.integration}. Выдача через ${connectorLabel.toLowerCase()} — за доли секунды, RCON — без установки.`}>
-                  <Segmented
-                    value={mode}
-                    onChange={(v) => {
-                      setMode(v);
-                      setConnect("idle");
-                      setConnectLog(0);
-                      if (v === "plugin") startPluginWait();
-                    }}
-                    options={[
-                      { value: "plugin", label: <><Plug /> {connectorLabel}</> },
-                      { value: "rcon", label: <><Terminal /> {game === "gta5" ? "HTTP API" : "RCON"}</> },
-                    ]}
-                  />
-                  {mode === "plugin" ? (
+                <StepShell
+                  title="Подключите сервер"
+                  lead={
+                    setup.agent
+                      ? `${meta.integration}. Выдача через ${connectorLabel.toLowerCase()} — за доли секунды, ${setup.rconLabel} — без установки.`
+                      : `${meta.integration}. Для ${meta.name} ставить ничего не нужно — PayMC выдаёт покупки через ${setup.rconLabel}.`
+                  }
+                >
+                  {setup.agent ? (
+                    <Segmented
+                      value={mode}
+                      onChange={(v) => {
+                        setMode(v);
+                        setConnect("idle");
+                        setConnectLog(0);
+                        if (v === "plugin") startPluginWait();
+                      }}
+                      options={[
+                        { value: "plugin", label: <><Plug /> {connectorLabel}</> },
+                        { value: "rcon", label: <><Terminal /> {setup.rconLabel}</> },
+                      ]}
+                    />
+                  ) : null}
+                  {mode === "plugin" && setup.agent ? (
                     <div className="mt-5 grid gap-4">
                       <div className="flex flex-wrap items-center gap-3 rounded-lg border border-line bg-surface px-3 py-3">
                         <div className="min-w-0 flex-1">
                           <p className="text-[13.5px] font-medium text-fg">PayMC Agent 2.4.1</p>
-                          <p className="text-xs text-fg-3">{meta.platforms.slice(0, 5).join(" · ")} · 312 КБ</p>
+                          <p className="truncate text-xs text-fg-3">
+                            <span className="font-mono">{setup.agent.file}</span> · {meta.platforms.slice(0, 4).join(" · ")} · 312 КБ
+                          </p>
                         </div>
-                        <Button size="sm" variant="secondary" onClick={() => toast.success("Загрузка началась", { description: "PayMC-2.4.1.jar · 312 КБ" })}>
+                        <Button size="sm" variant="secondary" onClick={() => toast.success("Загрузка началась", { description: `${setup.agent?.file} · 312 КБ` })}>
                           <Download /> Скачать
                         </Button>
                       </div>
                       <CodeBlock
                         title="Консоль сервера"
-                        code={`# 1. Положите файл в папку ${game === "minecraft" ? "plugins" : game === "rust" ? "oxide/plugins" : "resources"} и перезапустите сервер\n# 2. Выполните в консоли:\npaymc connect ${keyFor(effectiveSlug)}`}
+                        code={`# 1. ${setup.agent.file} → ${setup.agent.dir}\n#    и перезапустите сервер\n# 2. Выполните в консоли:\npaymc connect ${keyFor(effectiveSlug)}`}
                       />
                       <ConnectConsole status={connect} lines={connectLog} slug={effectiveSlug} game={game} />
+                    </div>
+                  ) : isHttpApi ? (
+                    <div className="mt-5 grid gap-4">
+                      <Labeled
+                        id="rc-host"
+                        label="Адрес обработчика на вашем сервере"
+                        error={touched && !rcon.host.trim() ? "Укажите URL, на который PayMC будет отправлять выдачу" : null}
+                        hint="POST с телом заказа — ваш движок выдаёт покупку и отвечает 200"
+                      >
+                        <input id="rc-host" value={rcon.host} onChange={(e) => setRcon({ ...rcon, host: e.target.value.trim() })} placeholder="https://api.myrp.ru/paymc" className={cn(field, "font-mono")} />
+                      </Labeled>
+                      <div className="grid gap-1.5">
+                        <p className="text-[13px] font-medium text-fg-2">Секрет подписи</p>
+                        <div className="flex h-10 items-center gap-2 rounded-md border border-line bg-surface pr-1 pl-3">
+                          <span className="min-w-0 flex-1 truncate font-mono text-[13px] text-fg">{keyFor(`${effectiveSlug}-hook`).replace("pk_test_", "whsec_")}</span>
+                          <CopyButton value={keyFor(`${effectiveSlug}-hook`).replace("pk_test_", "whsec_")} label="Скопировать секрет подписи" />
+                        </div>
+                        <p className="text-xs text-fg-3">Проверяйте заголовок X-PayMC-Signature (HMAC-SHA256) — так запросы не подделать.</p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <Button variant="secondary" onClick={checkRcon} disabled={connect === "waiting"}>
+                          {connect === "waiting" ? <Loader2 className="animate-spin" /> : <Zap />} Отправить тестовый запрос
+                        </Button>
+                        {connect === "ok" ? (
+                          <span className="flex items-center gap-1.5 font-mono text-[12px] text-ok">
+                            <Check className="size-3.5" /> POST → 200 OK · 84 мс
+                          </span>
+                        ) : null}
+                      </div>
                     </div>
                   ) : (
                     <div className="mt-5 grid gap-4">
@@ -384,7 +454,12 @@ export function OnboardingWizard({ initialGame }: { initialGame: GameId }) {
                           <input id="rc-port" value={rcon.port} inputMode="numeric" onChange={(e) => setRcon({ ...rcon, port: e.target.value.replace(/\D/g, "").slice(0, 5) })} className={cn(field, "font-mono")} />
                         </Labeled>
                       </div>
-                      <Labeled id="rc-pass" label="Пароль RCON" error={touched && !rcon.password ? "Пароль из server.properties (rcon.password)" : null} hint="Храним зашифрованным, видят только владельцы">
+                      <Labeled
+                        id="rc-pass"
+                        label={`Пароль ${setup.rconLabel}`}
+                        error={touched && !rcon.password ? setup.rconHint : null}
+                        hint={`${setup.rconHint}. Храним зашифрованным, видят только владельцы`}
+                      >
                         <input id="rc-pass" type="password" value={rcon.password} onChange={(e) => setRcon({ ...rcon, password: e.target.value })} className={cn(field, "font-mono")} autoComplete="off" />
                       </Labeled>
                       <div className="flex flex-wrap items-center gap-3">
@@ -393,7 +468,7 @@ export function OnboardingWizard({ initialGame }: { initialGame: GameId }) {
                         </Button>
                         {connect === "ok" ? (
                           <span className="flex items-center gap-1.5 font-mono text-[12px] text-ok">
-                            <Check className="size-3.5" /> list → There are 0 of a max of 100 players online
+                            <Check className="size-3.5" /> {game === "minecraft" ? "list → There are 0 of a max of 100 players online" : `${setup.rconLabel} отвечает · 0 игроков онлайн`}
                           </span>
                         ) : null}
                       </div>
@@ -414,12 +489,31 @@ export function OnboardingWizard({ initialGame }: { initialGame: GameId }) {
                   />
                   {prodMode === "starter" ? (
                     <div className="mt-5 grid gap-3">
+                      {packs.length === 0 && custom.length === 0 ? (
+                        <EmptyState
+                          className="rounded-lg border border-dashed border-line py-10"
+                          icon={<PackagePlus />}
+                          title={`Для ${meta.name} готовых наборов пока нет`}
+                          description="Добавьте товар вручную — название, цену и команду выдачи — или перенесите каталог с другой платформы."
+                          action={
+                            <div className="flex flex-wrap justify-center gap-2">
+                              <Button size="sm" variant="secondary" onClick={addCustom}>
+                                <Plus /> Добавить товар вручную
+                              </Button>
+                              <Button size="sm" variant="ghost" onClick={() => setProdMode("migrate")}>
+                                Переехать с другой платформы
+                              </Button>
+                            </div>
+                          }
+                        />
+                      ) : null}
                       {packs.map((p) => (
                         <div key={p.id} className={cn("rounded-lg border bg-surface transition-colors", p.on ? "border-line" : "border-dashed border-line opacity-70")}>
                           <label className="flex cursor-pointer items-start gap-3 px-4 py-3">
                             <div className="min-w-0 flex-1">
                               <p className="flex flex-wrap items-center gap-2 text-[14px] font-medium text-fg">
                                 {p.title} <Badge tone="outline">{p.plugin}</Badge>
+                                {p.review ? <Badge tone="warn">{p.review}</Badge> : null}
                               </p>
                               <p className="mt-0.5 text-xs text-fg-3">{p.description}</p>
                             </div>
@@ -462,7 +556,66 @@ export function OnboardingWizard({ initialGame }: { initialGame: GameId }) {
                           ) : null}
                         </div>
                       ))}
-                      {touched && activeItems.length === 0 ? <p className="text-xs text-bad">Включите хотя бы один набор — или переезжайте с другой платформы.</p> : null}
+                      {custom.length > 0 ? (
+                        <div className="rounded-lg border border-line bg-surface">
+                          <p className="px-4 pt-3 text-[14px] font-medium text-fg">Свои товары</p>
+                          <p className="px-4 text-xs text-fg-3">Команда выполняется на сервере как есть. Переменные: {"{player}"}, {"{days}"}, {"{amount}"}.</p>
+                          <ul className="mt-2 divide-y divide-line-soft border-t border-line-soft">
+                            {custom.map((it) => {
+                              const bad = !priceOk(it.price);
+                              const update = (patch: Partial<PackItem>) => setCustom((all) => all.map((x) => (x.id === it.id ? { ...x, ...patch } : x)));
+                              return (
+                                <li key={it.id} className="grid grid-cols-[minmax(0,1fr)_96px_32px] items-start gap-2 px-4 py-2.5">
+                                  <div className="grid min-w-0 gap-1.5">
+                                    <input
+                                      value={it.name}
+                                      onChange={(e) => update({ name: e.target.value.slice(0, 48) })}
+                                      placeholder="Название, например VIP · 30 дней"
+                                      aria-label="Название товара"
+                                      aria-invalid={touched && !it.name.trim()}
+                                      className={cn(inputBase, "h-8 px-2.5 text-[13px]", touched && !it.name.trim() && "border-bad/60")}
+                                    />
+                                    <input
+                                      value={it.command}
+                                      onChange={(e) => update({ command: e.target.value.slice(0, 160) })}
+                                      placeholder="команда выдачи, например paymc grant {player} vip 30d"
+                                      spellCheck={false}
+                                      aria-label="Команда выдачи"
+                                      aria-invalid={touched && !it.command.trim()}
+                                      className={cn(inputBase, "h-8 px-2.5 font-mono text-[12px]", touched && !it.command.trim() && "border-bad/60")}
+                                    />
+                                  </div>
+                                  <div className={cn(inputBase, "flex h-8 items-center pr-2", bad && "border-bad/60")}>
+                                    <input
+                                      value={Number.isFinite(it.price) ? String(it.price) : ""}
+                                      inputMode="numeric"
+                                      aria-label="Цена"
+                                      aria-invalid={bad}
+                                      onChange={(e) => update({ price: Number(e.target.value.replace(/\D/g, "").slice(0, 6)) })}
+                                      className="h-full w-full min-w-0 bg-transparent pl-2.5 text-right font-mono text-[13px] text-fg outline-none"
+                                    />
+                                    <span className="pl-1 text-[12px] text-fg-4">₽</span>
+                                  </div>
+                                  <Button variant="ghost" size="icon-sm" aria-label="Удалить товар" onClick={() => setCustom((all) => all.filter((x) => x.id !== it.id))}>
+                                    <Trash2 />
+                                  </Button>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
+                      ) : null}
+                      {packs.length > 0 || custom.length > 0 ? (
+                        <div>
+                          <Button size="sm" variant="ghost" onClick={addCustom}>
+                            <Plus /> Добавить товар вручную
+                          </Button>
+                        </div>
+                      ) : null}
+                      {touched && !customComplete ? <p className="text-xs text-bad">Заполните название и команду у своих товаров — или удалите пустые строки.</p> : null}
+                      {touched && customComplete && activeItems.length === 0 ? (
+                        <p className="text-xs text-bad">Включите хотя бы один набор, добавьте товар вручную — или переезжайте с другой платформы.</p>
+                      ) : null}
                     </div>
                   ) : (
                     <div className="mt-5 grid gap-4">
@@ -476,6 +629,7 @@ export function OnboardingWizard({ initialGame }: { initialGame: GameId }) {
                             disabled={migration.status === "running"}
                             onClick={() => {
                               setSource(s.id);
+                              setSourceKey("");
                               setMigration({ status: "idle", lines: 0 });
                             }}
                             className={cn(
@@ -491,11 +645,56 @@ export function OnboardingWizard({ initialGame }: { initialGame: GameId }) {
                           </button>
                         ))}
                       </div>
+                      {sourceMeta.key ? (
+                        <Labeled
+                          id="ob-src-key"
+                          label={`${sourceMeta.key} ${sourceMeta.label}`}
+                          error={touched && !sourceReady && migration.status === "idle" ? `Вставьте ${sourceMeta.key.toLowerCase()} — без него ${sourceMeta.label} не отдаст товары` : null}
+                          hint={`Где взять: ${sourceMeta.where}. Нужен только доступ на чтение`}
+                        >
+                          <input
+                            id="ob-src-key"
+                            value={sourceKey}
+                            onChange={(e) => setSourceKey(e.target.value.trim().slice(0, 96))}
+                            disabled={migration.status !== "idle"}
+                            spellCheck={false}
+                            autoComplete="off"
+                            placeholder="вставьте ключ"
+                            aria-invalid={!!(touched && !sourceReady)}
+                            className={cn(field, "font-mono text-[13px] disabled:opacity-60")}
+                          />
+                        </Labeled>
+                      ) : (
+                        <div className="grid gap-1.5">
+                          <label
+                            htmlFor="ob-csv"
+                            className={cn(
+                              "flex cursor-pointer items-center gap-3 rounded-lg border border-dashed px-4 py-4 transition-colors hover:border-line-strong",
+                              touched && !csvFile ? "border-bad/60" : "border-line",
+                              migration.status !== "idle" && "pointer-events-none opacity-60",
+                            )}
+                          >
+                            <Upload className="size-4 shrink-0 text-fg-3" />
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-[13.5px] text-fg">{csvFile ?? "Выберите CSV-файл"}</span>
+                              <span className="block text-xs text-fg-3">{csvFile ? "Готово к импорту · заменить — нажмите ещё раз" : "Колонки name, price, command · UTF-8 · до 5 МБ"}</span>
+                            </span>
+                          </label>
+                          <input
+                            id="ob-csv"
+                            type="file"
+                            accept=".csv,text/csv"
+                            className="sr-only"
+                            onChange={(e) => setCsvFile(e.target.files?.[0]?.name ?? null)}
+                          />
+                          {touched && !csvFile ? <p className="text-xs text-bad">Выберите файл — без него переносить нечего</p> : null}
+                        </div>
+                      )}
                       <div className="overflow-hidden rounded-lg border border-line bg-[#070a10]">
                         <div className="flex h-10 items-center justify-between border-b border-line-soft px-3">
-                          <span className="label-mono text-fg-3">Импорт · {MIGRATION_SOURCES.find((s) => s.id === source)?.label}</span>
+                          <span className="label-mono text-fg-3">Импорт · {sourceMeta.label}</span>
                           {migration.status === "idle" ? (
-                            <Button size="xs" variant="primary" onClick={runMigration}>
+                            <Button size="xs" variant="primary" onClick={runMigration} aria-disabled={!sourceReady}>
                               Начать импорт
                             </Button>
                           ) : migration.status === "running" ? (
@@ -525,7 +724,7 @@ export function OnboardingWizard({ initialGame }: { initialGame: GameId }) {
                           )}
                         </ol>
                       </div>
-                      {touched && migration.status !== "done" ? <p className="text-xs text-bad">Запустите импорт или вернитесь к стартовым наборам.</p> : null}
+                      {touched && migration.status === "idle" ? <p className="text-xs text-bad">Запустите импорт или вернитесь к стартовым наборам.</p> : null}
                     </div>
                   )}
                 </StepShell>
@@ -673,8 +872,8 @@ export function OnboardingWizard({ initialGame }: { initialGame: GameId }) {
                     <span className="min-w-0 flex-1 truncate font-mono text-[15px] text-fg">{effectiveSlug}.paymc.ru</span>
                     <CopyButton value={`https://${effectiveSlug}.paymc.ru`} label="Скопировать ссылку на магазин" />
                     <Button asChild size="sm" variant="secondary">
-                      <Link href="/s/arctic" target="_blank" rel="noopener">
-                        Открыть
+                      <Link href="/s/arctic" target="_blank" rel="noopener" title="Витрина демо-проекта ArcticMC — ваша будет выглядеть так же">
+                        Пример витрины
                       </Link>
                     </Button>
                   </div>
@@ -695,7 +894,7 @@ export function OnboardingWizard({ initialGame }: { initialGame: GameId }) {
 
                   <ul className="mt-6 grid gap-2">
                     <CheckItem done label={`Проект «${name.trim() || "Без названия"}»`} meta={`${meta.name} · ${effectiveSlug}.paymc.ru`} />
-                    <CheckItem done label="Сервер подключён" meta={mode === "plugin" ? `${connectorLabel} PayMC 2.4.1` : `${game === "gta5" ? "HTTP API" : "RCON"} · ${rcon.host || "сервер"}`} />
+                    <CheckItem done label="Сервер подключён" meta={mode === "plugin" ? `${connectorLabel} PayMC 2.4.1` : `${setup.rconLabel} · ${rcon.host || "сервер"}`} />
                     <CheckItem
                       done
                       label={prodMode === "starter" ? pluralize(activeItems.length, ["товар", "товара", "товаров"]) : "24 товара перенесены"}
@@ -721,6 +920,7 @@ export function OnboardingWizard({ initialGame }: { initialGame: GameId }) {
           connect={connect}
           mode={mode}
           connectorLabel={connectorLabel}
+          rconLabel={setup.rconLabel}
           products={step < 2 ? 0 : prodMode === "starter" ? activeItems.length : migration.status === "done" ? 24 : 0}
           payout={step >= 3 && !payErr ? (payTo === "sbp" ? `СБП · +7 ${formatPhone(phoneDigits)}` : `Карта •• ${cardDigits.slice(-4)}`) : null}
           tax={tax}
@@ -932,6 +1132,7 @@ function Summary({
   connect,
   mode,
   connectorLabel,
+  rconLabel,
   products,
   payout,
   tax,
@@ -944,6 +1145,7 @@ function Summary({
   connect: ConnectStatus;
   mode: "plugin" | "rcon";
   connectorLabel: string;
+  rconLabel: string;
   products: number;
   payout: string | null;
   tax: TaxStatus;
@@ -952,7 +1154,7 @@ function Summary({
     { k: "Игра", v: GAMES[game].name, ok: true },
     { k: "Проект", v: name.trim() || "—", ok: !!name.trim() },
     { k: "Адрес", v: slug ? `${slug}.paymc.ru` : "—", ok: !!slug && slugOk, mono: true },
-    { k: "Сервер", v: connect === "ok" ? `на связи · ${mode === "plugin" ? connectorLabel.toLowerCase() : "RCON"}` : connect === "waiting" ? "ждём подключения" : "не подключён", ok: connect === "ok" },
+    { k: "Сервер", v: connect === "ok" ? `на связи · ${mode === "plugin" ? connectorLabel.toLowerCase() : rconLabel}` : connect === "waiting" ? "ждём подключения" : "не подключён", ok: connect === "ok" },
     { k: "Товары", v: products ? pluralize(products, ["товар", "товара", "товаров"]) : "—", ok: products > 0 && step >= 2 },
     { k: "Выплаты", v: payout ?? "—", ok: !!payout },
     { k: "Чеки", v: tax === "self" ? "НПД через «Мой налог»" : "касса 54-ФЗ", ok: step >= 3 },

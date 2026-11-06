@@ -20,10 +20,10 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
         </main>
         <footer className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-fg-4">
           <span>© 2026 PayMC</span>
-          <Link href="/#faq" className="transition-colors hover:text-fg-2">
+          <Link href="/legal#offer" className="transition-colors hover:text-fg-2">
             Оферта
           </Link>
-          <Link href="/#faq" className="transition-colors hover:text-fg-2">
+          <Link href="/legal#privacy" className="transition-colors hover:text-fg-2">
             Политика конфиденциальности
           </Link>
           <span>Поддержка в Telegram: @paymc_support</span>

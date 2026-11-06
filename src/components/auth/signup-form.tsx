@@ -49,7 +49,7 @@ export function SignupForm() {
       <p className="label-mono text-[10.5px] text-azure-300">Новый магазин</p>
       <h1 className="mt-3 font-display text-[32px] leading-[1.05] font-semibold tracking-[-0.035em] text-fg">Создайте магазин</h1>
       <p className="mt-2 text-[14px] leading-relaxed text-fg-3">
-        Около 15 минут до первой продажи. Без абонентской платы: 4,9 % с оборота, эквайринг и чеки включены.
+        Около 10&nbsp;минут до первой продажи. Без абонентской платы: 4,9&nbsp;% с оборота, эквайринг и чеки включены.
       </p>
 
       <form onSubmit={submit} noValidate className="mt-8 grid gap-4">
@@ -134,11 +134,11 @@ export function SignupForm() {
             />
             <span>
               Принимаю{" "}
-              <Link href="/#faq" className="text-fg underline underline-offset-2 hover:text-azure-200">
+              <Link href="/legal#offer" target="_blank" rel="noopener" className="text-fg underline underline-offset-2 hover:text-azure-200">
                 оферту
               </Link>{" "}
               и{" "}
-              <Link href="/#faq" className="text-fg underline underline-offset-2 hover:text-azure-200">
+              <Link href="/legal#privacy" target="_blank" rel="noopener" className="text-fg underline underline-offset-2 hover:text-azure-200">
                 политику обработки персональных данных
               </Link>
             </span>

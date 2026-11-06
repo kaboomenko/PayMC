@@ -108,7 +108,7 @@ export function LoginForm() {
       <p className="mt-8 text-[13px] text-fg-3">
         Ещё нет магазина?{" "}
         <Link href="/signup" className="font-medium text-fg underline-offset-4 hover:underline">
-          Создать за 15 минут
+          Создать за 10&nbsp;минут
         </Link>
       </p>
     </div>

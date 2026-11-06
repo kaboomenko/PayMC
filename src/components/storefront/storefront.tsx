@@ -61,6 +61,9 @@ export function Storefront({
     }))
     .filter((g) => g.products.length > 0);
   const pools = data.products.filter((p) => p.kind === "pool" && p.pool);
+  // the ticker only mentions products a player can actually find on this page
+  const listed = new Set([...groups.flatMap((g) => g.products), ...(visible("pools") ? pools : [])].map((p) => p.id));
+  const recent = data.recent.filter((r) => listed.has(r.productId)).slice(0, 14);
   const activeTab = tab !== "all" && groups.some((g) => g.id === tab) ? tab : "all";
   const shown = activeTab === "all" ? groups : groups.filter((g) => g.id === activeTab);
 
@@ -105,9 +108,9 @@ export function Storefront({
           </div>
         </section>
 
-        {visible("recent") && data.recent.length ? (
+        {visible("recent") && recent.length ? (
           <div className="mt-3 @4xl:mt-4">
-            <RecentTicker items={data.recent} now={data.now} />
+            <RecentTicker items={recent} now={data.now} />
           </div>
         ) : null}
 

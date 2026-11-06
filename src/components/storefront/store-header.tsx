@@ -18,56 +18,72 @@ const NAV = [
   { href: "#support", label: "Поддержка" },
 ];
 
+function StoreNav({ className }: { className?: string }) {
+  return (
+    <nav aria-label="Разделы магазина" className={cn("flex items-center gap-1", className)}>
+      {NAV.map((n) => (
+        <a
+          key={n.href}
+          href={n.href}
+          className="rounded-(--st-r-ctl) px-2.5 py-1.5 text-[13px] font-medium text-fg-3 transition-colors hover:bg-white/[0.04] hover:text-fg"
+        >
+          {n.label}
+        </a>
+      ))}
+    </nav>
+  );
+}
+
+/**
+ * Only the logo/trust row is sticky (58–64 px). On narrow widths the section
+ * nav and the address row scroll away with the page instead of eating a fifth
+ * of a phone screen.
+ */
 export function StoreHeader({ data, preview = false }: { data: StoreData; preview?: boolean }) {
   return (
-    <header
-      className={cn(
-        "z-30 border-b border-white/[0.06] bg-[#060912]/85 backdrop-blur-md supports-[backdrop-filter]:bg-[#060912]/70",
-        !preview && "sticky top-0",
-      )}
-    >
-      <div className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-x-5 gap-y-2.5 px-4 py-3 @3xl:h-16 @3xl:flex-nowrap @3xl:px-8 @3xl:py-0">
-        <a href="#top" className="flex min-w-0 items-center gap-2.5 rounded-(--st-r-ctl) outline-offset-4">
-          <StoreLogo name={data.name} size={34} />
-          <span className="min-w-0">
-            <span className="block truncate font-display text-[17px] leading-tight font-semibold tracking-[-0.03em] text-fg">{data.name}</span>
-            <span className="flex items-center gap-1.5 text-[11.5px] leading-tight text-fg-3">
-              <StatusDot tone="ok" pulse className="size-1.5" />
-              <span className="font-mono text-fg-2 nums">{formatNumber(data.online)}</span>
-              {plural(data.online, ["игрок", "игрока", "игроков"])} онлайн
+    <>
+      <header
+        className={cn(
+          "z-30 border-b border-white/[0.06] bg-[#060912]/85 backdrop-blur-md supports-[backdrop-filter]:bg-[#060912]/70",
+          !preview && "sticky top-0",
+        )}
+      >
+        <div className="mx-auto flex max-w-[1200px] items-center gap-x-5 px-4 py-3 @3xl:h-16 @3xl:px-8 @3xl:py-0">
+          <a href="#top" className="flex min-w-0 items-center gap-2.5 rounded-(--st-r-ctl) outline-offset-4">
+            <StoreLogo name={data.name} size={34} />
+            <span className="min-w-0">
+              <span className="block truncate font-display text-[17px] leading-tight font-semibold tracking-[-0.03em] text-fg">{data.name}</span>
+              <span className="flex items-center gap-1.5 text-[11.5px] leading-tight text-fg-3">
+                <StatusDot tone="ok" pulse className="size-1.5" />
+                <span className="font-mono text-fg-2 nums">{formatNumber(data.online)}</span>
+                {plural(data.online, ["игрок", "игрока", "игроков"])} онлайн
+              </span>
             </span>
-          </span>
-        </a>
+          </a>
 
-        <nav aria-label="Разделы магазина" className="order-last -mx-1 flex w-full items-center gap-1 @3xl:order-none @3xl:mx-0 @3xl:w-auto">
-          {NAV.map((n) => (
-            <a
-              key={n.href}
-              href={n.href}
-              className="rounded-(--st-r-ctl) px-2.5 py-1.5 text-[13px] font-medium text-fg-3 transition-colors hover:bg-white/[0.04] hover:text-fg"
-            >
-              {n.label}
-            </a>
-          ))}
-        </nav>
+          <StoreNav className="hidden @3xl:flex" />
 
-        <div className="ml-auto flex items-center gap-2">
-          <div className="hidden h-8 items-center gap-1 rounded-(--st-r-ctl) border border-white/[0.08] bg-white/[0.03] pr-0.5 pl-2.5 @md:flex">
-            <span className="label-mono text-[10px] text-fg-4">IP</span>
-            <span className="font-mono text-[12.5px] text-fg">{data.address}</span>
-            <CopyButton value={data.address} label="Скопировать адрес сервера" className="size-7" />
+          <div className="ml-auto flex items-center gap-2">
+            <div className="hidden h-8 items-center gap-1 rounded-(--st-r-ctl) border border-white/[0.08] bg-white/[0.03] pr-0.5 pl-2.5 @md:flex">
+              <span className="label-mono text-[10px] text-fg-4">IP</span>
+              <span className="font-mono text-[12.5px] text-fg">{data.address}</span>
+              <CopyButton value={data.address} label="Скопировать адрес сервера" className="size-7" />
+            </div>
+            <TrustBadge data={data} />
           </div>
-          <TrustBadge data={data} />
+        </div>
+      </header>
+      {/* narrow widths: nav + address, not sticky */}
+      <div className="relative z-20 border-b border-white/[0.05] bg-[#060912]/60 @3xl:hidden">
+        <StoreNav className="mx-auto max-w-[1200px] px-3 py-1.5" />
+        <div className="flex items-center justify-between gap-2 border-t border-white/[0.05] px-4 py-1.5 @md:hidden">
+          <span className="min-w-0 truncate text-[12px] text-fg-3">
+            Адрес сервера <span className="font-mono text-fg">{data.address}</span>
+          </span>
+          <CopyButton value={data.address} label="Скопировать адрес сервера" />
         </div>
       </div>
-      {/* address row on narrow widths */}
-      <div className="flex items-center justify-between gap-2 border-t border-white/[0.05] px-4 py-1.5 @md:hidden">
-        <span className="text-[12px] text-fg-3">
-          Адрес сервера <span className="font-mono text-fg">{data.address}</span>
-        </span>
-        <CopyButton value={data.address} label="Скопировать адрес сервера" />
-      </div>
-    </header>
+    </>
   );
 }
 
@@ -102,8 +118,14 @@ function TrustBadge({ data }: { data: StoreData }) {
           </li>
           <li className="flex gap-2.5">
             <Check className="mt-0.5 size-3.5 shrink-0 text-ok" />
-            <span className="text-fg-2">Проект прошёл проверку: реквизиты, правила магазина, команды выдачи</span>
+            <span className="text-fg-2">Реквизиты продавца и команды выдачи проверены</span>
           </li>
+          {data.products.some((p) => p.kind === "case") ? (
+            <li className="flex gap-2.5">
+              <Check className="mt-0.5 size-3.5 shrink-0 text-ok" />
+              <span className="text-fg-2">Шансы кейсов опубликованы на карточках</span>
+            </li>
+          ) : null}
         </ul>
         <p className="border-t border-line px-4 py-3 text-xs leading-relaxed text-fg-3">
           Если покупка не дошла, PayMC сам повторит выдачу, а поддержка {data.name} увидит каждый шаг заказа.

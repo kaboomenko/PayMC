@@ -1,13 +1,14 @@
 import * as React from "react";
 import Link from "next/link";
-import { Check, Clock3, Gift, MessageCircle, Send, Server, Users } from "lucide-react";
+import { Check, ChevronDown, Clock3, Gift, MessageCircle, Send, Server, Users } from "lucide-react";
 import { cn, createRng } from "@/lib/utils";
-import { formatDateTime, formatMoney, formatNumber, formatRelative, pluralize } from "@/lib/format";
+import { formatDateTime, formatMoney, formatNumber, formatRelative, pluralize, typo } from "@/lib/format";
 import { PixelAvatar } from "@/components/ui/avatar";
 import { StatusDot } from "@/components/ui/status-dot";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { LogoMark } from "@/components/brand/logo";
 import { ProductArt } from "./art";
+import { CaseOddsButton } from "./odds";
 import { NICK_RE } from "./nickname";
 import type { StoreData, StoreDensity, StoreProduct, StorePurchase, StoreServer, StoreTheme } from "./types";
 
@@ -198,8 +199,8 @@ const BADGE: Record<NonNullable<StoreProduct["badge"]>, { label: string; cls: st
 function BadgeTag({ p }: { p: StoreProduct }) {
   if (!p.badge) return null;
   const b = BADGE[p.badge];
-  const off = p.badge === "sale" && p.oldPrice ? ` −${Math.round((1 - p.price / p.oldPrice) * 100)} %` : "";
-  return <span className={cn("rounded-[3px] px-1.5 py-0.5 text-[10.5px] leading-none font-semibold", b.cls)}>{b.label + off}</span>;
+  const off = p.badge === "sale" && p.oldPrice ? ` −${Math.round((1 - p.price / p.oldPrice) * 100)} %` : "";
+  return <span className={cn("shrink-0 rounded-[3px] px-1.5 py-0.5 text-[10.5px] leading-none font-semibold whitespace-nowrap", b.cls)}>{b.label + off}</span>;
 }
 
 export function BuyButton({ onClick, children, className, disabled }: { onClick?: () => void; children: React.ReactNode; className?: string; disabled?: boolean }) {
@@ -223,23 +224,41 @@ export function ProductCard({ p, density, onBuy }: { p: StoreProduct; density: S
   if (density === "compact") return <CompactCard p={p} dur={dur} onBuy={onBuy} />;
   return (
     <>
-      {/* narrow containers: list row instead of a tall card */}
-      <CompactCard p={p} dur={dur} onBuy={onBuy} className="@md:hidden" />
+      {/* narrow containers: list row instead of a tall card — perks stay one tap away */}
+      <CompactCard p={p} dur={dur} onBuy={onBuy} withPerks className="@md:hidden" />
       <TallCard p={p} dur={dur} onBuy={onBuy} className="hidden @md:flex" />
     </>
   );
 }
 
-function CompactCard({ p, dur, onBuy, className }: { p: StoreProduct; dur: string | null; onBuy: (p: StoreProduct) => void; className?: string }) {
+function CompactCard({
+  p,
+  dur,
+  onBuy,
+  withPerks = false,
+  className,
+}: {
+  p: StoreProduct;
+  dur: string | null;
+  onBuy: (p: StoreProduct) => void;
+  withPerks?: boolean;
+  className?: string;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const perksId = React.useId();
+  const canExpand = withPerks && p.perks.length > 0;
   return (
-      <article className={cn("group flex items-center gap-3 rounded-(--st-r-card) border border-white/[0.08] bg-surface/80 p-2.5 transition-colors hover:border-white/[0.16]", className)}>
-        <ProductArt id={p.id} glyph={p.glyph} tint={p.tint} size="md" className="size-14" />
+    <article className={cn("group rounded-(--st-r-card) border border-white/[0.08] bg-surface/80 p-2.5 transition-colors hover:border-white/[0.16]", className)}>
+      <div className="flex items-center gap-3">
+        <ProductArt p={p} size="md" className="size-14 self-start" />
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            <h4 className="truncate text-[14px] font-semibold tracking-[-0.01em] text-fg">{p.name}</h4>
+          <div className="flex items-start justify-between gap-1.5">
+            <h4 className="line-clamp-2 text-[14px] leading-tight font-semibold tracking-[-0.01em] text-fg">{p.name}</h4>
             <BadgeTag p={p} />
           </div>
-          <p className="mt-0.5 truncate text-xs text-fg-3">{dur ?? p.description}</p>
+          <p className="mt-0.5 truncate text-xs text-fg-3">
+            {withPerks && p.perks.length ? [dur, ...p.perks.slice(0, 2)].filter(Boolean).join(" · ") : (dur ?? p.description)}
+          </p>
           <p className="mt-1 flex items-baseline gap-1.5 font-mono nums">
             <span className="text-[14px] font-semibold text-fg">{formatMoney(p.price)}</span>
             {p.oldPrice ? <s className="text-[11.5px] text-fg-4">{formatMoney(p.oldPrice)}</s> : null}
@@ -248,7 +267,44 @@ function CompactCard({ p, dur, onBuy, className }: { p: StoreProduct; dur: strin
         <BuyButton onClick={() => onBuy(p)} className="h-8 px-3">
           Купить
         </BuyButton>
-      </article>
+      </div>
+      {canExpand || (withPerks && p.kind === "case") ? (
+        <div className="mt-2 flex flex-wrap items-center gap-1.5 pl-[68px]">
+          {canExpand ? (
+            <button
+              type="button"
+              aria-expanded={open}
+              aria-controls={perksId}
+              onClick={() => setOpen((v) => !v)}
+              className="inline-flex h-7 items-center gap-1 rounded-(--st-r-ctl) border border-white/[0.1] px-2 text-[12px] font-medium text-fg-2 transition-colors hover:border-white/[0.2] hover:text-fg"
+            >
+              Что входит
+              <ChevronDown className={cn("size-3.5 transition-transform duration-200", open && "rotate-180")} />
+            </button>
+          ) : null}
+          {withPerks && p.kind === "case" ? <CaseOddsButton productId={p.id} name={p.name} /> : null}
+        </div>
+      ) : null}
+      {canExpand && open ? (
+        <div id={perksId} className="mt-2 border-t border-white/[0.06] pt-2 pl-[68px]">
+          <p className="text-[12.5px] leading-snug text-fg-3">{p.description}</p>
+          <PerkList perks={p.perks} className="mt-2" />
+        </div>
+      ) : null}
+    </article>
+  );
+}
+
+function PerkList({ perks, className }: { perks: string[]; className?: string }) {
+  return (
+    <ul className={cn("grid gap-1", className)}>
+      {perks.map((perk) => (
+        <li key={perk} className="flex items-start gap-1.5 text-[12.5px] leading-snug text-fg-2">
+          <Check className="mt-[3px] size-3 shrink-0 text-(--st-accent-text)" strokeWidth={2.5} />
+          {perk}
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -256,7 +312,7 @@ function TallCard({ p, dur, onBuy, className }: { p: StoreProduct; dur: string |
   return (
     <article className={cn("group flex flex-col rounded-(--st-r-card) border border-white/[0.08] bg-surface/80 p-2 shadow-raise transition-[border-color,transform] duration-200 hover:border-white/[0.16]", className)}>
       <div className="relative">
-        <ProductArt id={p.id} glyph={p.glyph} tint={p.tint} kind={p.kind} />
+        <ProductArt p={p} />
         <span className="absolute right-2.5 bottom-2.5">
           <BadgeTag p={p} />
         </span>
@@ -267,22 +323,16 @@ function TallCard({ p, dur, onBuy, className }: { p: StoreProduct; dur: string |
           {dur ? <span className="shrink-0 font-mono text-[11px] text-fg-3">{dur}</span> : null}
         </div>
         <p className="mt-1 line-clamp-2 text-[12.5px] leading-snug text-fg-3">{p.description}</p>
-        {p.perks.length ? (
-          <ul className="mt-2.5 grid gap-1">
-            {p.perks.map((perk) => (
-              <li key={perk} className="flex items-start gap-1.5 text-[12.5px] leading-snug text-fg-2">
-                <Check className="mt-[3px] size-3 shrink-0 text-(--st-accent-text)" strokeWidth={2.5} />
-                {perk}
-              </li>
-            ))}
-          </ul>
-        ) : null}
+        {p.perks.length ? <PerkList perks={p.perks} className="mt-2.5" /> : null}
         <div className="mt-auto flex items-end justify-between gap-2 pt-4">
           <p className="flex flex-col font-mono leading-tight nums">
             {p.oldPrice ? <s className="text-[11.5px] text-fg-4">{formatMoney(p.oldPrice)}</s> : null}
             <span className="text-[18px] font-semibold tracking-[-0.02em] text-fg">{formatMoney(p.price)}</span>
           </p>
-          <BuyButton onClick={() => onBuy(p)}>Купить</BuyButton>
+          <span className="flex items-center gap-1.5">
+            {p.kind === "case" ? <CaseOddsButton productId={p.id} name={p.name} className="h-9" /> : null}
+            <BuyButton onClick={() => onBuy(p)}>Купить</BuyButton>
+          </span>
         </div>
       </div>
     </article>
@@ -296,7 +346,7 @@ export function PoolCard({ p, now, onBuy }: { p: StoreProduct; now: number; onBu
   const rest = pool.contributors - pool.names.length;
   return (
     <article className="flex flex-col gap-4 rounded-(--st-r-card) border border-white/[0.08] bg-surface/80 p-4 shadow-raise @lg:flex-row @lg:items-stretch @lg:p-5">
-      <ProductArt id={p.id} glyph={p.glyph} tint={p.tint} size="md" className="size-16 @lg:size-20" />
+      <ProductArt p={p} size="md" className="size-16 @lg:size-20" />
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex flex-wrap items-center gap-2">
           <span className="label-mono text-[10px] text-(--st-accent-text)">Складчина</span>
@@ -356,9 +406,9 @@ const RULES = [
   { t: "Если вы не в игре — подождём", d: "Выдадим при следующем входе на любой сервер сети. Заказ никуда не денется." },
   { t: "Сроки суммируются", d: "Повторная покупка привилегии продлевает текущий срок, а не сбрасывает его." },
   { t: "Разбан не действует на читы", d: "Бан за читы и обход блокировок не снимается. Деньги за такой разбан вернём." },
-  { t: "Шансы кейсов открыты", d: "Вероятность каждой награды указана на странице кейса и не меняется тайно." },
-  { t: "Не пришло за 15 минут", d: "Напишите в поддержку номер заказа из письма — проверим трассу выдачи и решим вопрос." },
-];
+  { t: "Шансы кейсов открыты", d: "Вероятность каждой награды — по кнопке «Шансы» на карточке кейса. Меняем только с объявлением." },
+  { t: "Не пришло за 15 минут", d: "Напишите в поддержку номер заказа из письма — проверим трассу выдачи и решим вопрос." },
+].map((r) => ({ t: typo(r.t), d: typo(r.d) }));
 
 export function RulesBlock() {
   return (
@@ -378,12 +428,16 @@ export function RulesBlock() {
 }
 
 const FAQ = [
-  { q: "Оплатил, но в игре ничего не появилось", a: "Обычно выдача занимает меньше секунды. Если вы были офлайн — зайдите на сервер, покупка придёт при входе. Если прошло больше 15 минут, напишите в поддержку номер заказа из письма." },
-  { q: "Можно оплатить с баланса телефона?", a: "Да: МТС, Билайн, МегаФон и T2. Оператор берёт свою комиссию, поэтому выгоднее платить через СБП — без комиссии для вас." },
+  { q: "Оплатил, но в игре ничего не появилось", a: "Обычно выдача занимает меньше секунды. Если вы были офлайн — зайдите на сервер, покупка придёт при входе. Если прошло больше 15 минут, напишите в поддержку номер заказа из письма." },
+  { q: "Можно оплатить с баланса телефона?", a: "Да: МТС, Билайн, МегаФон и T2. Оператор добавляет свою комиссию — сумму с ней он пришлёт в SMS до списания. Без комиссии — через СБП." },
   { q: "Как подарить привилегию другу?", a: "При оформлении включите «Подарить другу» и укажите его ник. Покупка придёт другу, а в чате сервера напишем, от кого подарок." },
+  { q: "Как отменить подписку?", a: "Ссылка на отмену — в каждом письме о списании. После отмены привилегия работает до конца оплаченного месяца." },
   { q: "Нужен ли чек?", a: "Чек формируется автоматически. Укажите email при оплате — пришлём копию туда." },
   { q: "Можно вернуть деньги?", a: "Если покупку не выдали — вернём полностью. Если выдали и вы ей пользовались, возврат решает администрация сервера по правилам магазина." },
-];
+].map((f) => ({ q: f.q, a: typo(f.a) }));
+
+export const RULES_COUNT = RULES.length;
+export const FAQ_COUNT = FAQ.length;
 
 export function FaqBlock() {
   return (
@@ -422,17 +476,21 @@ export function StoreFooter({ data }: { data: StoreData }) {
       <div id="support" className="mx-auto grid max-w-[1200px] scroll-mt-24 gap-8 px-4 py-10 @3xl:grid-cols-[1.2fr_1fr_1fr] @3xl:px-8">
         <div>
           <p className="label-mono text-[10.5px] text-fg-4">Поддержка</p>
-          <p className="mt-2 text-[15px] font-medium text-fg">Что-то не пришло? Ответим в среднем за 12 минут.</p>
+          <p className="mt-2 text-[15px] font-medium text-fg">Что-то не пришло? Ответим в среднем за 12&nbsp;минут.</p>
           <p className="mt-1 text-[12.5px] text-fg-3">Укажите номер заказа PMC-… из письма — по нему видно каждый шаг выдачи.</p>
           <div className="mt-4 flex flex-wrap gap-2">
             <a
-              href="#support"
+              href="https://t.me/arcticmc_help"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex h-8 items-center gap-1.5 rounded-(--st-r-ctl) border border-white/[0.1] px-3 text-[12.5px] text-fg-2 transition-colors hover:border-white/[0.2] hover:text-fg"
             >
               <Send className="size-3.5" /> Telegram · @arcticmc_help
             </a>
             <a
-              href="#support"
+              href="https://vk.me/arcticmc"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex h-8 items-center gap-1.5 rounded-(--st-r-ctl) border border-white/[0.1] px-3 text-[12.5px] text-fg-2 transition-colors hover:border-white/[0.2] hover:text-fg"
             >
               <MessageCircle className="size-3.5" /> VK · vk.me/arcticmc
@@ -442,21 +500,17 @@ export function StoreFooter({ data }: { data: StoreData }) {
         <div className="text-[12.5px]">
           <p className="label-mono text-[10.5px] text-fg-4">Документы</p>
           <ul className="mt-2 grid gap-1.5 text-fg-3">
-            <li>
-              <a href="#rules" className="transition-colors hover:text-fg">
-                Оферта для игроков
-              </a>
-            </li>
-            <li>
-              <a href="#faq" className="transition-colors hover:text-fg">
-                Возвраты и отмена покупки
-              </a>
-            </li>
-            <li>
-              <a href="#rules" className="transition-colors hover:text-fg">
-                Политика конфиденциальности
-              </a>
-            </li>
+            {[
+              { href: "/legal#players", label: "Оферта для игроков" },
+              { href: "/legal#refunds", label: "Возвраты и отмена покупки" },
+              { href: "/legal#privacy", label: "Политика конфиденциальности" },
+            ].map((d) => (
+              <li key={d.href}>
+                <Link href={d.href} target="_blank" rel="noopener" className="transition-colors hover:text-fg">
+                  {d.label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
         <div className="text-[12px] leading-relaxed text-fg-4">

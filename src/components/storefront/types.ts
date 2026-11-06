@@ -32,6 +32,8 @@ export interface StoreProduct {
 
 export interface StorePurchase {
   id: string;
+  /** used to hide purchases of products the store doesn't show */
+  productId: string;
   player: string;
   product: string;
   at: string;
@@ -43,6 +45,11 @@ export interface StorePromo {
   kind: "percent" | "fixed";
   value: number;
   minAmount?: number;
+  /** "all" or the product ids the code applies to */
+  scope: "all" | string[];
+  /** wording of a limited scope: "на кейсы" */
+  scopeLabel?: string;
+  firstPurchaseOnly?: boolean;
 }
 
 export interface StoreServer {
@@ -63,6 +70,8 @@ export interface StoreData {
   recent: StorePurchase[];
   products: StoreProduct[];
   promos: StorePromo[];
+  /** lower-cased nicks that already bought here — for first-purchase promo codes */
+  knownBuyers: string[];
   servers: StoreServer[];
   avgDeliveryMs: number;
   now: number;

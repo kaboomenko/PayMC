@@ -1,34 +1,96 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { ART_TINTS } from "./theme";
+import type { StoreProduct } from "./types";
 
-function hash(str: string) {
-  let h = 2166136261;
-  for (let i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
+/* ───────────── Pixel pictograms ─────────────
+ * Hand-drawn bitmaps: "#" — solid pixel, "+" — half-tone pixel, "." — empty.
+ * They read as the item itself (crown, chest, key, fox…) instead of a monogram.
+ */
+
+const BITMAPS = {
+  crown: ["#...#...#", "##.###.##", "#########", "#+##+##+#", "#########"],
+  chest: [".#######.", "#+++++++#", "#########", "#+++#+++#", "#+++#+++#", "#+++++++#", "#########"],
+  gem: [".#######.", "#+#+#+#+#", "#########", ".#+++++#.", "..#+++#..", "...#+#...", "....#...."],
+  key: [".###.", "#...#", "#...#", "#...#", ".###.", "..#..", "..###", "..#..", "..##."],
+  snowflake: ["....#....", ".#..#..#.", "..#.#.#..", "...###...", "#########", "...###...", "..#.#.#..", ".#..#..#.", "....#...."],
+  fox: ["#.......#", "##.....##", "#+#...#+#", "#########", "##.###.##", "#########", ".#######.", "..##+##..", "...###..."],
+  particles: [".#.....#.", "###...###", ".#..#..#.", "...###...", "....#....", ".#.....#.", "###...###", ".#.....#."],
+  prefix: ["##.....##", "#...#...#", "#..#.#..#", "#..###..#", "#..#.#..#", "##.....##"],
+  cape: ["..#####..", ".##+++##.", ".#+++++#.", ".#+++++#.", "#+++++++#", "#+++++++#", "#+++++++#", "##+#+#+##", "#.#.#.#.#"],
+  padlock: ["...###...", "..#...#..", "..#......", "..#......", ".#######.", ".###.###.", ".###.###.", ".#######.", ".#######."],
+  chat: [".#######.", "#########", "##+++++##", "#########", "##+++####", "#########", ".#######.", ".##......", ".#......."],
+  bolt: ["....##", "...##.", "..##..", ".#####", "...##.", "..##..", ".##...", "##...."],
+  skull: ["..#####..", ".#######.", "#########", "##..#..##", "##..#..##", "#########", ".###+###.", "..#.#.#..", "..#####.."],
+  backpack: ["...###...", "..#...#..", ".#######.", "##+++++##", "##+++++##", "#########", "##+###+##", "##+++++##", ".#######."],
+} satisfies Record<string, string[]>;
+
+type Pictogram = keyof typeof BITMAPS;
+
+const BY_PRODUCT: Record<string, Pictogram> = {
+  "p-case-aurora": "gem",
+  "p-keys-10": "key",
+  "p-pet-fox": "fox",
+  "p-particles-snow": "particles",
+  "p-prefix": "prefix",
+  "p-cape-night": "cape",
+  "p-unmute": "chat",
+  "p-pool-xp": "bolt",
+  "p-pool-dragon": "skull",
+};
+
+const BY_KIND: Record<string, Pictogram> = {
+  rank: "crown",
+  subscription: "crown",
+  case: "chest",
+  currency: "snowflake",
+  kit: "backpack",
+  unban: "padlock",
+  cosmetic: "cape",
+  pool: "bolt",
+};
+
+/** Tier pips under the crown / snowflake: Snow · Frost · Blizzard · Aurora · Arctic */
+const TIER: Record<string, number> = {
+  "p-snow": 1,
+  "p-frost": 2,
+  "p-frost-sub": 2,
+  "p-blizzard": 3,
+  "p-aurora": 4,
+  "p-arctic": 5,
+  "p-coins-1k": 1,
+  "p-coins-5k": 2,
+  "p-coins-15k": 3,
+};
+
+const PIPS: Record<number, number[]> = { 1: [4], 2: [3, 5], 3: [2, 4, 6], 4: [1, 3, 5, 7], 5: [0, 2, 4, 6, 8] };
+
+function bitmapFor(id: string, kind: string): string[] {
+  const rows = BITMAPS[BY_PRODUCT[id] ?? BY_KIND[kind] ?? "chest"];
+  const tier = TIER[id];
+  if (!tier) return rows;
+  const pips = ".........".split("").map((c, x) => (PIPS[tier].includes(x) ? "+" : c)).join("");
+  return [...rows, ".........", pips];
 }
 
-/** Symmetric pixel sprite generated from a seed string (7×7, mirrored). */
-export function PixelSprite({ seed, size = 56, className, fill = "#ffffff" }: { seed: string; size?: number; className?: string; fill?: string }) {
+export function PixelPictogram({ id, kind, size, className }: { id: string; kind: string; size: number; className?: string }) {
+  const rows = bitmapFor(id, kind);
+  const w = Math.max(...rows.map((r) => r.length));
+  const h = rows.length;
   const cells: { x: number; y: number; o: number }[] = [];
-  let bits = hash(seed);
-  for (let y = 0; y < 7; y++) {
-    for (let x = 0; x < 4; x++) {
-      bits = Math.imul(bits ^ (bits >>> 13), 0x5bd1e995) >>> 0;
-      const v = bits % 7;
-      if (v < 3) continue;
-      const o = v === 6 ? 1 : v >= 5 ? 0.7 : 0.4;
-      cells.push({ x, y, o });
-      if (x !== 3) cells.push({ x: 6 - x, y, o });
-    }
-  }
+  rows.forEach((row, y) => {
+    row.split("").forEach((c, x) => {
+      if (c === "#") cells.push({ x, y, o: 1 });
+      else if (c === "+") cells.push({ x, y, o: 0.5 });
+    });
+  });
+  // Square viewBox so every pictogram sits on the same pixel grid.
+  const side = Math.max(w, h, 9);
+  const ox = (side - w) / 2;
+  const oy = (side - h) / 2;
   return (
-    <svg viewBox="0 0 7 7" width={size} height={size} shapeRendering="crispEdges" className={className} aria-hidden>
+    <svg viewBox={`0 0 ${side} ${side}`} width={size} height={size} shapeRendering="crispEdges" className={className} aria-hidden>
       {cells.map((c, i) => (
-        <rect key={i} x={c.x} y={c.y} width={1} height={1} fill={fill} opacity={c.o} />
+        <rect key={i} x={c.x + ox} y={c.y + oy} width={1} height={1} fill="#ffffff" opacity={c.o} />
       ))}
     </svg>
   );
@@ -45,53 +107,46 @@ const KIND_LABEL: Record<string, string> = {
   pool: "Складчина",
 };
 
-/** Generated product art: brand-tinted tile, engineering grid, sprite and glyph. */
-export function ProductArt({
-  id,
-  glyph,
-  tint,
-  kind,
-  className,
-  size = "lg",
-}: {
-  id: string;
-  glyph: string;
-  tint: number;
-  kind?: string;
-  className?: string;
-  size?: "sm" | "md" | "lg";
-}) {
+/** Tile gradient by category, so a row of one category reads as a family. */
+const CATEGORY_TINT: Record<string, string> = {
+  Привилегии: "from-azure-500 via-azure-700 to-azure-950",
+  Подписка: "from-azure-400 via-azure-700 to-azure-950",
+  Кейсы: "from-ice-500 via-ice-600 to-ice-900",
+  Валюта: "from-fg-3 via-surface-4 to-surface",
+  Наборы: "from-azure-600 via-azure-900 to-canvas",
+  Разбан: "from-azure-800 via-azure-950 to-canvas",
+  Косметика: "from-ice-400 via-azure-700 to-azure-950",
+  Складчина: "from-ice-500 via-azure-800 to-azure-950",
+};
+
+type ArtProduct = Pick<StoreProduct, "id" | "glyph" | "kind" | "category">;
+
+/** Product art: category-tinted tile, engineering grid, the item's pixel pictogram. */
+export function ProductArt({ p, className, size = "lg" }: { p: ArtProduct; className?: string; size?: "sm" | "md" | "lg" }) {
   return (
     <div
       className={cn(
-        "relative isolate flex shrink-0 overflow-hidden rounded-(--st-r-art,10px) bg-gradient-to-br ring-1 ring-white/10 ring-inset",
-        ART_TINTS[tint % ART_TINTS.length],
-        size === "sm" && "size-10 items-center justify-center",
-        size === "md" && "size-16 items-center justify-center",
-        size === "lg" && "h-28 w-full items-end p-3",
+        "relative isolate flex shrink-0 items-center justify-center overflow-hidden rounded-(--st-r-art,10px) bg-gradient-to-br ring-1 ring-white/10 ring-inset",
+        CATEGORY_TINT[p.category] ?? CATEGORY_TINT["Привилегии"],
+        size === "sm" && "size-10",
+        size === "md" && "size-16",
+        size === "lg" && "h-28 w-full",
         className,
       )}
       aria-hidden
     >
-      <div className="absolute inset-0 -z-10 bg-grid-sm opacity-80" />
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_bottom,rgb(255_255_255/0.14),transparent_40%)]" />
+      <div className="absolute inset-0 -z-10 bg-grid-sm opacity-70" />
+      <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_bottom,rgb(255_255_255/0.12),transparent_45%)]" />
       {size === "lg" ? (
         <>
-          <PixelSprite seed={id} size={64} className="absolute top-3 right-3 opacity-35 mix-blend-overlay" />
-          {kind ? <span className="label-mono absolute top-3 left-3 text-[9.5px] text-white/70">{KIND_LABEL[kind]}</span> : null}
-          <span className="font-display text-[34px] leading-none font-semibold tracking-[-0.05em] text-white drop-shadow-[0_2px_8px_rgb(0_0_0/0.35)]">
-            {glyph}
+          <span className="label-mono absolute top-2.5 left-2.5 rounded-[3px] bg-black/40 px-1.5 py-0.5 text-[9.5px] text-white/85">{KIND_LABEL[p.kind]}</span>
+          <PixelPictogram id={p.id} kind={p.kind} size={60} className="drop-shadow-[0_3px_0_rgb(0_0_0/0.28)]" />
+          <span className="absolute bottom-2.5 left-2.5 rounded-[3px] bg-black/40 px-1.5 py-0.5 font-mono text-[10px] leading-none font-semibold text-white/85">
+            {p.glyph}
           </span>
         </>
       ) : (
-        <span
-          className={cn(
-            "font-display leading-none font-semibold tracking-[-0.05em] text-white",
-            size === "sm" ? (glyph.length > 2 ? "text-[11px]" : "text-sm") : glyph.length > 2 ? "text-base" : "text-xl",
-          )}
-        >
-          {glyph}
-        </span>
+        <PixelPictogram id={p.id} kind={p.kind} size={size === "sm" ? 24 : 36} className="drop-shadow-[0_2px_0_rgb(0_0_0/0.28)]" />
       )}
     </div>
   );

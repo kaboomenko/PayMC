@@ -34,6 +34,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/toaster";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Storefront } from "../storefront";
+import { FAQ_COUNT, RULES_COUNT } from "../store-sections";
 import { ACCENTS, BLOCK_META, DEFAULT_BLOCKS, DEFAULT_THEME } from "../theme";
 import type { StoreAccent, StoreBlock, StoreBlockId, StoreData, StoreTheme } from "../types";
 import { ScaledFrame } from "./scaled-frame";
@@ -43,11 +44,29 @@ type Snapshot = { theme: StoreTheme; blocks: StoreBlock[]; at: number };
 
 const same = (a: Omit<Snapshot, "at">, b: Omit<Snapshot, "at">) => JSON.stringify([a.theme, a.blocks]) === JSON.stringify([b.theme, b.blocks]);
 
+const PHONE_QUERY = "(max-width: 767px)";
+
+/** true on phone-width viewports; false during SSR and hydration */
+function usePhoneViewport() {
+  return React.useSyncExternalStore(
+    (cb) => {
+      const mq = window.matchMedia(PHONE_QUERY);
+      mq.addEventListener("change", cb);
+      return () => mq.removeEventListener("change", cb);
+    },
+    () => window.matchMedia(PHONE_QUERY).matches,
+    () => false,
+  );
+}
+
 export function StorefrontBuilder({ data }: { data: StoreData }) {
   const [theme, setTheme] = React.useState<StoreTheme>(DEFAULT_THEME);
   const [blocks, setBlocks] = React.useState<StoreBlock[]>(DEFAULT_BLOCKS);
   const [published, setPublished] = React.useState<Snapshot>({ theme: DEFAULT_THEME, blocks: DEFAULT_BLOCKS, at: data.now - 3 * 60 * 60 * 1000 - 14 * 60 * 1000 });
-  const [device, setDevice] = React.useState<"desktop" | "mobile">("desktop");
+  // On a phone the 1280 px desktop preview would be scaled to ~0,28 — start with the phone frame there.
+  const phone = usePhoneViewport();
+  const [pickedDevice, setDevice] = React.useState<"desktop" | "mobile" | null>(null);
+  const device = pickedDevice ?? (phone ? "mobile" : "desktop");
   const dirty = !same({ theme, blocks }, published);
 
   const publish = React.useCallback(() => {
@@ -279,9 +298,9 @@ function blockMeta(id: StoreBlockId, data: StoreData) {
     return id === "pools" ? pluralize(n, ["сбор", "сбора", "сборов"]) : pluralize(n, ["товар", "товара", "товаров"]);
   }
   if (id === "goal" && data.goal) return `${formatMoney(data.goal.raised)} из ${formatMoney(data.goal.target)}`;
-  if (id === "recent") return pluralize(data.recent.length, ["покупка", "покупки", "покупок"]);
-  if (id === "rules") return "6 пунктов";
-  if (id === "faq") return "5 вопросов";
+  if (id === "recent") return "покупки товаров из видимых блоков";
+  if (id === "rules") return pluralize(RULES_COUNT, ["пункт", "пункта", "пунктов"]);
+  if (id === "faq") return pluralize(FAQ_COUNT, ["вопрос", "вопроса", "вопросов"]);
   return "";
 }
 
@@ -380,15 +399,15 @@ function DomainPanel({ data }: { data: StoreData }) {
 
       <div>
         <p className="mb-2 text-[13px] font-medium text-fg">DNS-запись у регистратора</p>
-        <CodeBlock
-          title="arcticmc.ru · DNS"
-          code={`# одна запись — остальное PayMC сделает сам\nshop   CNAME   ${sub}.   ; TTL 3600`}
-        />
+        <CodeBlock title="arcticmc.ru · DNS" code={`# одна запись у регистратора\nshop  CNAME  ${sub}.`} />
       </div>
 
       <ul className="grid gap-2 text-[12.5px]">
         <li className="flex items-start gap-2 text-fg-2">
           <Check className="mt-0.5 size-3.5 shrink-0 text-ok" /> CNAME указывает на PayMC — проверено сегодня в 11:58
+        </li>
+        <li className="flex items-start gap-2 text-fg-2">
+          <Check className="mt-0.5 size-3.5 shrink-0 text-ok" /> TTL — 3600 или по умолчанию у регистратора, остальное PayMC сделает сам
         </li>
         <li className="flex items-start gap-2 text-fg-2">
           <Check className="mt-0.5 size-3.5 shrink-0 text-ok" /> Сертификат Let’s Encrypt до 4 февраля 2027, продлим сами
