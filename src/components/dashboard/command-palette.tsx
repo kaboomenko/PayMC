@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Command } from "cmdk";
+import { Command, defaultFilter } from "cmdk";
 import { Dialog as D } from "radix-ui";
 import {
   ArrowRight,
@@ -22,6 +22,30 @@ import { Kbd } from "@/components/ui/kbd";
 import { toast } from "@/components/ui/toaster";
 import { NAV } from "./nav";
 import type { ShellData } from "./shell-types";
+
+/* Search that forgives the wrong keyboard layout: «dbg» finds «вип», «rjnbr» finds «котик». */
+const EN = "qwertyuiop[]asdfghjkl;'zxcvbnm,.`";
+const RU = "йцукенгшщзхъфывапролджэячсмитьбюё";
+const swapLayout = (text: string) =>
+  [...text.toLowerCase()]
+    .map((ch) => {
+      const i = EN.indexOf(ch);
+      if (i >= 0) return RU[i];
+      const j = RU.indexOf(ch);
+      return j >= 0 ? EN[j] : ch;
+    })
+    .join("");
+
+function layoutTolerantFilter(value: string, search: string, keywords?: string[]) {
+  // order ids must match exactly, not fuzzily (PMC-104883 ≠ PMC-105488)
+  if (/^pmc-?\d+$/i.test(search.trim())) {
+    if (value.startsWith("open-order")) return 1;
+    return value.toLowerCase().includes(search.trim().toLowerCase()) ? 0.95 : 0;
+  }
+  const direct = defaultFilter(value, search, keywords);
+  if (direct > 0 || !search) return direct;
+  return defaultFilter(value, swapLayout(search), keywords) * 0.9;
+}
 
 const itemCls =
   "group flex h-10 cursor-default select-none items-center gap-3 rounded-md px-2.5 text-[13px] text-fg-2 outline-none data-[selected=true]:bg-white/[0.06] data-[selected=true]:text-fg [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-fg-4 data-[selected=true]:[&_svg]:text-azure-300";
@@ -65,7 +89,7 @@ export function CommandPalette({
           className="fixed top-[12vh] left-1/2 z-50 w-[calc(100vw-2rem)] max-w-[620px] -translate-x-1/2 overflow-hidden rounded-xl border border-line-strong bg-surface-2 shadow-pop outline-none data-[state=open]:animate-[fade-up_0.18s_var(--ease-snappy)]"
         >
           <D.Title className="sr-only">Поиск и команды</D.Title>
-          <Command loop className="flex flex-col" label="Поиск и команды">
+          <Command loop filter={layoutTolerantFilter} className="flex flex-col" label="Поиск и команды">
             <div className="flex h-12 items-center gap-2.5 border-b border-line px-4">
               <Search className="size-4 text-fg-3" />
               <Command.Input
@@ -128,6 +152,20 @@ export function CommandPalette({
                 })}
               </Command.Group>
 
+              {/^pmc-\d{5,}$/i.test(query.trim()) ? (
+                <Command.Group heading="Заказ" className={groupCls} forceMount>
+                  <Command.Item
+                    forceMount
+                    value={`open-order ${query}`}
+                    className={itemCls}
+                    onSelect={() => go(`/dashboard/orders?id=${query.trim().toUpperCase()}`)}
+                  >
+                    <Receipt /> Открыть заказ <span className="font-mono">{query.trim().toUpperCase()}</span>
+                    <span className="ml-auto text-xs text-fg-4">трасса выдачи и детали</span>
+                  </Command.Item>
+                </Command.Group>
+              ) : null}
+
               {query.length > 1 ? (
                 <Command.Group heading="Данные" className={groupCls}>
                   {data.search.map((s) => (
@@ -143,16 +181,6 @@ export function CommandPalette({
 
               {query.trim().length > 1 ? (
                 <Command.Group heading="Искать везде" className={groupCls} forceMount>
-                  {/^pmc-\d{5,}$/i.test(query.trim()) ? (
-                    <Command.Item
-                      forceMount
-                      value={`open-order ${query}`}
-                      className={itemCls}
-                      onSelect={() => go(`/dashboard/orders?id=${query.trim().toUpperCase()}`)}
-                    >
-                      <Receipt /> Открыть заказ <span className="font-mono">{query.trim().toUpperCase()}</span>
-                    </Command.Item>
-                  ) : null}
                   <Command.Item
                     forceMount
                     value={`search-orders ${query}`}
