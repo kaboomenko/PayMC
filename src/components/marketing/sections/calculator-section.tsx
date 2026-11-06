@@ -1,7 +1,18 @@
 import { Section, SectionHeading } from "@/components/marketing/section";
 import { SavingsCalculator } from "@/components/marketing/landing-a/savings-calculator";
+import { PLAN_FEES, TIER_THRESHOLDS, TYPICAL_WITHDRAWAL_FEE } from "@/lib/payments";
+import { formatMoneyCompact, formatPercent, typo } from "@/lib/format";
+
+const pct = (rate: number) => formatPercent(rate * 100);
+const money = (v: number) => formatMoneyCompact(v);
 
 export function CalculatorSection() {
+  const note = typo(
+    `Ставка PayMC — ${pct(PLAN_FEES.start)} при обороте до ${money(TIER_THRESHOLDS.pro)} в месяц, ${pct(PLAN_FEES.pro)} — от ${money(TIER_THRESHOLDS.pro)}, ` +
+      `${pct(PLAN_FEES.network)} — от ${money(TIER_THRESHOLDS.network)}; в неё входят эквайринг, ежедневные выплаты, чеки и выдача. ` +
+      `Ставка текущей площадки — выбранная комиссия плюс ${pct(TYPICAL_WITHDRAWAL_FEE)} за вывод, если он платный; обе считаются от оборота. ` +
+      `Платежи с баланса телефона не учитываем: там своя комиссия оператора.`,
+  );
   return (
     <Section id="calculator">
       <SectionHeading
@@ -12,10 +23,7 @@ export function CalculatorSection() {
       />
       <SavingsCalculator />
       <p className="mt-5 max-w-4xl text-[12.5px] leading-relaxed text-fg-4">
-        <span className="font-mono text-fg-3">Останется = оборот × (1 − ставка).</span> Ставка PayMC — 4,9&nbsp;% при обороте до
-        500&nbsp;тыс&nbsp;₽ в&nbsp;месяц, 3,9&nbsp;% — от 500&nbsp;тыс&nbsp;₽, 2,9&nbsp;% — от 3&nbsp;млн&nbsp;₽; в&nbsp;неё входят
-        эквайринг, ежедневные выплаты, чеки и&nbsp;выдача. Ставка текущей площадки — выбранная комиссия плюс 1,5&nbsp;%, если вывод
-        оплачивается отдельно. Платежи с&nbsp;баланса телефона не&nbsp;учитываем: там своя комиссия оператора.
+        <span className="font-mono text-fg-3">Останется = оборот × (1 − ставка).</span> {note}
       </p>
     </Section>
   );

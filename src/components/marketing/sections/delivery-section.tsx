@@ -1,8 +1,9 @@
 import { Section, SectionHeading } from "@/components/marketing/section";
 import { DeliveryPanel } from "@/components/marketing/landing-a/delivery-panel";
+import { buildDeliveryDemo } from "@/components/marketing/landing-a/delivery-data";
 import { CommandBuilder } from "@/components/marketing/landing-a/command-builder";
 import { COMMAND_LIBRARY } from "@/lib/command-library";
-import { plural } from "@/lib/format";
+import { plural, typo } from "@/lib/format";
 
 const SPECS = [
   {
@@ -18,7 +19,7 @@ const SPECS = [
   {
     label: "Автоповтор",
     value: "5 попыток",
-    text: "Интервал растёт от 30 секунд до 5 минут. Не вышло — алерт в Telegram.",
+    text: "Интервал растёт от 30\u00a0секунд до 5\u00a0минут. Не вышло — алерт в Telegram.",
   },
   {
     label: "Журнал как доказательство",
@@ -28,6 +29,7 @@ const SPECS = [
 ];
 
 export function DeliverySection() {
+  const demo = buildDeliveryDemo();
   return (
     <Section id="delivery">
       <SectionHeading
@@ -43,7 +45,7 @@ export function DeliverySection() {
           aria-hidden
           className="pointer-events-none absolute inset-x-0 -top-10 -bottom-10 bg-grid lg:-inset-x-8 [mask-image:radial-gradient(ellipse_60%_55%_at_50%_45%,#000_10%,transparent_75%)]"
         />
-        <DeliveryPanel className="relative" />
+        <DeliveryPanel demo={demo} className="relative" />
       </div>
 
       <dl className="mt-10 grid gap-x-8 gap-y-7 border-t border-line-soft pt-8 sm:grid-cols-2 lg:mt-12 lg:grid-cols-4 lg:gap-x-0">
@@ -52,7 +54,7 @@ export function DeliverySection() {
             <dt className="label-mono text-fg-3">{s.label}</dt>
             <dd className="mt-3">
               <span className="font-mono text-[15px] text-fg">{s.value}</span>
-              <p className="mt-1.5 text-[13.5px] leading-relaxed text-fg-3">{s.text}</p>
+              <p className="mt-1.5 text-[13.5px] leading-relaxed text-fg-3">{typo(s.text)}</p>
             </dd>
           </div>
         ))}

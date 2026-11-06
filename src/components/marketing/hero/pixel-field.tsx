@@ -45,6 +45,7 @@ export function PixelField({ className, burstOrigin = { x: 0.72, y: 0.48 } }: { 
 
     function resize() {
       const rect = canvas!.getBoundingClientRect();
+      if (rect.width < 1 || rect.height < 1) return; // hidden or collapsed — nothing to draw
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       w = rect.width;
       h = rect.height;
@@ -87,9 +88,10 @@ export function PixelField({ className, burstOrigin = { x: 0.72, y: 0.48 } }: { 
     }
 
     function draw() {
+      if (canvas!.width === 0 || canvas!.height === 0) return;
       ctx!.setTransform(1, 0, 0, 1, 0, 0);
       ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
-      if (base) ctx!.drawImage(base, 0, 0);
+      if (base && base.width > 0 && base.height > 0) ctx!.drawImage(base, 0, 0);
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
       for (const c of cells) {
         const a = Math.max(0, c.life);

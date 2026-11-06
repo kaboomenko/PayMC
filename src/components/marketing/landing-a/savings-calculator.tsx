@@ -4,8 +4,8 @@ import * as React from "react";
 import { Slider as S } from "radix-ui";
 import { ArrowDownRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatCompact, formatMoney, formatMoneyCompact, formatPercent } from "@/lib/format";
-import { PLAN_FEES, TIER_THRESHOLDS, feeRateFor } from "@/lib/payments";
+import { formatCompact, formatMoney, formatMoneyCompact, formatPercent, typo } from "@/lib/format";
+import { PLAN_FEES, TIER_THRESHOLDS, TYPICAL_WITHDRAWAL_FEE, feeRateFor } from "@/lib/payments";
 import { Segmented } from "@/components/ui/segmented";
 import { Switch } from "@/components/ui/switch";
 import { CountUp } from "./count-up";
@@ -20,7 +20,8 @@ const DEFAULT_STEP = STEPS.indexOf(150_000);
 
 const CURRENT_RATES = ["5", "7", "9", "12"] as const;
 type CurrentRate = (typeof CURRENT_RATES)[number];
-const WITHDRAWAL_FEE = 0.015;
+/** Paid withdrawals on a typical platform — the same constant the pricing comparison uses; charged on turnover. */
+const WITHDRAWAL_FEE = TYPICAL_WITHDRAWAL_FEE;
 
 const TIERS = [
   { rate: PLAN_FEES.start, label: "до 500 тыс", from: 0 },
@@ -117,7 +118,7 @@ export function SavingsCalculator() {
           <label className="flex cursor-pointer items-start justify-between gap-4 select-none">
             <span>
               <span className="block text-[13px] text-fg-2">Плачу отдельно за вывод</span>
-              <span className="mt-0.5 block text-[12px] text-fg-4">+1,5 % к комиссии площадки</span>
+              <span className="mt-0.5 block text-[12px] text-fg-4">+{pctLabel(WITHDRAWAL_FEE)} от оборота к комиссии площадки</span>
             </span>
             <Switch checked={withdrawal} onCheckedChange={setWithdrawal} aria-label="Плачу отдельно за вывод" className="mt-0.5" />
           </label>
@@ -140,11 +141,13 @@ export function SavingsCalculator() {
               ))}
             </div>
             <p className={cn("mt-2.5 text-[12px] leading-snug", nextClose ? "text-ice-300" : "text-fg-4")} aria-live="polite">
-              {next
-                ? nextClose
-                  ? `До ставки ${pctLabel(next.rate)} — ещё ${formatMoneyCompact(toNext)} оборота в месяц. Снизится автоматически.`
-                  : `Ставка снижается автоматически, без заявок и абонентки.`
-                : "Максимальная скидка. Для сетей от 3 млн ₽ — индивидуальные условия."}
+              {typo(
+                next
+                  ? nextClose
+                    ? `До ставки ${pctLabel(next.rate)} — ещё ${formatMoneyCompact(toNext)} оборота в месяц. Снизится автоматически.`
+                    : `Ставка снижается автоматически, без заявок и абонентки.`
+                  : `Максимальная скидка. Для сетей от ${formatMoneyCompact(TIER_THRESHOLDS.network)} — индивидуальные условия.`,
+              )}
             </p>
           </div>
         </div>
@@ -164,7 +167,7 @@ export function SavingsCalculator() {
             />
             <ResultRow
               name="Текущая площадка"
-              rate={withdrawal ? `${current} % + 1,5 %` : `${current} %`}
+              rate={withdrawal ? `${current} % + ${pctLabel(WITHDRAWAL_FEE)} за вывод` : `${current} %`}
               net={currentNet}
               fee={currentFee}
               barPct={maxFee ? (currentFee / maxFee) * 100 : 0}

@@ -4,6 +4,7 @@ import * as React from "react";
 import { motion, useInView, useReducedMotion } from "motion/react";
 import { Check, FileSpreadsheet, KeyRound, Minus, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { typo } from "@/lib/format";
 
 type LogTone = "muted" | "fg" | "warn" | "ok";
 
@@ -167,7 +168,7 @@ export function MigrateDemo({ className }: { className?: string }) {
             <HowIcon className="size-3.5 text-azure-300" />
             {source.how === "API-ключ" ? "Подключение по API-ключу" : source.how === "Выгрузка" ? "Файл выгрузки" : "CSV по шаблону"}
           </p>
-          <p className="mt-1 text-[12.5px] leading-snug text-fg-3">{source.hint}</p>
+          <p className="mt-1 text-[12.5px] leading-snug text-fg-3">{typo(source.hint)}</p>
           <ul className="mt-4 space-y-1.5">
             {source.items.map((it) => (
               <li key={it.label} className="flex items-center gap-2 text-[12.5px]">

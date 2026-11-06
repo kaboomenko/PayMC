@@ -28,16 +28,15 @@ function QrGlyph({ size = 52, seed = 2051 }: { size?: number; seed?: number }) {
   );
 }
 
-const INCOME = 1_660_000;
-const LIMIT = 2_400_000;
-
 /**
  * НПД receipt mock + yearly limit tracker. Server component — rendered inside
- * the (client) money bento as a slot.
+ * the (client) money bento as a slot. Income and limit come from TAX, so the
+ * numbers match «Финансы → Налоги» in the dashboard.
  */
-export function ReceiptCard() {
+export function ReceiptCard({ income, limit, item }: { income: number; limit: number; item: { name: string; price: number } }) {
   const paidAt = NOW_MS - 18_000;
-  const pct = (INCOME / LIMIT) * 100;
+  const pct = (income / limit) * 100;
+  const price = formatNumber(item.price, 2);
   return (
     <div className="grid flex-1 gap-5 sm:grid-cols-[200px_minmax(0,1fr)] lg:grid-cols-1 xl:grid-cols-[196px_minmax(0,1fr)]">
       <figure
@@ -54,16 +53,16 @@ export function ReceiptCard() {
         <p className="opacity-70">ИНН 7707•••••91</p>
         <div className="my-2 border-t border-dashed border-surface-3/30" />
         <div className="flex justify-between gap-2">
-          <span>1. Привилегия Frost, 30 дней</span>
+          <span>1. {item.name}</span>
         </div>
         <div className="flex justify-between gap-2 opacity-80">
-          <span>1 × 299,00</span>
-          <span>299,00</span>
+          <span>1 × {price}</span>
+          <span>{price}</span>
         </div>
         <div className="my-2 border-t border-dashed border-surface-3/30" />
         <div className="flex justify-between gap-2 text-[11px] font-semibold">
           <span>Итого</span>
-          <span>{formatMoney(299, { fraction: true })}</span>
+          <span>{formatMoney(item.price, { fraction: true })}</span>
         </div>
         <div className="mt-2.5 flex items-center gap-2.5">
           <span className="text-surface-3">
@@ -88,7 +87,7 @@ export function ReceiptCard() {
             <p className="font-mono text-[12px] text-fg nums">{formatPercent(pct, { digits: 0 })}</p>
           </div>
           <p className="mt-1 font-mono text-[13px] text-fg-2 nums">
-            {formatNumber(INCOME / 1_000_000, 2)} млн из {formatNumber(LIMIT / 1_000_000, 1)} млн ₽
+            {formatNumber(income / 1_000_000, 2)} млн из {formatNumber(limit / 1_000_000, 1)} млн&nbsp;₽
           </p>
           <div className="relative mt-2.5 h-2 rounded-full bg-white/[0.06]">
             <div className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-azure-600 to-azure-400" style={{ width: `${pct}%` }} />
@@ -105,8 +104,8 @@ export function ReceiptCard() {
             </span>
           </div>
           <p className="mt-2 text-[12px] leading-snug text-fg-3">
-            Осталось {formatNumber((LIMIT - INCOME) / 1000)} тыс ₽. На 80 % предупредим, на 95 % — предложим перейти на ИП, чтобы не
-            прерывать приём платежей.
+            Осталось {formatNumber(Math.max(0, limit - income) / 1000)}&nbsp;тыс&nbsp;₽. На 80&nbsp;% предупредим, на 95&nbsp;%&nbsp;— предложим
+            перейти на ИП, чтобы не прерывать приём платежей.
           </p>
         </div>
       </div>

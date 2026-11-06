@@ -19,7 +19,7 @@ export function FinalCta() {
         </div>
         <div className="max-w-2xl px-6 py-14 sm:px-10 sm:py-16 lg:px-14 lg:py-20">
           <h2 className="text-h1 text-fg">
-            Запустите магазин сегодня. <span className="text-fg-3">Первые продажи — уже вечером.</span>
+            Запустите магазин сегодня. <span className="text-fg-3">Первые продажи&nbsp;— уже вечером.</span>
           </h2>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Button asChild variant="white" size="lg">

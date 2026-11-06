@@ -24,15 +24,15 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatDuration, formatMoney, formatTime } from "@/lib/format";
+import { formatDuration, formatMoney, formatTime, pluralize } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Kbd } from "@/components/ui/kbd";
 import { PixelAvatar } from "@/components/ui/avatar";
 import { CopyButton } from "@/components/ui/copy-button";
-import { StatusDot, type StatusTone } from "@/components/ui/status-dot";
+import { StatusDot } from "@/components/ui/status-dot";
 import { toast } from "@/components/ui/toaster";
 import { GameChip } from "@/components/dashboard/game-chip";
-import { DEMO_ORDERS, type DemoOrder, type DemoOrderState, type DemoStep, type InGame } from "./delivery-data";
+import type { DeliveryDemo, DemoOrder, DemoOrderState, DemoStep, InGame } from "./delivery-data";
 
 /** Applies the simulated "next event" (player joined / server recovered) to an order. */
 function stateOf(order: DemoOrder, resolved: boolean): DemoOrderState {
@@ -53,15 +53,16 @@ const RAIL = [
   { icon: Wallet, label: "Финансы" },
 ];
 
-export function DeliveryPanel({ className }: { className?: string }) {
+export function DeliveryPanel({ demo, className }: { demo: DeliveryDemo; className?: string }) {
+  const { orders } = demo;
   const reduce = useReducedMotion();
-  const [selectedId, setSelectedId] = React.useState(DEMO_ORDERS[0].id);
+  const [selectedId, setSelectedId] = React.useState(orders[0]?.id ?? "");
   const [resolved, setResolved] = React.useState<Record<string, boolean>>({});
   const [justResolved, setJustResolved] = React.useState<string | null>(null);
   const listRef = React.useRef<HTMLDivElement>(null);
   const traceRef = React.useRef<HTMLOListElement>(null);
 
-  const order = DEMO_ORDERS.find((o) => o.id === selectedId) ?? DEMO_ORDERS[0];
+  const order = orders.find((o) => o.id === selectedId) ?? orders[0];
   const state = stateOf(order, !!resolved[order.id]);
 
   const sectionRef = React.useRef<HTMLElement>(null);
@@ -81,8 +82,8 @@ export function DeliveryPanel({ className }: { className?: string }) {
   };
 
   const onListKey = (e: React.KeyboardEvent) => {
-    const idx = DEMO_ORDERS.findIndex((o) => o.id === selectedId);
-    const n = DEMO_ORDERS.length;
+    const idx = orders.findIndex((o) => o.id === selectedId);
+    const n = orders.length;
     let next = idx;
     if (e.key === "ArrowDown" || e.key === "ArrowRight") next = (idx + 1) % n;
     else if (e.key === "ArrowUp" || e.key === "ArrowLeft") next = (idx - 1 + n) % n;
@@ -90,7 +91,7 @@ export function DeliveryPanel({ className }: { className?: string }) {
     else if (e.key === "End") next = n - 1;
     else return;
     e.preventDefault();
-    select(DEMO_ORDERS[next].id);
+    select(orders[next].id);
     listRef.current?.querySelectorAll<HTMLButtonElement>("[role=tab]")[next]?.focus();
   };
 
@@ -111,20 +112,7 @@ export function DeliveryPanel({ className }: { className?: string }) {
     return () => window.clearTimeout(t);
   }, [justResolved, reduce]);
 
-  const queue = [
-    { name: "Лобби", tone: "ok" as StatusTone, note: "очередь пуста" },
-    {
-      name: "Выживание",
-      tone: "ok" as StatusTone,
-      note: resolved["PMC-104850"] ? "очередь пуста" : "1 задание ждёт входа игрока",
-    },
-    {
-      name: "Анархия",
-      tone: (resolved["PMC-104849"] ? "ok" : "warn") as StatusTone,
-      note: resolved["PMC-104849"] ? "TPS 19,6 · очередь пуста" : "TPS 14,2 · 1 повтор",
-    },
-    { name: "SkyBlock", tone: "bad" as StatusTone, note: "не на связи · 12 заданий сохранено" },
-  ];
+  const queue = demo.queues.map((q) => (q.orderId && q.resolved && resolved[q.orderId] ? { ...q, ...q.resolved } : q));
 
   const baseCount = order.steps.filter((s) => !(s.kind === "retry" && s.status === "pending")).length;
   const delivered = state.status.tone === "ok";
@@ -151,8 +139,12 @@ export function DeliveryPanel({ className }: { className?: string }) {
         </div>
         <p className="ml-auto flex shrink-0 items-center gap-2 font-mono text-[11px] text-fg-3 md:ml-0">
           <StatusDot tone="ok" pulse className="size-1.5" />
-          <span className="hidden sm:inline">3 из 4 серверов на связи</span>
-          <span className="sm:hidden">3/4 онлайн</span>
+          <span className="hidden sm:inline">
+            {demo.serversUp} из {pluralize(demo.serversTotal, ["сервера", "серверов", "серверов"])} на связи
+          </span>
+          <span className="sm:hidden">
+            {demo.serversUp}/{demo.serversTotal} онлайн
+          </span>
         </p>
       </div>
 
@@ -181,7 +173,7 @@ export function DeliveryPanel({ className }: { className?: string }) {
         <div className="flex min-w-0 flex-col border-b border-line lg:border-r lg:border-b-0">
           <div className="flex h-10 items-center justify-between border-b border-line-soft px-3.5">
             <p className="label-mono text-[10px] text-fg-4">
-              Сегодня <span className="text-fg-3">· последние 5</span>
+              Сегодня <span className="text-fg-3">· последние {orders.length}</span>
             </p>
             <span className="hidden items-center gap-1 text-[11px] text-fg-4 sm:flex">
               <Kbd className="h-[18px] min-w-[18px] text-[10px]">↑</Kbd>
@@ -190,7 +182,7 @@ export function DeliveryPanel({ className }: { className?: string }) {
           </div>
 
           <div ref={listRef} role="tablist" aria-orientation="vertical" aria-label="Заказы" onKeyDown={onListKey} className="p-1.5">
-            {DEMO_ORDERS.map((o) => {
+            {orders.map((o) => {
               const active = o.id === selectedId;
               const st = stateOf(o, !!resolved[o.id]).status;
               return (
@@ -245,10 +237,10 @@ export function DeliveryPanel({ className }: { className?: string }) {
             <p className="label-mono mb-2.5 text-[10px] text-fg-4">Очереди серверов</p>
             <ul className="space-y-2">
               {queue.map((q) => (
-                <li key={q.name} className="flex items-center gap-2.5 text-[12px]">
-                  <StatusDot tone={q.tone} className="size-1.5" />
+                <li key={q.name} className="flex items-baseline gap-2.5 text-[12px]">
+                  <StatusDot tone={q.tone} className="size-1.5 shrink-0 -translate-y-px" />
                   <span className="w-[74px] shrink-0 text-fg-2">{q.name}</span>
-                  <span className="truncate font-mono text-[11px] text-fg-4">{q.note}</span>
+                  <span className={cn("min-w-0 font-mono text-[11px] leading-snug", q.tone === "bad" ? "text-bad" : "text-fg-4")}>{q.note}</span>
                 </li>
               ))}
             </ul>

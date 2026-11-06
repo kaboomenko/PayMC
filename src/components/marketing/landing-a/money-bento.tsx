@@ -4,12 +4,12 @@ import * as React from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, Landmark, RotateCw, ShieldCheck, UserRound, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatDate, formatMoney, formatTime, formatWeekday } from "@/lib/format";
+import { formatDate, formatMoney, formatNumber, formatTime, formatWeekday, pluralize, typo } from "@/lib/format";
 import { Avatar } from "@/components/ui/avatar";
 import { Segmented } from "@/components/ui/segmented";
 import { Switch } from "@/components/ui/switch";
 import { CountUp } from "./count-up";
-import { DEFAULT_PAYOUT, PAYOUT_WEEK, splitAmount, type PayoutDay } from "./money-data";
+import type { PayoutDay } from "./money-data";
 
 export interface SplitMember {
   name: string;
@@ -49,20 +49,30 @@ export function Cell({
   );
 }
 
-export function MoneyBento({ members, receipt }: { members: SplitMember[]; receipt: React.ReactNode }) {
-  const [selected, setSelected] = React.useState(DEFAULT_PAYOUT);
+export function MoneyBento({ members, week, receipt }: { members: SplitMember[]; week: PayoutDay[]; receipt: React.ReactNode }) {
+  // yesterday's payout (the last one that has fully landed) is selected by default
+  const [selected, setSelected] = React.useState(Math.max(0, week.length - 2));
   const [failover, setFailover] = React.useState(false);
-  const day = PAYOUT_WEEK[selected];
+  const day = week[selected];
+  const rerouteMin = week.find((d) => d.rerouteMin != null)?.rerouteMin ?? 40;
 
   const pick = (i: number) => {
     setSelected(i);
-    setFailover(PAYOUT_WEEK[i].status === "rerouted");
+    setFailover(week[i].status === "rerouted");
   };
+
+  if (!day) return null;
 
   return (
     <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-12">
-      <PayoutsCell className="md:col-span-2 lg:col-span-7" selected={selected} onSelect={pick} />
-      <RouteCell className="lg:col-span-5" failover={failover} onFailover={setFailover} />
+      <PayoutsCell className="md:col-span-2 lg:col-span-7" week={week} selected={selected} onSelect={pick} />
+      <RouteCell
+        className="lg:col-span-5"
+        failover={failover}
+        onFailover={setFailover}
+        rerouteMin={rerouteMin}
+        shares={members.map((m) => m.pct).join(" / ")}
+      />
       <SplitCell className="lg:col-span-4" members={members} day={day} />
       <Cell kicker="Налоги" title="Чеки самозанятого — сами" className="lg:col-span-5">
         {receipt}
@@ -74,14 +84,24 @@ export function MoneyBento({ members, receipt }: { members: SplitMember[]; recei
 
 /* ───────────── (a) Payout week ───────────── */
 
-function PayoutsCell({ selected, onSelect, className }: { selected: number; onSelect: (i: number) => void; className?: string }) {
-  const max = Math.max(...PAYOUT_WEEK.map((d) => d.amount));
-  const total = PAYOUT_WEEK.reduce((a, d) => a + d.amount, 0);
-  const day = PAYOUT_WEEK[selected];
+function PayoutsCell({
+  week,
+  selected,
+  onSelect,
+  className,
+}: {
+  week: PayoutDay[];
+  selected: number;
+  onSelect: (i: number) => void;
+  className?: string;
+}) {
+  const max = Math.max(...week.map((d) => d.amount));
+  const total = week.reduce((a, d) => a + d.amount, 0);
+  const day = week[selected];
   const tabsRef = React.useRef<HTMLDivElement>(null);
 
   const onKey = (e: React.KeyboardEvent) => {
-    const n = PAYOUT_WEEK.length;
+    const n = week.length;
     let next = selected;
     if (e.key === "ArrowRight") next = Math.min(n - 1, selected + 1);
     else if (e.key === "ArrowLeft") next = Math.max(0, selected - 1);
@@ -100,13 +120,13 @@ function PayoutsCell({ selected, onSelect, className }: { selected: number; onSe
       className={className}
       aside={
         <p className="text-right font-mono text-[11px] text-fg-4">
-          за 7 дней
+          за {pluralize(week.length, ["день", "дня", "дней"])}
           <span className="mt-0.5 block text-[14px] text-fg nums">{formatMoney(total)}</span>
         </p>
       }
     >
       <div ref={tabsRef} role="tablist" aria-label="Выплаты за неделю" onKeyDown={onKey} className="grid grid-cols-7 gap-1 sm:gap-1.5">
-        {PAYOUT_WEEK.map((d, i) => {
+        {week.map((d, i) => {
           const active = i === selected;
           const h = Math.max(18, Math.round((d.amount / max) * 100));
           return (
@@ -125,7 +145,7 @@ function PayoutsCell({ selected, onSelect, className }: { selected: number; onSe
               )}
             >
               <span className={cn("hidden font-mono text-[10.5px] nums sm:block", active ? "text-fg" : "text-fg-4")}>
-                {formatMoney(d.amount).replace(" ₽", "")}
+                {formatNumber(d.amount)}
               </span>
               <span className="flex h-[92px] w-full items-end justify-center sm:h-[104px]">
                 <span
@@ -185,7 +205,7 @@ function PayoutsCell({ selected, onSelect, className }: { selected: number; onSe
                     l.tone === "muted" && "text-fg-2",
                   )}
                 >
-                  {l.text}
+                  {typo(l.text)}
                 </span>
               </li>
             ))}
@@ -266,19 +286,32 @@ function FlowNode({
         state === "down" && "border-bad/30 bg-bad-soft",
       )}
     >
-      <div className="flex items-center justify-between gap-2">
-        <p className={cn("flex min-w-0 items-center gap-1.5 text-[12.5px] font-medium", state === "standby" ? "text-fg-3" : "text-fg")}>
-          <Icon className={cn("size-3.5 shrink-0", state === "down" ? "text-bad" : state === "standby" ? "text-fg-4" : "text-azure-300")} />
-          <span className="truncate">{title}</span>
-        </p>
-        {badge}
+      <p className={cn("flex min-w-0 items-center gap-1.5 text-[12.5px] font-medium", state === "standby" ? "text-fg-3" : "text-fg")}>
+        <Icon className={cn("size-3.5 shrink-0", state === "down" ? "text-bad" : state === "standby" ? "text-fg-4" : "text-azure-300")} />
+        <span className="truncate">{title}</span>
+      </p>
+      {/* the status badge sits on the meta line, so a narrow node never clips its title */}
+      <div className="mt-0.5 flex items-baseline justify-between gap-2">
+        <p className="min-w-0 truncate font-mono text-[10.5px] text-fg-4">{meta}</p>
+        {badge ? <span className="shrink-0">{badge}</span> : null}
       </div>
-      <p className="mt-0.5 truncate font-mono text-[10.5px] text-fg-4">{meta}</p>
     </div>
   );
 }
 
-function RouteCell({ failover, onFailover, className }: { failover: boolean; onFailover: (v: boolean) => void; className?: string }) {
+function RouteCell({
+  failover,
+  onFailover,
+  rerouteMin,
+  shares,
+  className,
+}: {
+  failover: boolean;
+  onFailover: (v: boolean) => void;
+  rerouteMin: number;
+  shares: string;
+  className?: string;
+}) {
   return (
     <Cell
       kicker="Маршрут денег"
@@ -287,7 +320,7 @@ function RouteCell({ failover, onFailover, className }: { failover: boolean; onF
       aside={
         <label className="flex cursor-pointer items-center gap-2 text-[11.5px] text-fg-3 select-none">
           <Switch size="sm" checked={failover} onCheckedChange={onFailover} aria-label="Сбой основного банка" />
-          <span className="hidden sm:inline">сбой банка</span>
+          <span className="whitespace-nowrap">сбой банка</span>
         </label>
       }
     >
@@ -318,7 +351,7 @@ function RouteCell({ failover, onFailover, className }: { failover: boolean; onF
               title="Резервный"
               meta="второй банк"
               state={failover ? "active" : "standby"}
-              badge={<span className={cn("font-mono text-[10px]", failover ? "text-ice-300" : "text-fg-4")}>{failover ? "+40 мин" : "ждёт"}</span>}
+              badge={<span className={cn("font-mono text-[10px]", failover ? "text-ice-300" : "text-fg-4")}>{failover ? `+${rerouteMin}\u00a0мин` : "ждёт"}</span>}
             />
           </div>
         </div>
@@ -326,7 +359,7 @@ function RouteCell({ failover, onFailover, className }: { failover: boolean; onF
           <Wire d="M25 0 V14 H50 V28" state={failover ? "idle" : "active"} />
           <Wire d="M75 0 V14 H50 V28" state={failover ? "active" : "idle"} />
         </svg>
-        <FlowNode icon={Users} title="Вы и команда" meta="карта или СБП · доли 60 / 25 / 15" />
+        <FlowNode icon={Users} title="Вы и команда" meta={`карта или СБП · доли ${shares}`} />
       </div>
       <p className="mt-4 flex items-start gap-2 border-t border-line-soft pt-3 text-[12.5px] leading-snug text-fg-3">
         <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-ok" />
@@ -345,7 +378,6 @@ const SPLIT_TONES = ["bg-azure-500", "bg-ice-400", "bg-azure-200"];
 
 function SplitCell({ members, day, className }: { members: SplitMember[]; day: PayoutDay; className?: string }) {
   const [hover, setHover] = React.useState<number | null>(null);
-  const parts = splitAmount(day.amount, members.map((m) => m.pct));
   return (
     <Cell
       kicker="Сплит команды"
@@ -386,7 +418,7 @@ function SplitCell({ members, day, className }: { members: SplitMember[]; day: P
               </span>
             </span>
             <span className="text-right">
-              <CountUp value={parts[i]} className="block font-mono text-[13px] text-fg nums" />
+              <CountUp value={day.splits[i] ?? 0} className="block font-mono text-[13px] text-fg nums" />
               <span className="font-mono text-[10.5px] text-fg-4 nums">{m.pct} %</span>
             </span>
           </li>

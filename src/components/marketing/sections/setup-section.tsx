@@ -1,5 +1,8 @@
 import { Section, SectionHeading } from "@/components/marketing/section";
 import { CopyButton } from "@/components/ui/copy-button";
+import { StatusDot } from "@/components/ui/status-dot";
+import { getServer } from "@/lib/mock";
+import { typo } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const STEPS = [
@@ -29,6 +32,8 @@ const CHECKS = [
 ];
 
 export function SetupSection() {
+  const srv = getServer("srv-survival");
+  const consoleLabel = srv ? `Консоль · ${srv.name} · ${srv.platform}` : "Консоль сервера";
   return (
     <Section id="setup">
       <SectionHeading
@@ -52,7 +57,7 @@ export function SetupSection() {
             <div className="lg:mt-5">
               <p className="font-mono text-[13px] text-azure-300 nums">{s.t}</p>
               <p className="mt-1 text-[16px] font-semibold tracking-[-0.015em] text-fg">{s.title}</p>
-              <p className="mt-1 max-w-[260px] text-[13.5px] leading-relaxed text-fg-3">{s.text}</p>
+              <p className="mt-1 max-w-[260px] text-[13.5px] leading-relaxed text-fg-3">{typo(s.text)}</p>
             </div>
           </li>
         ))}
@@ -62,13 +67,9 @@ export function SetupSection() {
         {/* terminal */}
         <div className="min-w-0 overflow-hidden rounded-xl border border-line-strong bg-[#070a10] shadow-[0_30px_80px_-40px_rgb(0_0_0/0.9)] lg:col-span-7">
           <div className="flex h-10 items-center justify-between border-b border-line-soft pr-1.5 pl-4">
-            <span className="flex items-center gap-2">
-              <span className="flex gap-1.5" aria-hidden>
-                <span className="size-2.5 rounded-full bg-surface-4" />
-                <span className="size-2.5 rounded-full bg-surface-4" />
-                <span className="size-2.5 rounded-full bg-surface-4" />
-              </span>
-              <span className="label-mono ml-2 text-fg-4">Консоль · Выживание</span>
+            <span className="flex min-w-0 items-center gap-2.5">
+              <StatusDot tone="ok" pulse className="size-1.5 shrink-0" />
+              <span className="label-mono truncate text-fg-4">{consoleLabel}</span>
             </span>
             <span className="flex items-center gap-1.5">
               <span className="hidden font-mono text-[11px] text-fg-4 sm:inline">{COMMAND}</span>
@@ -104,12 +105,12 @@ export function SetupSection() {
             {CHECKS.map(([k, v]) => (
               <div key={k} className="grid gap-1 py-3 sm:grid-cols-[150px_1fr] sm:gap-4">
                 <dt className="text-[13.5px] font-medium text-fg">{k}</dt>
-                <dd className="text-[13px] leading-snug text-fg-3">{v}</dd>
+                <dd className="text-[13px] leading-snug text-fg-3">{typo(v)}</dd>
               </div>
             ))}
           </dl>
           <p className="mt-4 text-[13px] leading-relaxed text-fg-3">
-            Нет доступа к консоли? Хостинг с панелью Pterodactyl — ставим плагин через неё, RCON — просто впишите порт и пароль.
+            Нет доступа к консоли? Хостинг с панелью Pterodactyl&nbsp;— ставим плагин через неё, RCON&nbsp;— просто впишите порт и&nbsp;пароль.
           </p>
         </div>
       </div>

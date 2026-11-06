@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { formatMoney, formatNumber, formatPercent } from "@/lib/format";
+import { formatMoney, formatNumber, formatPercent, plural, pluralize } from "@/lib/format";
 import { Avatar } from "@/components/ui/avatar";
 
 /* ───────────── Wipe calendar ───────────── */
@@ -36,7 +36,7 @@ export function WipeStrip({
                       d.past ? "text-fg-3" : "text-ice-300",
                     )}
                   >
-                    −{d.wipe.discount}%
+                    −{d.wipe.discount}&nbsp;%
                   </span>
                 ) : null}
                 <span
@@ -115,7 +115,16 @@ export interface CreatorRow {
   owed: number;
 }
 
-export function CreatorBoard({ rows, totalOwed }: { rows: CreatorRow[]; totalOwed: number }) {
+export function CreatorBoard({
+  rows,
+  rest,
+  totalOwed,
+}: {
+  rows: CreatorRow[];
+  /** creators who are owed money but don't fit into the table */
+  rest: { count: number; owed: number };
+  totalOwed: number;
+}) {
   return (
     <div className="flex flex-1 flex-col">
       <div className="overflow-hidden rounded-lg border border-line">
@@ -150,6 +159,15 @@ export function CreatorBoard({ rows, totalOwed }: { rows: CreatorRow[]; totalOwe
                 <td className="pr-3 text-right font-mono text-ice-300 nums">{formatMoney(r.owed)}</td>
               </tr>
             ))}
+            {rest.count > 0 ? (
+              <tr className="border-t border-line-soft">
+                <td colSpan={2} className="h-8 pl-3 text-[11.5px] text-fg-4">
+                  <span className="pl-5">+ ещё {pluralize(rest.count, ["блогер", "блогера", "блогеров"])}</span>
+                </td>
+                <td className="hidden sm:table-cell" />
+                <td className="pr-3 text-right font-mono text-[11.5px] text-fg-3 nums">{formatMoney(rest.owed)}</td>
+              </tr>
+            ) : null}
           </tbody>
         </table>
       </div>
@@ -197,7 +215,7 @@ export function AbTest({ a, b, probability, daysLeft }: { a: AbVariant; b: AbVar
               <span className={cn("block h-full rounded-full", lead ? "bg-azure-400" : "bg-fg-4")} style={{ width: `${(v.rpv / max) * 100}%` }} />
             </span>
             <p className="mt-1.5 font-mono text-[10.5px] text-fg-4 nums">
-              конверсия {formatPercent(v.conv)} · {formatNumber(v.visitors)} визитов
+              конверсия {formatPercent(v.conv)} · {formatNumber(v.visitors)} {plural(v.visitors, ["визит", "визита", "визитов"])}
             </p>
           </li>
         ))}
@@ -213,7 +231,9 @@ export function AbTest({ a, b, probability, daysLeft }: { a: AbVariant; b: AbVar
           <span className="absolute inset-y-0 left-0 rounded-full bg-ice-400" style={{ width: `${probability * 100}%` }} />
           <span aria-hidden className="absolute -top-1 -bottom-1 left-[95%] w-px bg-fg-3" />
         </div>
-        <p className="mt-1.5 text-[11px] text-fg-4">Остановим сами на 95 % · осталось {daysLeft} дн</p>
+        <p className="mt-1.5 text-[11px] text-fg-4">
+          Остановим сами на 95&nbsp;% · осталось {pluralize(daysLeft, ["день", "дня", "дней"])}
+        </p>
       </div>
     </div>
   );

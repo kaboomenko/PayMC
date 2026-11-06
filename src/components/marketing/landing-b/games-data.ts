@@ -63,7 +63,7 @@ export const GAME_INSTALL: Record<GameId, { via: ("agent" | "rcon")[]; snippet: 
   scum: {
     via: ["rcon"],
     title: "RCON-бот",
-    snippet: ["# Укажите IP, RCON-порт и пароль в кабинете", "# Шаблон выдачи:", "#SpawnItem {item} {amount} Location {steam_id}"].join("\n"),
+    snippet: ["# Укажите IP, RCON-порт и пароль в кабинете", "# Шаблон выдачи:", "#SpawnItem {steamid} Weapon_AK47 {amount}"].join("\n"),
   },
   "7dtd": {
     via: ["rcon", "agent"],

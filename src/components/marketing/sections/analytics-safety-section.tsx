@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { CALENDAR, FORECAST, NOW_MS, DAY, getDailySeries, getKpis, getPlayerByName, getPlayers, pct } from "@/lib/mock";
-import { formatDate, formatDateShort, formatMoney, formatNumber, formatPercent, formatWeekday } from "@/lib/format";
+import { CALENDAR, FORECAST, NOW_MS, DAY, getDailySeries, getKpis, getOrders, getPlayerByName, getPlayers, getProduct, pct } from "@/lib/mock";
+import { formatDate, formatDateShort, formatMoney, formatNumber, formatPercent, formatWeekday, typo } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Section, SectionHeading } from "@/components/marketing/section";
 import { Delta } from "@/components/ui/delta";
@@ -39,6 +39,15 @@ export function AnalyticsSafetySection() {
     checked ? { name: checked.name, risk: checked.risk, verdict: "3-D Secure" } : null,
     blocked ? { name: blocked.name, risk: blocked.risk, verdict: "отклонён" } : null,
   ].filter((r): r is { name: string; risk: number; verdict: string } => Boolean(r));
+
+  // rollback example from a real chargeback in the order log: the rank's own delivery command, reversed
+  const chargeback = getOrders({ status: "chargeback" })[0];
+  const cbProduct = chargeback ? getProduct(chargeback.items[0]?.productId ?? "") : undefined;
+  const cbGroup = cbProduct?.commands.map((c) => c.template.match(/parent addtemp (\S+)/)?.[1]).find(Boolean);
+  const rollback =
+    chargeback && cbProduct && cbGroup
+      ? { player: chargeback.playerName, group: cbGroup, note: `спор по ${chargeback.id} · ${cbProduct.name} · ${formatMoney(chargeback.amount)}` }
+      : { player: checked?.name ?? "player", group: "frost", note: "спор по карте · Frost" };
 
   const metrics = [
     {
@@ -116,7 +125,7 @@ export function AnalyticsSafetySection() {
                 <span className="font-mono text-[24px] font-medium tracking-[-0.02em] text-fg nums">{m.value}</span>
                 {m.delta !== null ? <Delta value={m.delta} /> : <span className="font-mono text-[11px] text-fg-4">середина</span>}
               </dd>
-              <p className="mt-1.5 text-[12.5px] leading-snug text-fg-3">{m.note}</p>
+              <p className="mt-1.5 text-[12.5px] leading-snug text-fg-3">{typo(m.note)}</p>
             </div>
           ))}
         </dl>
@@ -127,8 +136,8 @@ export function AnalyticsSafetySection() {
         <div className="lg:col-span-5">
           <h3 className="text-h3 text-fg">Защита — до оплаты и после неё</h3>
           <p className="mt-3 max-w-md text-[15px] leading-relaxed text-fg-2">
-            Чарджбэк на 1 790 ₽ стоит дороже самой покупки: штраф банка, снятая выдача, время на спор. Поэтому проверяем до списания, а после — всё
-            делаем сами.
+            Чарджбэк на 1&nbsp;790&nbsp;₽ стоит дороже самой покупки: штраф банка, снятая выдача, время на спор. Поэтому проверяем до списания,
+            а&nbsp;после&nbsp;— всё делаем сами.
           </p>
           <div className="mt-6">
             <RulesCheck />
@@ -167,10 +176,11 @@ export function AnalyticsSafetySection() {
           </SpecRow>
           <SpecRow title="Автоснятие при чарджбэке" desc="Банк открыл спор — PayMC сам откатывает выдачу: группу, валюту, предметы. Команды отката лежат рядом с командами выдачи.">
             <div className="w-full rounded-md border border-line-soft bg-[#06080c] px-2.5 py-2 font-mono text-[11px] leading-[1.6] sm:w-[260px]">
-              <p className="truncate text-fg-2">
-                <span className="text-fg-4">$ </span>lp user {blocked?.name ?? "player"} parent remove frost
+              <p className="text-fg-4">{rollback.note}</p>
+              <p className="break-words text-fg-2">
+                <span className="text-fg-4">$ </span>lp user {rollback.player} parent remove {rollback.group}
               </p>
-              <p className="text-ok">снято за 0,6 с</p>
+              <p className="text-ok">снято за 0,6&nbsp;с</p>
             </div>
           </SpecRow>
           <SpecRow title="Родительский контроль" desc="Лимит трат в сутки. Покупки дороже 1 000 ₽ — только после подтверждения родителя по ссылке.">
@@ -196,7 +206,7 @@ export function AnalyticsSafetySection() {
                   {f}
                 </span>
               ))}
-              <span className="w-full pt-1 font-mono text-[10.5px] text-fg-4">собирается за 2 с · отправка в банк в 1 клик</span>
+              <span className="w-full pt-1 font-mono text-[10.5px] text-fg-4">собирается за 2&nbsp;с · отправка в&nbsp;банк в&nbsp;1&nbsp;клик</span>
             </div>
           </SpecRow>
         </ul>
@@ -210,7 +220,7 @@ function SpecRow({ title, desc, children }: { title: string; desc: string; child
     <li className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
       <div className="min-w-0 sm:max-w-[330px]">
         <p className="text-[14px] font-medium text-fg">{title}</p>
-        <p className="mt-0.5 text-[13px] leading-snug text-fg-3">{desc}</p>
+        <p className="mt-0.5 text-[13px] leading-snug text-fg-3">{typo(desc)}</p>
       </div>
       <div className="shrink-0">{children}</div>
     </li>

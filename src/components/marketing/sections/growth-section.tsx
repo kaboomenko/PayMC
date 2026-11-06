@@ -89,9 +89,8 @@ export function GrowthSection() {
   const campaigns = campaignSummaries();
   const online = getServer("srv-survival")?.online ?? 0;
 
-  const creators = [...CREATORS]
-    .filter((c) => c.status === "active")
-    .sort((a, b) => b.revenue - a.revenue)
+  const owedCreators = [...CREATORS].filter((c) => c.status === "active" || c.owed > 0).sort((a, b) => b.revenue - a.revenue);
+  const creators = owedCreators
     .slice(0, 4)
     .map((c) => ({
       id: c.id,
@@ -102,7 +101,10 @@ export function GrowthSection() {
       revenue: c.revenue,
       owed: c.owed,
     }));
-  const totalOwed = CREATORS.reduce((a, c) => a + c.owed, 0);
+  // everyone who is owed money tomorrow — the rows above plus the ones that don't fit
+  const hidden = owedCreators.slice(4);
+  const creatorsRest = { count: hidden.length, owed: hidden.reduce((a, c) => a + c.owed, 0) };
+  const totalOwed = owedCreators.reduce((a, c) => a + c.owed, 0);
 
   const pool = getProduct("p-pool-xp");
   const poolNames = [...new Set(getOrdersByProduct("p-pool-xp", 40).map((o) => o.playerName))];
@@ -138,8 +140,8 @@ export function GrowthSection() {
       <SectionHeading
         index="02"
         eyebrow="Рост"
-        title="Маркетинг там, где игроки,"
-        muted="— внутри игры, а не в почте."
+        title={"Маркетинг там, где игроки\u00a0—"}
+        muted="внутри игры, а не в почте."
         lead="Кампании срабатывают от событий на сервере: брошенная оплата, конец привилегии, игрок пропал на две недели. Сообщение приходит в чат, боссбар или титр — туда, куда игрок и так смотрит."
         aside={
           <div className="border-l border-line pl-4 lg:mb-1">
@@ -166,7 +168,7 @@ export function GrowthSection() {
           title="Коды блогеров"
           desc="У каждого блогера свой код и процент. Доля считается с каждой покупки и уходит ему сама."
         >
-          <CreatorBoard rows={creators} totalOwed={totalOwed} />
+          <CreatorBoard rows={creators} rest={creatorsRest} totalOwed={totalOwed} />
         </Tile>
 
         <Tile

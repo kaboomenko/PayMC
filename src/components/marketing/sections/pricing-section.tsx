@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Calculator, Check, Minus } from "lucide-react";
-import { PLAN_FEES, feeRateFor } from "@/lib/payments";
+import { PLAN_FEES, TYPICAL_PLATFORM, feeRateFor } from "@/lib/payments";
 import { getKpis } from "@/lib/mock";
 import { formatMoney, formatNumber, formatPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -27,22 +27,23 @@ const TIERS = [
 ];
 
 const EXAMPLE = 300_000;
-const WITHDRAW_FEE = 0.02;
 
+/** Typical platform: commission + paid withdrawal, both on turnover — the same formula as the calculator. */
 function typical(rate: number) {
   const commission = EXAMPLE * rate;
-  const withdraw = (EXAMPLE - commission) * WITHDRAW_FEE;
+  const withdraw = EXAMPLE * TYPICAL_PLATFORM.withdrawalFee;
   return { commission, withdraw, total: commission + withdraw, net: EXAMPLE - commission - withdraw };
 }
 
 export function PricingSection() {
-  const lo = typical(0.07);
-  const hi = typical(0.12);
+  const lo = typical(TYPICAL_PLATFORM.commissionMin);
+  const hi = typical(TYPICAL_PLATFORM.commissionMax);
   const ours = EXAMPLE * feeRateFor(EXAMPLE);
   const saveMin = lo.total - ours;
   const saveMax = hi.total - ours;
   const arctic = getKpis(30).revenue;
-  const range = (a: number, b: number) => `${formatNumber(Math.round(a))}–${formatMoney(b)}`;
+  const range = (a: number, b: number) => (Math.round(a) === Math.round(b) ? formatMoney(a) : `${formatNumber(Math.round(a))}–${formatMoney(b)}`);
+  const yearK = (v: number) => formatNumber(Math.round((v * 12) / 1000));
 
   return (
     <Section id="pricing">
@@ -195,8 +196,9 @@ export function PricingSection() {
               Остаётся у вас: <span className="font-mono text-ok nums">+{range(saveMin, saveMax)}</span> в месяц
             </p>
             <p className="mt-1 text-[11.5px] leading-snug text-fg-4">
-              Типичная площадка — комиссия 7–12 % и 2 % за вывод. За год разница — {formatNumber(Math.round((saveMin * 12) / 1000))}–
-              {formatNumber(Math.round((saveMax * 12) / 1000))} тыс ₽.
+              Типичная площадка — комиссия {formatNumber(TYPICAL_PLATFORM.commissionMin * 100)}–
+              {formatPercent(TYPICAL_PLATFORM.commissionMax * 100)} и {formatPercent(TYPICAL_PLATFORM.withdrawalFee * 100)} оборота за
+              вывод. За год разница&nbsp;— <span className="whitespace-nowrap">{yearK(saveMin)}–{yearK(saveMax)}&nbsp;тыс&nbsp;₽</span>.
             </p>
           </div>
         </div>

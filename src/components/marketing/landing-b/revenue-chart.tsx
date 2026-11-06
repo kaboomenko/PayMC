@@ -12,7 +12,8 @@ export interface RevenuePoint {
   online: number;
 }
 
-const thousands = (v: number) => (v >= 1000 ? `${formatNumber(Math.round(v / 1000))} тыс` : formatNumber(v));
+/** Axis/tooltip label: 20 000 → «20 тыс», 2 500 → «2,5 тыс» (never rounds a tick into a wrong label). */
+const thousands = (v: number) => (v >= 1000 ? `${formatNumber(v / 1000, v % 1000 === 0 ? 0 : 1)}\u00a0тыс` : formatNumber(v));
 
 /** Revenue bars vs peak online line — formatters live here because functions can't cross the server boundary. */
 export function RevenueChart({ data }: { data: RevenuePoint[] }) {
