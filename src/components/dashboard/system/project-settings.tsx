@@ -2,9 +2,10 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowUpRight, Check, CircleAlert, FlaskConical, Globe, Lock, PauseCircle, Trash2 } from "lucide-react";
+import { ArrowUpRight, Check, CircleAlert, FlaskConical, Globe, Lock, PauseCircle, RotateCw, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatDateShort, formatTime } from "@/lib/format";
+import { DAY, NOW_MS } from "@/lib/mock/now";
 import type { GameId } from "@/lib/mock/types";
 import { GameChip } from "@/components/dashboard/game-chip";
 import { Badge } from "@/components/ui/badge";
@@ -51,6 +52,8 @@ function slugError(slug: string) {
   return null;
 }
 
+const TEST_TOKENS = ["PMC-7F2K", "PMC-Q4M9", "PMC-X2C7", "PMC-H8T3"];
+
 const TIMEZONES = [
   { value: "msk", label: "Москва · UTC+3" },
   { value: "kgd", label: "Калининград · UTC+2" },
@@ -66,9 +69,24 @@ export function ProjectSettings({ project }: { project: ProjectInfo }) {
   );
   const [saved, setSaved] = React.useState<Form>(initial);
   const [form, setForm] = React.useState<Form>(initial);
-  const [testMode, setTestMode] = React.useState(false);
+  const [testSeq, setTestSeq] = React.useState(0);
   const [paused, setPaused] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
+
+  // Test payments live behind a private 24-hour link for the team, never as a store-wide switch:
+  // a global «no charge» mode would hand real items to every player online.
+  const storeHost = project.domain ?? `${saved.slug}.paymc.ru`;
+  const testToken = TEST_TOKENS[testSeq % TEST_TOKENS.length];
+  const testUntil = NOW_MS + DAY;
+
+  function rotateTestLink() {
+    const prev = testSeq;
+    setTestSeq((n) => n + 1);
+    toast.success("Тестовая ссылка перевыпущена", {
+      description: "Старая перестала работать, новая действует 24 часа",
+      action: { label: "Отменить", onClick: () => setTestSeq(prev) },
+    });
+  }
 
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setForm((f) => ({ ...f, [k]: v }));
   const dirty = JSON.stringify(form) !== JSON.stringify(saved);
@@ -93,13 +111,6 @@ export function ProjectSettings({ project }: { project: ProjectInfo }) {
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
       <div className="min-w-0 space-y-4">
-        {testMode ? (
-          <Note tone="azure" icon={<FlaskConical />}>
-            <span className="font-medium text-fg">Тестовый режим включён.</span> Игроки на витрине видят плашку «тестовые платежи», деньги не списываются, выплаты и
-            чеки не формируются.
-          </Note>
-        ) : null}
-
         <SettingsSection title="Основное" description="Как проект называется и где живёт витрина.">
           <SettingRow
             title="Название проекта"
@@ -359,32 +370,44 @@ export function ProjectSettings({ project }: { project: ProjectInfo }) {
       </div>
 
       <aside className="space-y-4 xl:sticky xl:top-20 xl:self-start">
-        <section className={cn("rounded-xl border bg-surface shadow-raise", testMode ? "border-azure-500/40" : "border-line")}>
-          <div className="flex items-start justify-between gap-3 px-5 pt-4">
-            <div>
-              <p className="label-mono text-fg-3">Тестовый режим</p>
-              <h2 className="mt-1.5 text-sm font-semibold text-fg">Проверьте магазин без денег</h2>
-            </div>
-            <Switch
-              checked={testMode}
-              onCheckedChange={(v) => {
-                setTestMode(v);
-                toast(v ? "Тестовый режим включён" : "Тестовый режим выключен", { description: v ? "Платежи не списываются" : "Магазин принимает реальные платежи" });
-              }}
-              aria-label="Тестовый режим"
-            />
+        <section className="rounded-xl border border-line bg-surface shadow-raise">
+          <div className="px-5 pt-4">
+            <p className="flex items-center gap-1.5 label-mono text-fg-3">
+              <FlaskConical className="size-3.5" />
+              Тестовые платежи
+            </p>
+            <h2 className="mt-1.5 text-sm font-semibold text-fg">Проверьте магазин без денег</h2>
           </div>
           <p className="px-5 pt-2 text-[12.5px] leading-relaxed text-fg-3">
-            Платежи идут через тестовый шлюз: игроку не списываем, а команды выдачи выполняются на сервере по-настоящему. Тестовые заказы помечены и не
-            попадают в выплаты, чеки и аналитику.
+            Игроки на витрине платят как обычно — тестовые заказы проходят только по этой ссылке, для команды. Деньги не списываются, а команды выдачи
+            выполняются на сервере по-настоящему: проверяйте на своём нике. Тестовые заказы не попадают в выплаты, чеки и аналитику.
           </p>
-          <div className="mx-5 mt-3 mb-4 rounded-lg border border-line-soft bg-surface-2/60 px-3 py-2.5">
+          <div className="mx-5 mt-3 rounded-lg border border-line-soft bg-surface-2/60 px-3 py-2.5">
+            <p className="label-mono text-fg-4">Тестовая ссылка</p>
+            <div className="mt-1 flex items-center justify-between gap-2">
+              <span className="min-w-0 truncate font-mono text-[12.5px] text-fg-2">
+                {storeHost}/?test=<span className="text-ice-300">{testToken}</span>
+              </span>
+              <CopyButton value={`https://${storeHost}/?test=${testToken}`} label="Скопировать тестовую ссылку" />
+            </div>
+            <p className="font-mono text-[11.5px] text-fg-4">
+              действует до {formatDateShort(testUntil)}, {formatTime(testUntil)} · откроется только у вошедших в кабинет
+            </p>
+          </div>
+          <div className="mx-5 mt-2 rounded-lg border border-line-soft bg-surface-2/60 px-3 py-2.5">
             <p className="label-mono text-fg-4">Тестовая карта</p>
             <div className="mt-1 flex items-center justify-between gap-2">
               <span className="font-mono text-[13px] tracking-[0.08em] text-fg-2">2200 0000 0000 0053</span>
               <CopyButton value="2200000000000053" label="Скопировать номер тестовой карты" />
             </div>
             <p className="font-mono text-[11.5px] text-fg-4">любой срок · CVC 000 · 3-D Secure код 1234</p>
+          </div>
+          <div className="mt-3 flex items-center justify-between gap-3 border-t border-line-soft px-5 py-2.5">
+            <span className="text-[12px] text-fg-4">Ссылка утекла?</span>
+            <Button variant="ghost" size="xs" onClick={rotateTestLink}>
+              <RotateCw />
+              Новая ссылка
+            </Button>
           </div>
         </section>
 
@@ -431,7 +454,10 @@ function DeleteProjectDialog({ open, onOpenChange, name }: { open: boolean; onOp
       <DialogContent className="max-w-[440px]">
         <DialogHeader>
           <DialogTitle>Удалить «{name}»?</DialogTitle>
-          <DialogDescription>Сейчас удалить нельзя: сегодняшняя выплата ещё в пути и октябрьский отчёт агента не закрыт.</DialogDescription>
+          <DialogDescription>
+            Сейчас удалить нельзя: сегодняшняя выплата ещё в пути, а ноябрьский отчётный период закроется 1&nbsp;декабря. Подтвердите — и проект удалится
+            сам после закрытия периода.
+          </DialogDescription>
         </DialogHeader>
         <DialogBody className="space-y-3">
           <Note tone="bad" icon={<CircleAlert />}>
@@ -454,10 +480,10 @@ function DeleteProjectDialog({ open, onOpenChange, name }: { open: boolean; onOp
             disabled={!match}
             onClick={() => {
               onOpenChange(false);
-              toast.error("Удаление запланировано после 7 ноября", { description: "Дождёмся последней выплаты и закрытия периода, затем удалим" });
+              toast.error("Удаление запланировано на 1 декабря", { description: "Дождёмся последней выплаты и отчёта агента за ноябрь, затем удалим" });
             }}
           >
-            Удалить проект
+            Удалить 1 декабря
           </Button>
         </DialogFooter>
       </DialogContent>

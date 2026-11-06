@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, Check, CircleAlert, ExternalLink, FileCheck2, Link2, Loader2, Receipt } from "lucide-react";
+import { ArrowRight, Check, CircleAlert, ExternalLink, FileCheck2, Link2, Hourglass, Loader2, Receipt } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatMoney, formatMoneyCompact, formatNumber, formatPercent, formatRelative, pluralize } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
@@ -81,10 +81,10 @@ export function TaxesPanel({ tax, receipts, now }: { tax: TaxInfo; receipts: Rec
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <MiniStat label="Чеков в 2026" value={formatNumber(tax.receiptsIssued)} hint="на каждый платёж, отправлены игрокам" />
         <MiniStat
-          label="В очереди"
+          label="Регистрируются"
           value={String(tax.receiptsPending)}
-          hint="регистрируются в «Мой налог», обычно до минуты"
-          live
+          hint={tax.receiptsPending ? "оплаты последней минуты — в «Мой налог» за 1–2 с" : "все чеки уже в «Мой налог»"}
+          live={tax.receiptsPending > 0}
         />
         <MiniStat label="Налог за октябрь" value={formatMoney(tax.taxDue)} hint={`${tax.rate} % с дохода от физлиц · оплатить до 28 ноября`} />
         <div className="rounded-xl border border-line bg-surface px-4 py-3.5 shadow-raise">
@@ -99,12 +99,12 @@ export function TaxesPanel({ tax, receipts, now }: { tax: TaxInfo; receipts: Rec
 
       <div className="grid gap-4 lg:grid-cols-12">
         <section className="min-w-0 rounded-xl border border-line bg-surface shadow-raise lg:col-span-8">
-          <header className="flex items-center justify-between gap-3 border-b border-line-soft px-5 py-3.5">
-            <div>
+          <header className="flex items-start justify-between gap-3 border-b border-line-soft px-4 py-3.5 sm:px-5">
+            <div className="min-w-0">
               <h2 className="text-sm font-semibold tracking-[-0.01em] text-fg">Последние чеки</h2>
-              <p className="mt-0.5 text-[12.5px] text-fg-3">Чек уходит игроку на почту через 0,3–1,5 с после выдачи.</p>
+              <p className="mt-0.5 text-[12.5px] text-fg-3">Чек формируется в момент оплаты и уходит игроку на почту — обычно за 1–2 с.</p>
             </div>
-            <Button asChild variant="ghost" size="xs">
+            <Button asChild variant="ghost" size="xs" className="shrink-0">
               <Link href="/dashboard/orders">
                 Все заказы <ArrowRight />
               </Link>
@@ -113,8 +113,30 @@ export function TaxesPanel({ tax, receipts, now }: { tax: TaxInfo; receipts: Rec
           {receipts.length === 0 ? (
             <EmptyState icon={<Receipt />} title="Чеков пока нет" description="Первый чек появится здесь сразу после первой оплаты." />
           ) : (
-            <TableWrap>
-              <Table className="min-w-[560px]">
+            <>
+            {/* phones: stacked rows so the status never scrolls off-screen */}
+            <ul className="md:hidden">
+              {receipts.map((r) => (
+                <li key={r.orderId} className="border-b border-line-soft px-4 py-3 last:border-0">
+                  <div className="flex items-center justify-between gap-3">
+                    <Link href={`/dashboard/orders?id=${r.orderId}`} className="group flex min-w-0 items-baseline gap-2">
+                      <span className="font-mono text-[12.5px] whitespace-nowrap text-fg group-hover:text-azure-200">{r.number ? `№ ${r.number}` : r.orderId}</span>
+                      <span className="truncate font-mono text-[11.5px] text-fg-4 nums">{formatRelative(r.at, now)}</span>
+                    </Link>
+                    <span className="shrink-0 font-mono text-[13px] text-fg nums">{formatMoney(r.amount)}</span>
+                  </div>
+                  <div className="mt-1.5 flex items-center justify-between gap-3">
+                    <span className="min-w-0 truncate text-[12.5px] text-fg-2">
+                      {r.item} <span className="text-fg-4">· {r.player}</span>
+                    </span>
+                    <ReceiptStatus status={r.status} />
+                  </div>
+                  {r.awaitingDelivery ? <AwaitingDelivery orderId={r.orderId} className="mt-2" /> : null}
+                </li>
+              ))}
+            </ul>
+            <TableWrap className="hidden md:block">
+              <Table>
                 <THead>
                   <TR>
                     <TH>Чек</TH>
@@ -140,23 +162,17 @@ export function TaxesPanel({ tax, receipts, now }: { tax: TaxInfo; receipts: Rec
                       </TD>
                       <TD className="text-right font-mono text-fg nums">{formatMoney(r.amount)}</TD>
                       <TD>
-                        {r.status === "sent" ? (
-                          <Badge tone="ok">
-                            <Check />
-                            Зарегистрирован
-                          </Badge>
-                        ) : (
-                          <Badge tone="azure">
-                            <Loader2 className="animate-spin" />
-                            Регистрируется
-                          </Badge>
-                        )}
+                        <div className="flex flex-col items-start gap-1">
+                          <ReceiptStatus status={r.status} />
+                          {r.awaitingDelivery ? <AwaitingDelivery orderId={r.orderId} /> : null}
+                        </div>
                       </TD>
                     </TR>
                   ))}
                 </TBody>
               </Table>
             </TableWrap>
+            </>
           )}
         </section>
 
@@ -191,6 +207,34 @@ export function TaxesPanel({ tax, receipts, now }: { tax: TaxInfo; receipts: Rec
 
       <IpWizard open={wizardOpen} onOpenChange={setWizardOpen} projected={tax.projected} />
     </div>
+  );
+}
+
+function ReceiptStatus({ status }: { status: ReceiptRow["status"] }) {
+  return status === "sent" ? (
+    <Badge tone="ok" className="shrink-0">
+      <Check />
+      Зарегистрирован
+    </Badge>
+  ) : (
+    <Badge tone="azure" className="shrink-0">
+      <Loader2 className="animate-spin" />
+      Регистрируется
+    </Badge>
+  );
+}
+
+/** Delivery problems are about the order, not the receipt — shown apart, with a way to the order. */
+function AwaitingDelivery({ orderId, className }: { orderId: string; className?: string }) {
+  return (
+    <Link
+      href={`/dashboard/orders?id=${orderId}`}
+      className={cn("inline-flex items-center gap-1 text-[11.5px] whitespace-nowrap text-warn transition-colors hover:text-fg", className)}
+    >
+      <Hourglass className="size-3" />
+      Заказ ждёт выдачи
+      <ArrowRight className="size-3" />
+    </Link>
   );
 }
 

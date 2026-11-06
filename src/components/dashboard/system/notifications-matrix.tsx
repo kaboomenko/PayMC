@@ -2,16 +2,18 @@
 
 import * as React from "react";
 import { Moon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Segmented } from "@/components/ui/segmented";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/toaster";
 import { SaveBar, SettingsSection, useSaveShortcut } from "./settings-ui";
 
 const CHANNELS = [
-  { key: "tg", label: "Telegram" },
-  { key: "mail", label: "Почта" },
-  { key: "app", label: "В кабинете" },
+  { key: "tg", label: "Telegram", short: "Telegram" },
+  { key: "mail", label: "Почта", short: "Почта" },
+  { key: "app", label: "В кабинете", short: "Кабинет" },
 ] as const;
 type Channel = (typeof CHANNELS)[number]["key"];
 
@@ -29,7 +31,7 @@ const GROUPS: { label: string; events: { key: string; label: string; hint?: stri
     label: "Выдача",
     events: [
       { key: "delivery_failed", label: "Сбой выдачи", hint: "автоповторы закончились", critical: true },
-      { key: "server_offline", label: "Сервер не на связи дольше 5 минут", critical: true },
+      { key: "server_offline", label: "Сервер не на связи дольше 5\u00a0минут", critical: true },
       { key: "awaiting", label: "Игрок ждёт выдачу больше часа" },
     ],
   },
@@ -81,6 +83,7 @@ export function NotificationsMatrix() {
   const [m, setM] = React.useState<Matrix>(DEFAULTS);
   const [quiet, setQuiet] = React.useState(true);
   const [quietFrom, setQuietFrom] = React.useState("00");
+  const [mobileCh, setMobileCh] = React.useState<Channel>("tg");
   const dirty = JSON.stringify(m) !== JSON.stringify(saved);
 
   function colState(ch: Channel): boolean | "indeterminate" {
@@ -103,17 +106,22 @@ export function NotificationsMatrix() {
   return (
     <div className="space-y-4">
       <SettingsSection title="Что и куда присылать" description="Настройки для вас — у каждого участника команды свои. Telegram подключён: @arcticmc_paybot.">
+        {/* phones: one channel at a time instead of a matrix that scrolls sideways */}
+        <div className="flex items-center justify-between gap-3 border-b border-line-soft px-4 py-2.5 sm:hidden">
+          <span className="label-mono text-fg-4">Канал</span>
+          <Segmented size="xs" value={mobileCh} onChange={setMobileCh} options={CHANNELS.map((c) => ({ value: c.key, label: c.short }))} />
+        </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[560px] border-collapse text-[13px]">
+          <table className="w-full border-collapse text-[13px] sm:min-w-[560px]">
             <thead>
               <tr className="border-b border-line">
-                <th scope="col" className="h-11 px-5 text-left font-mono text-[10.5px] font-medium tracking-[0.07em] text-fg-3 uppercase">
+                <th scope="col" className="h-11 px-4 text-left font-mono text-[10.5px] font-medium tracking-[0.07em] text-fg-3 uppercase sm:px-5">
                   Событие
                 </th>
                 {CHANNELS.map((c) => {
                   const st = colState(c.key);
                   return (
-                    <th key={c.key} scope="col" className="h-11 w-[120px] px-3 text-center">
+                    <th key={c.key} scope="col" className={cn("h-11 w-[96px] px-3 text-center sm:table-cell sm:w-[120px]", c.key !== mobileCh && "hidden")}>
                       <label className="inline-flex cursor-pointer flex-col items-center gap-1.5">
                         <span className="font-mono text-[10.5px] font-medium tracking-[0.07em] text-fg-3 uppercase">{c.label}</span>
                         <Checkbox checked={st} onCheckedChange={(v) => setCol(c.key, v === true)} aria-label={`${c.label}: все события`} />
@@ -126,19 +134,19 @@ export function NotificationsMatrix() {
             {GROUPS.map((g) => (
               <tbody key={g.label}>
                 <tr>
-                  <th colSpan={4} scope="colgroup" className="bg-surface-2/50 px-5 py-1.5 text-left label-mono text-fg-4">
+                  <th colSpan={4} scope="colgroup" className="bg-surface-2/50 px-4 py-1.5 text-left label-mono text-fg-4 sm:px-5">
                     {g.label}
                   </th>
                 </tr>
                 {g.events.map((e) => (
                   <tr key={e.key} className="border-b border-line-soft transition-colors hover:bg-white/[0.015]">
-                    <th scope="row" className="px-5 py-2.5 text-left font-normal">
+                    <th scope="row" className="px-4 py-2.5 text-left font-normal sm:px-5">
                       <span className="text-fg-2">{e.label}</span>
-                      {e.critical ? <span className="ml-2 font-mono text-[10.5px] text-warn">важное</span> : null}
+                      {e.critical ? <span className="ml-2 font-mono text-[10.5px] whitespace-nowrap text-warn">важное</span> : null}
                       {e.hint ? <span className="block text-[11.5px] text-fg-4">{e.hint}</span> : null}
                     </th>
                     {CHANNELS.map((c) => (
-                      <td key={c.key} className="px-3 py-2.5 text-center">
+                      <td key={c.key} className={cn("px-3 py-2.5 text-center sm:table-cell", c.key !== mobileCh && "hidden")}>
                         <Checkbox
                           checked={m[e.key][c.key]}
                           onCheckedChange={(v) => setM((prev) => ({ ...prev, [e.key]: { ...prev[e.key], [c.key]: v === true } }))}

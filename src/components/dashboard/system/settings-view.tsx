@@ -4,6 +4,7 @@ import * as React from "react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUrlTab } from "./url-state";
+import { TabsScroller } from "./tabs-scroller";
 import { ProjectSettings } from "./project-settings";
 import { TeamSettings } from "./team-settings";
 import { AntifraudSettings } from "./antifraud-settings";
@@ -29,7 +30,7 @@ export function SettingsView({ data, initialTab }: { data: SettingsData; initial
     <>
       <PageHeader title="Настройки" description="Проект, команда и доступы, защита от мошенничества, уведомления и переезд с другой платформы." />
       <Tabs value={tab} onValueChange={setTab}>
-        <div className="-mx-4 overflow-x-auto px-4 scrollbar-none sm:mx-0 sm:px-0">
+        <TabsScroller active={tab}>
           <TabsList className="w-max min-w-full">
             {SETTINGS_TABS.map((t) => (
               <TabsTrigger key={t} value={t}>
@@ -39,7 +40,7 @@ export function SettingsView({ data, initialTab }: { data: SettingsData; initial
               </TabsTrigger>
             ))}
           </TabsList>
-        </div>
+        </TabsScroller>
         <TabsContent value="project" className="pt-5">
           <ProjectSettings project={data.project} />
         </TabsContent>

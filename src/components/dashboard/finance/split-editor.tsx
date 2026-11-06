@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { toast } from "@/components/ui/toaster";
 import { Note, SaveBar, useSaveShortcut } from "@/components/dashboard/system/settings-ui";
+import { splitAmount } from "./split";
 import type { FinanceMember, PayoutRow } from "./types";
 
 const SEGMENT = ["bg-azure-500", "bg-ice-400", "bg-azure-200", "bg-fg", "bg-azure-700", "bg-ice-600"];
@@ -84,13 +85,9 @@ export function SplitEditor({
 
   useSaveShortcut(dirty && valid, save);
 
-  // preview: amounts with rounding remainder going to the owner
-  const amounts = draft.map((r) => ({ ...r, amount: Math.floor((amount * r.pct) / 100) }));
-  const remainder = sum === 100 ? amount - amounts.reduce((a, r) => a + r.amount, 0) : 0;
-  if (remainder && ownerId) {
-    const o = amounts.find((r) => r.id === ownerId);
-    if (o) o.amount += remainder;
-  }
+  // preview: the same split rule as real payouts — floor per member, rounding remainder to the owner
+  const parts = sum === 100 ? splitAmount(amount, draft.map((r) => ({ id: r.id, splitPct: r.pct, role: byId.get(r.id)?.role }))) : [];
+  const amounts = draft.map((r, i) => ({ ...r, amount: parts[i]?.amount ?? 0 }));
 
   return (
     <div>
@@ -187,18 +184,31 @@ export function SplitEditor({
           </ul>
 
           <footer className="flex flex-col gap-3 border-t border-line-soft px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className={cn("flex items-center gap-2 text-[13px]", valid ? "text-fg-2" : "text-bad")} role="status" aria-live="polite">
-              {valid ? <Check className="size-4 text-ok" /> : <Scale className="size-4" />}
-              Сумма долей: <span className="font-mono font-medium nums">{sum} %</span>
-              {!valid ? (
-                <span className="text-fg-3">
-                  {sum < 100 ? `— распределите ещё ${100 - sum} %` : sum > 100 ? `— лишние ${sum - 100} %` : "— у каждого минимум 1 %"}
-                </span>
-              ) : null}
+            <p className={cn("flex min-w-0 items-start gap-2 text-[13px] leading-snug", valid ? "text-fg-2" : "text-bad")} role="status" aria-live="polite">
+              {valid ? <Check className="mt-px size-4 shrink-0 text-ok" /> : <Scale className="mt-px size-4 shrink-0" />}
+              <span className="min-w-0">
+                Сумма долей: <span className="font-mono font-medium whitespace-nowrap nums">{sum}&nbsp;%</span>
+                {!valid ? (
+                  <span className="text-fg-3">
+                    {" "}
+                    {sum < 100 ? (
+                      <>
+                        — распределите ещё <span className="font-mono whitespace-nowrap nums">{100 - sum}&nbsp;%</span>
+                      </>
+                    ) : sum > 100 ? (
+                      <>
+                        — лишние <span className="font-mono whitespace-nowrap nums">{sum - 100}&nbsp;%</span>
+                      </>
+                    ) : (
+                      "— у каждого минимум 1 %"
+                    )}
+                  </span>
+                ) : null}
+              </span>
             </p>
             {!valid && sum !== 100 ? (
-              <Button variant="outline" size="xs" onClick={balanceToOwner}>
-                Остаток — владельцу
+              <Button variant="outline" size="xs" className="w-full shrink-0 sm:w-auto" onClick={balanceToOwner}>
+                {sum < 100 ? "Остаток — владельцу" : "Убрать лишнее у владельца"}
               </Button>
             ) : null}
           </footer>
@@ -268,7 +278,7 @@ export function SplitEditor({
 
       <SaveBar
         open={dirty}
-        message={valid ? "Новое распределение начнёт действовать с выплаты 7 ноября в 12:00" : `Сумма долей ${sum} % — должна быть ровно 100 %`}
+        message={valid ? "Новое распределение начнёт действовать с выплаты 7 ноября в 12:00" : `Сумма долей ${sum} % — должна быть ровно 100 %`}
         onReset={() => setDraft(savedRows)}
         onSave={save}
         saveDisabled={!valid}

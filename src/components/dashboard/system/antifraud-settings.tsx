@@ -3,9 +3,11 @@
 import * as React from "react";
 import { ArrowRight, Plus, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatMoney, formatRelative } from "@/lib/format";
+import { formatMoney, formatRelative, pluralize } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Field } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/toaster";
@@ -28,14 +30,30 @@ const RULES: Rule[] = [
   { id: "r4", when: "Страна карты ≠ страна IP", then: "Запросить 3-D Secure", tone: "azure", hits: 9, on: false },
 ];
 
+const CONDITIONS = [
+  "≥ 2 игроков с одной карты за сутки",
+  "≥ 3 оплаты с одного IP за час",
+  `Покупка ≥ ${formatMoney(5000)} у игрока младше 7 дней`,
+  "≥ 5 неверных промокодов за 10 минут",
+  "Карта выпущена не в стране игрока",
+];
+const ACTIONS: { label: string; tone: Rule["tone"] }[] = [
+  { label: "Отклонять", tone: "bad" },
+  { label: "Ручная проверка", tone: "warn" },
+  { label: "Пауза 30 мин", tone: "warn" },
+  { label: "Запросить 3-D Secure", tone: "azure" },
+];
+
 function toggleToast(title: string, on: boolean, undo: () => void) {
   toast(`${title}: ${on ? "включено" : "выключено"}`, { action: { label: "Отменить", onClick: undo } });
 }
 
 export function AntifraudSettings({ blocked, now }: { blocked: BlockedPayment[]; now: number }) {
   const [s, setS] = React.useState({ threeDs: false, network: true, parental: true, vpn: false });
-  const [limit, setLimit] = React.useState("3000");
+  // no cap by default: a daily cap would block the big purchases the velocity rules below are built to review
+  const [limit, setLimit] = React.useState("0");
   const [rules, setRules] = React.useState(RULES);
+  const [ruleOpen, setRuleOpen] = React.useState(false);
 
   function flip(key: keyof typeof s, title: string) {
     return (v: boolean) => {
@@ -74,7 +92,7 @@ export function AntifraudSettings({ blocked, now }: { blocked: BlockedPayment[];
           <SettingRow
             title="Лимит покупок в сутки на игрока"
             htmlFor="af-limit"
-            description="Сверх лимита оплата не пройдёт до полуночи по МСК. Защищает от трат с чужой карты и импульсивных покупок."
+            description="Сверх лимита оплата не пройдёт до полуночи по МСК. Для серверов с детской аудиторией советуем 3 000 ₽ — защищает от трат с чужой карты и импульсивных покупок."
             control={
               <div className="w-full sm:w-44">
                 <Select
@@ -115,7 +133,7 @@ export function AntifraudSettings({ blocked, now }: { blocked: BlockedPayment[];
           title="Правила скорости"
           description="Срабатывают до списания денег. Счётчик — за последние 30 дней."
           aside={
-            <Button variant="secondary" size="xs" onClick={() => toast("Конструктор правил", { description: "Условие → действие, например «≥ 2 игроков с одной карты → отклонять»" })}>
+            <Button variant="secondary" size="xs" onClick={() => setRuleOpen(true)}>
               <Plus />
               Правило
             </Button>
@@ -130,7 +148,9 @@ export function AntifraudSettings({ blocked, now }: { blocked: BlockedPayment[];
                   <Badge tone={r.tone}>{r.then}</Badge>
                 </div>
                 <div className="flex shrink-0 items-center justify-between gap-4 sm:justify-end">
-                  <span className="font-mono text-[11.5px] text-fg-3">сработало {r.hits} раз</span>
+                  <span className="font-mono text-[11.5px] text-fg-3">
+                    {r.hits ? `сработало ${pluralize(r.hits, ["раз", "раза", "раз"])}` : "ещё не срабатывало"}
+                  </span>
                   <Switch
                     size="sm"
                     checked={r.on}
@@ -167,6 +187,108 @@ export function AntifraudSettings({ blocked, now }: { blocked: BlockedPayment[];
           При чарджбэке PayMC сам снимает выданное командой, добавляет игрока в чёрный список и прикладывает трассировку выдачи к ответу банку.
         </p>
       </aside>
+
+      <RuleDialog
+        open={ruleOpen}
+        onOpenChange={setRuleOpen}
+        existing={rules}
+        onAdd={(rule) => {
+          setRules((list) => [...list, rule]);
+          toast.success("Правило добавлено", {
+            description: `${rule.when} → ${rule.then.toLowerCase()} · действует со следующей оплаты`,
+            action: { label: "Отменить", onClick: () => setRules((list) => list.filter((x) => x.id !== rule.id)) },
+          });
+        }}
+      />
     </div>
+  );
+}
+
+function RuleDialog({
+  open,
+  onOpenChange,
+  existing,
+  onAdd,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  existing: Rule[];
+  onAdd: (rule: Rule) => void;
+}) {
+  const [when, setWhen] = React.useState(CONDITIONS[0]);
+  const [then, setThen] = React.useState(ACTIONS[0].label);
+  const [wasOpen, setWasOpen] = React.useState(open);
+  if (wasOpen !== open) {
+    setWasOpen(open);
+    if (open) {
+      setWhen(CONDITIONS[0]);
+      setThen(ACTIONS[0].label);
+    }
+  }
+  const duplicate = existing.some((r) => r.when === when && r.then === then);
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (duplicate) return;
+    const action = ACTIONS.find((a) => a.label === then) ?? ACTIONS[0];
+    onAdd({ id: `r${existing.length + 1}-${CONDITIONS.indexOf(when)}`, when, then: action.label, tone: action.tone, hits: 0, on: true });
+    onOpenChange(false);
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[520px]">
+        <form onSubmit={submit} noValidate>
+          <DialogHeader>
+            <DialogTitle>Новое правило</DialogTitle>
+            <DialogDescription>Условие → действие. Проверяется до списания денег, счётчик срабатываний начнётся с нуля.</DialogDescription>
+          </DialogHeader>
+          <DialogBody className="space-y-4">
+            <Field label="Если" htmlFor="rule-when">
+              <Select value={when} onValueChange={setWhen}>
+                <SelectTrigger id="rule-when">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CONDITIONS.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label="То" htmlFor="rule-then" error={duplicate ? "Такое правило уже есть" : null}>
+              <Select value={then} onValueChange={setThen}>
+                <SelectTrigger id="rule-then">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ACTIONS.map((a) => (
+                    <SelectItem key={a.label} value={a.label}>
+                      {a.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 rounded-lg border border-line-soft bg-surface-2/60 px-3 py-2.5">
+              <span className="font-mono text-[12.5px] text-fg">{when}</span>
+              <ArrowRight className="size-3.5 shrink-0 text-fg-4" />
+              <Badge tone={ACTIONS.find((a) => a.label === then)?.tone ?? "bad"}>{then}</Badge>
+            </div>
+          </DialogBody>
+          <DialogFooter>
+            <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
+              Отмена
+            </Button>
+            <Button type="submit" variant="primary" size="sm" disabled={duplicate}>
+              <Plus />
+              Добавить правило
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

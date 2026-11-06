@@ -63,8 +63,26 @@ export function TeamSettings({ team: initial, audit, now }: { team: TeamRow[]; a
             Пригласить
           </Button>
         </header>
-        <TableWrap>
-          <Table className="min-w-[820px]">
+        {/* phones: one card per person — role, 2FA and share stay visible without sideways scrolling */}
+        <ul className="md:hidden">
+          {team.map((m) => (
+            <li key={m.id} className="border-b border-line-soft px-4 py-3 last:border-0">
+              <div className="flex items-start gap-2.5">
+                <MemberIdentity m={m} />
+                <MemberActions m={m} onRemove={remove} />
+              </div>
+              <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-2 pl-[38px]">
+                <RoleControl m={m} onChange={changeRole} />
+                <TwoFactor m={m} />
+                {m.splitPct > 0 ? <span className="font-mono text-[12px] text-fg-2 nums">{m.splitPct} % выплат</span> : null}
+                {!m.invited ? <span className="font-mono text-[11.5px] text-fg-4">{formatRelative(m.lastActiveAt, now)}</span> : null}
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <TableWrap className="hidden md:block">
+          <Table className="min-w-[720px]">
             <THead>
               <TR>
                 <TH>Участник</TH>
@@ -79,82 +97,18 @@ export function TeamSettings({ team: initial, audit, now }: { team: TeamRow[]; a
               {team.map((m) => (
                 <TR key={m.id}>
                   <TD>
-                    <div className="flex items-center gap-2.5">
-                      <Avatar name={m.name} size={28} className={cn(m.invited && "opacity-50")} />
-                      <div className="min-w-0">
-                        <p className="flex items-center gap-2 text-[13px] text-fg">
-                          {m.invited ? <span className="text-fg-3">{m.email}</span> : m.name}
-                          {m.invited ? <Badge tone="ice">Приглашён</Badge> : null}
-                        </p>
-                        <p className="truncate text-[12px] text-fg-4">{m.invited ? "ссылка действует 7 дней" : m.email}</p>
-                      </div>
-                    </div>
+                    <MemberIdentity m={m} />
                   </TD>
                   <TD>
-                    {m.role === "owner" ? (
-                      <span className="flex h-8 items-center text-[13px] text-fg-2">{memberRoleMeta.owner.label}</span>
-                    ) : (
-                      <Select value={m.role} onValueChange={(v) => changeRole(m, v as MemberRole)}>
-                        <SelectTrigger size="sm" className="w-[170px]" aria-label={`Роль: ${m.name}`}>
-                          <span>{memberRoleMeta[m.role].label}</span>
-                        </SelectTrigger>
-                        <SelectContent className="w-[300px]">
-                          {ASSIGNABLE.map((r) => (
-                            <SelectItem key={r} value={r} className="h-auto py-1.5">
-                              <span className="block text-[13px] text-fg">{memberRoleMeta[r].label}</span>
-                              <span className="block text-[11.5px] leading-snug text-fg-3">{memberRoleMeta[r].description}</span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
+                    <RoleControl m={m} onChange={changeRole} />
                   </TD>
                   <TD>
-                    {m.invited ? (
-                      <span className="text-fg-4">—</span>
-                    ) : m.twoFactor ? (
-                      <Badge tone="ok">
-                        <ShieldCheck />
-                        Включена
-                      </Badge>
-                    ) : (
-                      <Badge tone="warn">
-                        <ShieldOff />
-                        Нет
-                      </Badge>
-                    )}
+                    <TwoFactor m={m} compact />
                   </TD>
                   <TD className="font-mono text-[12px] whitespace-nowrap text-fg-3">{m.invited ? "—" : formatRelative(m.lastActiveAt, now)}</TD>
                   <TD className="text-right font-mono nums">{m.splitPct > 0 ? <span className="text-fg">{m.splitPct} %</span> : <span className="text-fg-4">—</span>}</TD>
                   <TD>
-                    {m.role !== "owner" ? (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon-xs" aria-label={`Действия: ${m.name}`}>
-                            <MoreHorizontal />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link href="/dashboard/finance?tab=split">
-                              <Wallet />
-                              Изменить долю выплат
-                            </Link>
-                          </DropdownMenuItem>
-                          {!m.twoFactor && !m.invited ? (
-                            <DropdownMenuItem onSelect={() => toast.success("Напоминание отправлено", { description: `${m.email} · включить 2FA в течение 7 дней` })}>
-                              <Mail />
-                              Напомнить про 2FA
-                            </DropdownMenuItem>
-                          ) : null}
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem destructive onSelect={() => remove(m)}>
-                            <UserMinus />
-                            {m.invited ? "Отозвать приглашение" : "Удалить из команды"}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    ) : null}
+                    <MemberActions m={m} onRemove={remove} />
                   </TD>
                 </TR>
               ))}
@@ -198,11 +152,11 @@ export function TeamSettings({ team: initial, audit, now }: { team: TeamRow[]; a
                   </p>
                   {a.diff ? (
                     <div className="mt-1.5 overflow-hidden rounded-md border border-line-soft bg-[#070a10] font-mono text-[12px] leading-relaxed">
-                      <p className="truncate bg-bad/[0.07] px-2.5 text-bad/90">
+                      <p className="break-words bg-bad/[0.07] px-2.5 text-bad/90">
                         <span className="mr-2 text-bad/60 select-none">−</span>
                         {a.diff.before}
                       </p>
-                      <p className="truncate bg-ok/[0.07] px-2.5 text-ok/90">
+                      <p className="break-words bg-ok/[0.07] px-2.5 text-ok/90">
                         <span className="mr-2 text-ok/60 select-none">+</span>
                         {a.diff.after}
                       </p>
@@ -239,6 +193,88 @@ export function TeamSettings({ team: initial, audit, now }: { team: TeamRow[]; a
         }}
       />
     </div>
+  );
+}
+
+function MemberIdentity({ m }: { m: TeamRow }) {
+  return (
+    <div className="flex min-w-0 flex-1 items-center gap-2.5">
+      <Avatar name={m.name} size={28} className={cn("shrink-0", m.invited && "opacity-50")} />
+      <div className="min-w-0">
+        <p className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-[13px] text-fg">
+          {m.invited ? <span className="min-w-0 truncate text-fg-3">{m.email}</span> : m.name}
+          {m.invited ? <Badge tone="ice">Приглашён</Badge> : null}
+        </p>
+        <p className="truncate text-[12px] text-fg-4">{m.invited ? "ссылка действует 7 дней" : m.email}</p>
+      </div>
+    </div>
+  );
+}
+
+function RoleControl({ m, onChange }: { m: TeamRow; onChange: (m: TeamRow, role: MemberRole) => void }) {
+  if (m.role === "owner") return <span className="flex h-8 items-center text-[13px] text-fg-2">{memberRoleMeta.owner.label}</span>;
+  return (
+    <Select value={m.role} onValueChange={(v) => onChange(m, v as MemberRole)}>
+      <SelectTrigger size="sm" className="w-[170px]" aria-label={`Роль: ${m.name}`}>
+        <span>{memberRoleMeta[m.role].label}</span>
+      </SelectTrigger>
+      <SelectContent className="w-[300px] max-w-[calc(100vw-32px)]">
+        {ASSIGNABLE.map((r) => (
+          <SelectItem key={r} value={r} className="h-auto py-1.5">
+            <span className="block text-[13px] text-fg">{memberRoleMeta[r].label}</span>
+            <span className="block text-[11.5px] leading-snug text-fg-3">{memberRoleMeta[r].description}</span>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+/** In the table the column says «2FA»; on phones the badge has to say it itself. */
+function TwoFactor({ m, compact }: { m: TeamRow; compact?: boolean }) {
+  if (m.invited) return compact ? <span className="text-fg-4">—</span> : null;
+  return m.twoFactor ? (
+    <Badge tone="ok">
+      <ShieldCheck />
+      {compact ? "Включена" : "2FA включена"}
+    </Badge>
+  ) : (
+    <Badge tone="warn">
+      <ShieldOff />
+      {compact ? "Нет" : "Без 2FA"}
+    </Badge>
+  );
+}
+
+function MemberActions({ m, onRemove }: { m: TeamRow; onRemove: (m: TeamRow) => void }) {
+  if (m.role === "owner") return <span className="size-7 shrink-0" />;
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon-xs" aria-label={`Действия: ${m.name}`} className="shrink-0">
+          <MoreHorizontal />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem asChild>
+          <Link href="/dashboard/finance?tab=split">
+            <Wallet />
+            Изменить долю выплат
+          </Link>
+        </DropdownMenuItem>
+        {!m.twoFactor && !m.invited ? (
+          <DropdownMenuItem onSelect={() => toast.success("Напоминание отправлено", { description: `${m.email} · включить 2FA в течение 7 дней` })}>
+            <Mail />
+            Напомнить про 2FA
+          </DropdownMenuItem>
+        ) : null}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem destructive onSelect={() => onRemove(m)}>
+          <UserMinus />
+          {m.invited ? "Отозвать приглашение" : "Удалить из команды"}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

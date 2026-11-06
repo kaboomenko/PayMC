@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Download, FileClock, FileSignature, FileSpreadsheet, FileText, Mail } from "lucide-react";
+import { formatNumber } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -9,12 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/toaster";
 
+/** `scale` — how much bigger the period's files are than one month (roughly by number of payments). */
 const PERIODS = [
-  { value: "2026-11", label: "Ноябрь 2026", ready: false },
-  { value: "2026-10", label: "Октябрь 2026", ready: true },
-  { value: "2026-09", label: "Сентябрь 2026", ready: true },
-  { value: "2026-q3", label: "III квартал 2026", ready: true },
-  { value: "2026", label: "2026 год, с начала", ready: true },
+  { value: "2026-11", label: "Ноябрь 2026", ready: false, scale: 0 },
+  { value: "2026-10", label: "Октябрь 2026", ready: true, scale: 1 },
+  { value: "2026-09", label: "Сентябрь 2026", ready: true, scale: 0.92 },
+  { value: "2026-q3", label: "III квартал 2026", ready: true, scale: 2.6 },
+  { value: "2026", label: "2026 год, с начала", ready: true, scale: 6.9 },
 ] as const;
 
 type Period = (typeof PERIODS)[number]["value"];
@@ -24,20 +26,27 @@ interface Doc {
   title: string;
   meta: string;
   icon: React.ComponentType<{ className?: string }>;
-  formats: string[];
+  /** format → size in КБ for one month (or the fixed size for a non-periodic document) */
+  formats: Record<string, number>;
+  /** summary documents grow slower than line-by-line ones */
+  growth?: number;
   signed?: boolean;
   periodic: boolean;
 }
 
 const DOCS: Doc[] = [
-  { id: "agent", title: "Отчёт агента", meta: "Все платежи, комиссия, возвраты и выплаты за период", icon: FileSignature, formats: ["PDF"], signed: true, periodic: true },
-  { id: "act", title: "Акт сверки взаиморасчётов", meta: "Начислено, удержано, выплачено — для бухгалтера и банка", icon: FileText, formats: ["PDF"], signed: true, periodic: true },
-  { id: "export", title: "Выгрузка для бухгалтера", meta: "Платежи построчно: дата, сумма, способ, комиссия, номер чека", icon: FileSpreadsheet, formats: ["CSV", "XLSX"], periodic: true },
-  { id: "receipts", title: "Реестр чеков «Мой налог»", meta: "Все чеки самозанятого с номерами и ссылками на проверку", icon: FileClock, formats: ["CSV"], periodic: true },
-  { id: "offer", title: "Оферта PayMC", meta: "Редакция от 1 октября 2026 · агентская схема, ставка 4,9 % с автоматическим снижением", icon: FileText, formats: ["PDF"], periodic: false },
+  { id: "agent", title: "Отчёт агента", meta: "Все платежи, комиссия, возвраты и выплаты за период", icon: FileSignature, formats: { PDF: 212 }, signed: true, periodic: true },
+  { id: "act", title: "Акт сверки взаиморасчётов", meta: "Начислено, удержано, выплачено — для бухгалтера и банка", icon: FileText, formats: { PDF: 64 }, growth: 0.15, signed: true, periodic: true },
+  { id: "export", title: "Выгрузка для бухгалтера", meta: "Платежи построчно: дата, сумма, способ, комиссия, номер чека", icon: FileSpreadsheet, formats: { CSV: 286, XLSX: 174 }, periodic: true },
+  { id: "receipts", title: "Реестр чеков «Мой налог»", meta: "Все чеки самозанятого с номерами и ссылками на проверку", icon: FileClock, formats: { CSV: 342 }, periodic: true },
+  { id: "offer", title: "Оферта PayMC", meta: "Редакция от 1 октября 2026 · агентская схема, ставка 4,9 % с автоматическим снижением", icon: FileText, formats: { PDF: 148 }, periodic: false },
 ];
 
-const SIZE: Record<string, string> = { PDF: "212 КБ", CSV: "1,4 МБ", XLSX: "880 КБ" };
+function fileSize(doc: Doc, format: string, scale: number) {
+  const base = doc.formats[format];
+  const kb = doc.periodic ? base * (1 + (scale - 1) * (doc.growth ?? 1)) : base;
+  return kb >= 1000 ? `${formatNumber(kb / 1024, 1)} МБ` : `${formatNumber(Math.round(kb))} КБ`;
+}
 
 export function DocumentsPanel() {
   const [period, setPeriod] = React.useState<Period>("2026-10");
@@ -93,11 +102,11 @@ export function DocumentsPanel() {
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-2 pl-7 sm:pl-0">
-                {d.formats.map((f) => (
+                {Object.keys(d.formats).map((f) => (
                   <Button key={f} variant="secondary" size="xs" onClick={() => download(d, f)} aria-label={`Скачать ${d.title} в ${f}`}>
                     <Download />
                     {f}
-                    <span className="font-mono text-[10.5px] text-fg-4">{SIZE[f]}</span>
+                    <span className="font-mono text-[10.5px] text-fg-4 nums">{fileSize(d, f, current.scale)}</span>
                   </Button>
                 ))}
               </div>

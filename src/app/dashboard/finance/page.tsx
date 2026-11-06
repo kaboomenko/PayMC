@@ -16,10 +16,23 @@ import {
 } from "@/lib/mock";
 import { FinanceView } from "@/components/dashboard/finance/finance-view";
 import { FINANCE_TABS, type FinanceData, type FinanceTab, type PayoutRow, type ReceiptRow } from "@/components/dashboard/finance/types";
+import type { Order, OrderStatus } from "@/lib/mock/types";
 
 export const metadata: Metadata = { title: "Финансы" };
 
 const NET_FACTOR = 1 - PLAN_FEES.pro; // 3,9 % — tier «Рост»
+const RECEIPT_REGISTER_MS = 60_000;
+// delivery problems worth a link from the receipts list (an offline player or a command in flight is not one)
+const WAITING_DELIVERY: OrderStatus[] = ["retrying", "failed"];
+
+/**
+ * Receipt number in the mock's format for receipts that registered after the order snapshot. The mock numbers
+ * receipts from 100001 + draft index; offsetting by 200 000 keeps these out of that range, so they never collide.
+ */
+function receiptNumberFor(orderId: string) {
+  const seq = 200_000 + (Number(orderId.replace(/\D/g, "")) || 0);
+  return `20${(seq * 7919 + 104729).toString(36).slice(-5)}`;
+}
 const OWNER_SHARE = (TEAM.find((m) => m.role === "owner")?.splitPct ?? 100) / 100;
 
 function sumRevenue(from: number, to: number) {
@@ -75,18 +88,30 @@ function buildFinanceData(): FinanceData {
   const yearEnd = Date.UTC(2027, 0, 1) - 3 * HOUR;
   const daysLeftInYear = (yearEnd - NOW_MS) / DAY;
 
+  // An НПД receipt is formed at the moment of payment (422-ФЗ) and registers within about a minute —
+  // it never waits for in-game delivery. Only a payment younger than a minute is still «registering».
+  const receiptPending = (o: Order) => o.receipt?.status === "pending" && NOW_MS - new Date(o.createdAt).getTime() < RECEIPT_REGISTER_MS;
   const receipts: ReceiptRow[] = getOrders({})
     .filter(isPaid)
     .slice(0, 9)
-    .map((o) => ({
-      orderId: o.id,
-      number: o.receipt?.number,
-      at: o.createdAt,
-      player: o.playerName,
-      item: o.items.map((it) => (it.qty > 1 ? `${it.name} ×${it.qty}` : it.name)).join(", "),
-      amount: o.amount,
-      status: o.receipt?.status === "pending" ? "pending" : "sent",
-    }));
+    .map((o) => {
+      const pending = receiptPending(o);
+      return {
+        orderId: o.id,
+        number: pending ? undefined : (o.receipt?.number ?? receiptNumberFor(o.id)),
+        at: o.createdAt,
+        player: o.playerName,
+        item: o.items.map((it) => (it.qty > 1 ? `${it.name} ×${it.qty}` : it.name)).join(", "),
+        amount: o.amount,
+        status: pending ? "pending" : "sent",
+        awaitingDelivery: WAITING_DELIVERY.includes(o.status),
+      };
+    });
+  const receiptsPending = getOrders({ days: 1 }).filter((o) => isPaid(o) && receiptPending(o)).length;
+
+  // «Чистый доход · 30 дней» uses the same calendar window as getKpis(30) on the overview:
+  // the last 30 days including today until NOW, so its gross equals «Выручка · 30 дней».
+  const net30 = DAILY.slice(-30).map((d) => ({ date: d.date, gross: d.revenue, net: Math.round(d.revenue * NET_FACTOR) }));
 
   const todayPayout = PAYOUTS.find((p) => new Date(p.createdAt).getTime() >= mskDayStart(0) && !p.id.endsWith("-r"));
 
@@ -115,7 +140,14 @@ function buildFinanceData(): FinanceData {
       failed && retry
         ? { failedId: failed.id, retryId: retry.id, amount: failed.amount, failedAt: failed.createdAt, retryAt: retry.createdAt, paidAt: retry.paidAt ?? retry.createdAt }
         : null,
-    dailyNet: DAILY.slice(-31, -1).map((d) => ({ date: d.date, net: Math.round(d.revenue * NET_FACTOR) })),
+    dailyNet: net30.map((d) => ({ date: d.date, net: d.net })),
+    net30: {
+      from: net30[0].date,
+      to: net30[net30.length - 1].date,
+      gross: net30.reduce((a, d) => a + d.gross, 0),
+      net: net30.reduce((a, d) => a + d.net, 0),
+      fee: net30.reduce((a, d) => a + (d.gross - d.net), 0),
+    },
     tier: {
       label: PLAN_META.pro.label,
       rate: PLAN_FEES.pro * 100,
@@ -134,7 +166,7 @@ function buildFinanceData(): FinanceData {
       limit: TAX.limit,
       projected: Math.round(TAX.yearIncome + avgDaily * NET_FACTOR * OWNER_SHARE * daysLeftInYear),
       receiptsIssued: TAX.receiptsIssued,
-      receiptsPending: TAX.receiptsPending,
+      receiptsPending,
       taxDue: TAX.taxDue,
       rate: TAX.rate,
       ownerShare: OWNER_SHARE,

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { BellRing, Loader2, MoreHorizontal, PlugZap, RefreshCw, Settings2, Unplug } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { integrationCategoryMeta } from "@/lib/mock/meta";
@@ -15,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "@/components/ui/toaster";
+import { MetrikaSheet, VkSheet } from "./integration-sheets";
 
 const ORDER: Integration["category"][] = ["community", "notifications", "tax", "analytics", "developer", "monitoring"];
 const STATUS: Record<Integration["status"], { label: string; tone: "ok" | "neutral" | "outline" }> = {
@@ -23,12 +25,19 @@ const STATUS: Record<Integration["status"], { label: string; tone: "ok" | "neutr
   soon: { label: "Скоро", tone: "outline" },
 };
 
-/** Where "Настроить" leads for integrations that have a section on this page. */
+/** Where "Настроить" leads for integrations that have a section on this page… */
 const ANCHOR: Record<string, string> = { webhooks: "webhooks", api: "api-keys" };
+/** …or a section elsewhere in the dashboard… */
+const ROUTE: Record<string, string> = { nalog: "/dashboard/finance?tab=taxes" };
+/** …or its own settings sheet. */
+type SheetId = "vk" | "metrika";
+const SHEET: Record<string, SheetId> = { vk: "vk", metrika: "metrika" };
 
 export function IntegrationGroups({ items }: { items: Integration[] }) {
   const [status, setStatus] = React.useState<Record<string, Integration["status"]>>(() => Object.fromEntries(items.map((i) => [i.id, i.status])));
+  const [detail, setDetail] = React.useState<Record<string, string | undefined>>(() => Object.fromEntries(items.map((i) => [i.id, i.detail])));
   const [busy, setBusy] = React.useState<string | null>(null);
+  const [sheet, setSheet] = React.useState<SheetId | null>(null);
 
   const groups = ORDER.map((cat) => ({ cat, list: items.filter((i) => i.category === cat) })).filter((g) => g.list.length);
   const connected = Object.values(status).filter((s) => s === "connected").length;
@@ -80,7 +89,7 @@ export function IntegrationGroups({ items }: { items: Integration[] }) {
                         </Badge>
                       </p>
                       <p className="mt-1 text-[12.5px] leading-relaxed text-fg-3">{i.description}</p>
-                      {st === "connected" && i.detail ? <p className="mt-1.5 font-mono text-[11.5px] text-fg-2">{i.detail}</p> : null}
+                      {st === "connected" && detail[i.id] ? <p className="mt-1.5 font-mono text-[11.5px] text-fg-2">{detail[i.id]}</p> : null}
                       {i.id === "discord" ? <p className="mt-1.5 text-[11.5px] text-warn">Заблокирован в РФ — для игроков из России используйте Telegram и VK</p> : null}
                     </div>
                     <div className="flex shrink-0 items-center gap-1.5">
@@ -93,16 +102,19 @@ export function IntegrationGroups({ items }: { items: Integration[] }) {
                                 Настроить
                               </a>
                             </Button>
-                          ) : (
-                            <Button
-                              variant="secondary"
-                              size="xs"
-                              onClick={() => toast(`Настройки «${i.name}»`, { description: i.detail ?? "Откроются в отдельном окне" })}
-                            >
+                          ) : ROUTE[i.id] ? (
+                            <Button asChild variant="secondary" size="xs">
+                              <Link href={ROUTE[i.id]}>
+                                <Settings2 />
+                                Настроить
+                              </Link>
+                            </Button>
+                          ) : SHEET[i.id] ? (
+                            <Button variant="secondary" size="xs" onClick={() => setSheet(SHEET[i.id])}>
                               <Settings2 />
                               Настроить
                             </Button>
-                          )}
+                          ) : null}
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="icon-xs" aria-label={`Ещё действия: ${i.name}`}>
@@ -150,6 +162,13 @@ export function IntegrationGroups({ items }: { items: Integration[] }) {
           </div>
         ))}
       </div>
+
+      <VkSheet open={sheet === "vk"} onOpenChange={(v) => setSheet(v ? "vk" : null)} />
+      <MetrikaSheet
+        open={sheet === "metrika"}
+        onOpenChange={(v) => setSheet(v ? "metrika" : null)}
+        onSaved={(d) => setDetail((s) => ({ ...s, metrika: d }))}
+      />
     </section>
   );
 }

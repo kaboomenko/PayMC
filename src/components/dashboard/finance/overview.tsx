@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Info, Landmark, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatDate, formatDateShort, formatMoney, formatMoneyCompact, formatNumber, formatPercent, formatTime, formatWeekday } from "@/lib/format";
+import { formatDate, formatDateShort, formatMoney, formatMoneyCompact, formatNumber, formatPercent, formatTime, formatWeekday, pluralize } from "@/lib/format";
 import { AreaTrend } from "@/components/charts";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -65,7 +65,7 @@ export function FinanceOverview({
           {
             label: "Оборот сегодня",
             value: formatMoney(balance.todayGross),
-            hint: `с 00:00 МСК · ${data.ordersToday} ${data.ordersToday % 10 === 1 && data.ordersToday % 100 !== 11 ? "заказ" : "заказов"}`,
+            hint: `с 00:00 МСК · ${pluralize(data.ordersToday, ["заказ", "заказа", "заказов"])}`,
             tip: "Сумма, которую заплатили игроки сегодня, до комиссии.",
           },
         ]}
@@ -274,6 +274,9 @@ function RecentPayoutBars({ data }: { data: FinanceData }) {
 
 function RouteCard({ data, onOpenTab, className }: { data: FinanceData; onOpenTab: (tab: string) => void; className?: string }) {
   const inc = data.incident;
+  // first-attempt success of the primary bank over the payout history on this page (today's is still in flight)
+  const completed = data.payouts.filter((p) => p.route === "primary" && p.status !== "processing");
+  const firstTry = completed.filter((p) => p.status === "paid").length;
   return (
     <section className={cn("flex flex-col rounded-xl border border-line bg-surface shadow-raise", className)}>
       <div className="flex items-start justify-between gap-3 px-5 pt-4">
@@ -293,7 +296,11 @@ function RouteCard({ data, onOpenTab, className }: { data: FinanceData; onOpenTa
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="text-[13px] font-medium text-fg">Т-Банк</span>
             <span className="label-mono text-fg-4">основной</span>
-            <span className="font-mono text-[11.5px] text-ok">99,9 % за 90 дней</span>
+            {completed.length ? (
+              <span className={cn("font-mono text-[11.5px] nums", firstTry === completed.length ? "text-ok" : "text-fg-3")}>
+                {firstTry} из {completed.length} — с первой попытки
+              </span>
+            ) : null}
           </div>
           <div className="relative mt-2 ml-1 rounded-md border border-dashed border-line-strong px-3 py-2">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -319,7 +326,7 @@ function RouteCard({ data, onOpenTab, className }: { data: FinanceData; onOpenTa
           <ol className="space-y-1.5 px-3 py-2.5 text-[12.5px]">
             <li className="grid grid-cols-[44px_1fr] gap-2">
               <span className="font-mono text-bad nums">{formatTime(inc.failedAt)}</span>
-              <span className="text-fg-2">Т-Банк не принял перевод: банк получателя временно не принимал СБП-переводы</span>
+              <span className="text-fg-2">Т-Банк вернул технический отказ по исходящим СБП-переводам</span>
             </li>
             <li className="grid grid-cols-[44px_1fr] gap-2">
               <span className="font-mono text-warn nums">{formatTime(inc.retryAt)}</span>
@@ -357,15 +364,24 @@ function RouteNode({ tone, title, sub }: { tone: "azure" | "white"; title: strin
 /* ───────────── Net income chart ───────────── */
 
 function NetIncomeCard({ data, className }: { data: FinanceData; className?: string }) {
-  const total = data.dailyNet.reduce((a, d) => a + d.net, 0);
+  const { net30 } = data;
   const best = data.dailyNet.reduce((a, d) => (d.net > a.net ? d : a), data.dailyNet[0]);
   const series = data.dailyNet.map((d) => ({ date: d.date, net: d.net }));
+  // the window ends with today, which is still in progress (until 12:00 МСК)
+  const isPartial = (v: string | number) => String(v) === net30.to;
   return (
     <section className={cn("rounded-xl border border-line bg-surface shadow-raise", className)}>
       <div className="flex flex-wrap items-end justify-between gap-3 px-5 pt-4">
-        <div>
+        <div className="min-w-0">
           <p className="label-mono text-fg-3">Чистый доход · 30 дней</p>
-          <p className="mt-2 font-mono text-[22px] leading-none font-medium tracking-[-0.02em] text-fg nums">{formatMoney(total)}</p>
+          <p className="mt-2 font-mono text-[22px] leading-none font-medium tracking-[-0.02em] text-fg nums">{formatMoney(net30.net)}</p>
+          <p className="mt-2 text-[12px] leading-snug text-fg-3">
+            <span className="whitespace-nowrap">
+              {formatDateShort(net30.from)} — {formatDateShort(net30.to)}
+            </span>{" "}
+            · оборот <span className="font-mono whitespace-nowrap text-fg-2 nums">{formatMoney(net30.gross)}</span> − комиссия{" "}
+            <span className="font-mono whitespace-nowrap text-fg-2 nums">{formatMoney(net30.fee)}</span>
+          </p>
         </div>
         <p className="text-[12.5px] text-fg-3">
           Лучший день — {formatDateShort(best.date)}: <span className="font-mono text-fg-2 nums">{formatMoney(best.net)}</span>
@@ -380,7 +396,9 @@ function NetIncomeCard({ data, className }: { data: FinanceData; className?: str
         formatX={(v) => formatDateShort(String(v))}
         formatY={(v) => (v >= 1000 ? `${formatNumber(Math.round(v / 1000))} тыс` : formatNumber(v))}
         formatValue={(v) => formatMoney(v)}
-        formatTitle={(v) => `${formatWeekday(String(v))}, ${formatDate(String(v), { year: false })}`}
+        formatTitle={(v) =>
+          isPartial(v) ? `${formatDateShort(String(v))} · до ${formatTime(data.now)}, неполный день` : `${formatWeekday(String(v))}, ${formatDate(String(v), { year: false })}`
+        }
       />
     </section>
   );

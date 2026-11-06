@@ -75,6 +75,17 @@ export interface ReceiptRow {
   item: string;
   amount: number;
   status: "sent" | "pending";
+  /** the order itself is not delivered yet (retry, offline player) — shown separately from the receipt */
+  awaitingDelivery: boolean;
+}
+
+/** «Чистый доход · 30 дней» — the same calendar window as getKpis(30), today included. */
+export interface Net30 {
+  from: string;
+  to: string;
+  gross: number;
+  fee: number;
+  net: number;
 }
 
 export interface FinanceData {
@@ -87,6 +98,7 @@ export interface FinanceData {
   payouts: PayoutRow[];
   incident: Incident | null;
   dailyNet: { date: string; net: number }[];
+  net30: Net30;
   tier: TierInfo;
   tax: TaxInfo;
   receipts: ReceiptRow[];

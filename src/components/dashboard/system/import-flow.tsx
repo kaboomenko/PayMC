@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check, CircleAlert, FileUp, KeyRound, Loader2, RotateCcw, Upload, Wand2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatMoney, formatNumber, pluralize } from "@/lib/format";
+import { formatMoney, formatNumber, plural, pluralize } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
@@ -39,25 +39,27 @@ export function ImportFlow({ data }: { data: ImportData }) {
   const [matches, setMatches] = React.useState<Record<string, string>>(() => Object.fromEntries(data.products.map((p) => [p.theirs, p.match])));
   const [commands, setCommands] = React.useState<ImportCommandRow[]>(data.commands);
   const [progress, setProgress] = React.useState(0);
-  const [log, setLog] = React.useState<string[]>([]);
+  const [log, setLog] = React.useState<{ at: number; text: string }[]>([]);
   const src = SOURCES.find((s) => s.id === source)!;
   const unresolved = commands.reduce((a, c) => a + c.unknown.length, 0);
 
   const keyError = src.how === "api" ? (key.trim().length < 16 ? "Ключ слишком короткий — скопируйте его целиком" : null) : !file ? "Выберите файл выгрузки" : null;
 
+  // each log line carries the elapsed time of the real import (the demo replays it faster)
   const lines = React.useMemo(
     () => [
-      `→ ${src.how === "api" ? `Подключение к ${src.name} API` : "Чтение файла"}… ok (212 мс)`,
-      `→ Товары: ${data.totals.products} · ${Object.values(matches).filter((m) => m !== "new").length} сопоставлены с существующими, остальные созданы`,
-      `→ Команды: ${data.totals.commands} · {user} → {player} (27 замен), {count} → {amount} (3)`,
-      `→ Промокоды: ${data.totals.promos} · истёкший SUMMER20 пропущен`,
-      `→ Покупатели: ${formatNumber(data.totals.buyers)} · история заказов за 2 года`,
-      `→ Активные привилегии: ${data.totals.activeRanks} · сроки сохранены, выдавать заново не нужно`,
-      "→ Проверка команд на тестовом игроке PayMC_Test… 31 из 31 ok",
-      "✓ Готово за 4,6 с",
+      { at: 0, text: `→ ${src.how === "api" ? `Подключение к ${src.name} API` : "Чтение файла"}… ok (212 мс)` },
+      { at: 4, text: `→ Товары: ${data.totals.products} · ${Object.values(matches).filter((m) => m !== "new").length} сопоставлены с существующими, остальные созданы` },
+      { at: 11, text: `→ Команды: ${data.totals.commands} · {user} → {player} (27 замен), {count} → {amount} (3)` },
+      { at: 14, text: `→ Промокоды: ${data.totals.promos} · истёкший SUMMER20 пропущен` },
+      { at: 152, text: `→ Покупатели: ${formatNumber(data.totals.buyers)} · история заказов за 2 года` },
+      { at: 171, text: `→ Активные привилегии: ${data.totals.activeRanks} · сроки сохранены, выдавать заново не нужно` },
+      { at: 248, text: `→ Проверка команд на тестовом игроке PayMC_Test… ${data.totals.commands} из ${data.totals.commands} ok` },
+      { at: 252, text: `✓ Готово за 4 мин 12 с · ${pluralize(data.totals.buyers, ["покупатель", "покупателя", "покупателей"])}` },
     ],
     [data.totals, matches, src],
   );
+  const elapsed = log.length ? log[log.length - 1].at : 0;
 
   // import animation — timers only run after the user presses «Импортировать»
   React.useEffect(() => {
@@ -116,7 +118,7 @@ export function ImportFlow({ data }: { data: ImportData }) {
         <header className="flex flex-col gap-4 border-b border-line-soft px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h2 className="text-sm font-semibold tracking-[-0.01em] text-fg">Переезд с другой платформы</h2>
-            <p className="mt-0.5 text-[13px] text-fg-3">Товары, команды выдачи, промокоды и покупатели с остатком привилегий — за один вечер, без потери истории.</p>
+            <p className="mt-0.5 text-[13px] text-fg-3">Товары, команды выдачи, промокоды и покупатели с остатком привилегий — за несколько минут, без потери истории.</p>
           </div>
           <ol className="flex items-center gap-1.5" aria-label="Шаги импорта">
             {STEPS.map((s, i) => (
@@ -407,7 +409,12 @@ export function ImportFlow({ data }: { data: ImportData }) {
               <p className={cn("text-[12.5px]", unresolved ? "text-bad" : "text-fg-3")}>
                 {unresolved
                   ? `Исправьте ${pluralize(unresolved, ["переменную", "переменные", "переменных"])} во вкладке «Команды», чтобы продолжить`
-                  : `${data.totals.products} товаров, ${data.totals.commands} команда, ${data.totals.promos} промокодов, ${formatNumber(data.totals.buyers)} покупателей`}
+                  : [
+                      pluralize(data.totals.products, ["товар", "товара", "товаров"]),
+                      pluralize(data.totals.commands, ["команда", "команды", "команд"]),
+                      pluralize(data.totals.promos, ["промокод", "промокода", "промокодов"]),
+                      pluralize(data.totals.buyers, ["покупатель", "покупателя", "покупателей"]),
+                    ].join(", ")}
               </p>
               <div className="flex items-center gap-2">
                 <Button variant="ghost" size="sm" onClick={() => setStep("connect")}>
@@ -434,16 +441,17 @@ export function ImportFlow({ data }: { data: ImportData }) {
             </div>
             <Progress value={progress} tone={step === "done" ? "ok" : "azure"} className="mt-2" />
             <div className="mt-4 overflow-hidden rounded-lg border border-line bg-[#070a10]">
-              <div className="flex h-8 items-center gap-1.5 border-b border-line-soft px-3">
-                <span className="size-2 rounded-full bg-fg-4/60" />
-                <span className="size-2 rounded-full bg-fg-4/60" />
-                <span className="size-2 rounded-full bg-fg-4/60" />
-                <span className="ml-2 label-mono text-fg-4">paymc import · {src.id}</span>
+              <div className="flex h-8 items-center justify-between gap-3 border-b border-line-soft px-3">
+                <span className="label-mono text-fg-4">paymc import · {src.id}</span>
+                <span className="font-mono text-[11.5px] text-fg-3 nums" aria-label="Прошло времени">
+                  {clock(elapsed)}
+                </span>
               </div>
               <pre className="min-h-[188px] overflow-x-auto px-3.5 py-3 font-mono text-[12px] leading-[1.75] text-fg-2" aria-live="polite">
                 {log.map((l, i) => (
-                  <div key={i} className={cn("whitespace-pre", l.startsWith("✓") && "text-ok")}>
-                    {l}
+                  <div key={i} className={cn("whitespace-pre", l.text.startsWith("✓") && "text-ok")}>
+                    <span className="mr-2.5 text-fg-4 select-none">{clock(l.at)}</span>
+                    {l.text}
                   </div>
                 ))}
                 {step === "importing" ? <span className="inline-block h-3.5 w-1.5 animate-blink bg-fg-2 align-middle" /> : null}
@@ -466,7 +474,7 @@ export function ImportFlow({ data }: { data: ImportData }) {
             },
             {
               t: "Сколько времени",
-              d: "Около 15 минут на 1 000 покупателей. Каждую команду проверим на тестовом игроке PayMC_Test до запуска.",
+              d: "Обычно до 5 минут даже для тысячи покупателей. Каждую команду проверим на тестовом игроке PayMC_Test до запуска.",
             },
           ].map((x) => (
             <div key={x.t} className="bg-surface px-5 py-4">
@@ -480,16 +488,18 @@ export function ImportFlow({ data }: { data: ImportData }) {
       {step === "done" ? (
         <section className="rounded-xl border border-ok/25 bg-surface shadow-raise">
           <div className="grid gap-px overflow-hidden rounded-t-xl bg-line-soft sm:grid-cols-5">
-            {[
-              [data.totals.products, "товаров"],
-              [data.totals.commands, "команд выдачи"],
-              [data.totals.promos - 1, "промокодов"],
-              [data.totals.buyers, "покупателей"],
-              [data.totals.activeRanks, "активных привилегий"],
-            ].map(([v, l]) => (
-              <div key={String(l)} className="bg-surface px-4 py-3.5">
-                <p className="font-mono text-xl font-medium text-fg nums">{formatNumber(Number(v))}</p>
-                <p className="text-[12px] text-fg-3">{l}</p>
+            {(
+              [
+                ["products", data.totals.products, ["товар", "товара", "товаров"]],
+                ["commands", data.totals.commands, ["команда выдачи", "команды выдачи", "команд выдачи"]],
+                ["promos", data.totals.promos - 1, ["промокод", "промокода", "промокодов"]],
+                ["buyers", data.totals.buyers, ["покупатель", "покупателя", "покупателей"]],
+                ["ranks", data.totals.activeRanks, ["активная привилегия", "активные привилегии", "активных привилегий"]],
+              ] as [string, number, [string, string, string]][]
+            ).map(([key, v, forms]) => (
+              <div key={key} className="bg-surface px-4 py-3.5">
+                <p className="font-mono text-xl font-medium text-fg nums">{formatNumber(v)}</p>
+                <p className="text-[12px] text-fg-3">{plural(v, forms)}</p>
               </div>
             ))}
           </div>
@@ -522,6 +532,11 @@ export function ImportFlow({ data }: { data: ImportData }) {
       ) : null}
     </div>
   );
+}
+
+/** 252 → «04:12» */
+function clock(sec: number) {
+  return `${String(Math.floor(sec / 60)).padStart(2, "0")}:${String(sec % 60).padStart(2, "0")}`;
 }
 
 function CommandHighlight({ command, unknown }: { command: string; unknown: string[] }) {

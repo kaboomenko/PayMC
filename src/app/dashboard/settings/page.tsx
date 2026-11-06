@@ -56,9 +56,10 @@ function buildAudit(): AuditEntry[] {
     { id: "au3", actor: "Артём Ковалёв", action: "пригласил в команду", target: "Денис Орлов · модератор", at: at(27 * HOUR), ip: "95.165.•.• · Москва", area: "access" },
     { id: "au4", actor: "Никита Лебедев", action: "обновил плагин PayMC на сервере", target: "Выживание", diff: { before: "agent 2.4.0", after: "agent 2.4.1" }, at: at(2 * DAY + 3 * HOUR), ip: "95.165.•.• · Москва", area: "servers" },
     { id: "au5", actor: "Марина Ефимова", action: "скачала отчёт агента", target: "октябрь 2026 · PDF", at: at(3 * DAY + 2 * HOUR), ip: "91.79.•.• · Казань", area: "finance" },
-    { id: "au6", actor: "Артём Ковалёв", action: "изменил распределение выплат", diff: { before: "Артём 65 % · Никита 25 % · Ольга 10 %", after: "Артём 60 % · Никита 25 % · Ольга 15 %" }, at: at(9 * DAY + 5 * HOUR), ip: "95.165.•.• · Москва", area: "finance" },
     { id: "au7", actor: "Ольга Смирнова", action: "изменила цену товара", target: "Набор ключей ×10", diff: { before: "590 ₽", after: "490 ₽ (старая цена зачёркнута)" }, at: at(11 * DAY + 1 * HOUR), ip: "178.176.•.• · Санкт-Петербург", area: "catalog" },
     { id: "au8", actor: "Артём Ковалёв", action: "включил «Общий чёрный список PayMC»", at: at(34 * DAY), ip: "95.165.•.• · Москва", area: "access" },
+    // older than the 31-day payout history, which is split 60/25/15 throughout
+    { id: "au6", actor: "Артём Ковалёв", action: "изменил распределение выплат", diff: { before: "Артём 65 % · Никита 25 % · Ольга 10 %", after: "Артём 60 % · Никита 25 % · Ольга 15 %" }, at: at(40 * DAY + 5 * HOUR), ip: "95.165.•.• · Москва", area: "finance" },
   ];
 }
 

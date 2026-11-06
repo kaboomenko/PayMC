@@ -27,6 +27,9 @@ interface ApiKey {
   scopes: string[];
 }
 
+/** The only right a publishable key may carry: it ends up in public site code. */
+const PUBLIC_SCOPE = "products:read";
+
 const SCOPES = [
   { key: "orders:read", hint: "заказы и трассировка" },
   { key: "orders:write", hint: "возвраты и повтор выдачи" },
@@ -182,7 +185,7 @@ function CreateKeyDialog({ open, onOpenChange, onCreate }: { open: boolean; onOp
   }
 
   const nameError = name.trim().length < 3 ? "Минимум 3 символа — чтобы потом понять, где ключ используется" : null;
-  const scopeError = scopes.length === 0 ? "Выберите хотя бы одно право" : null;
+  const scopeError = kind === "secret" && scopes.length === 0 ? "Выберите хотя бы одно право" : null;
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -196,7 +199,7 @@ function CreateKeyDialog({ open, onOpenChange, onCreate }: { open: boolean; onOp
       value: `${kind === "secret" ? "sk" : "pk"}_live_${suffix}c${seq}T0aYe5uN`,
       createdAt: new Date(NOW_MS).toISOString(),
       lastUsedAt: null,
-      scopes: kind === "publishable" ? scopes.filter((s) => s.endsWith(":read")) : scopes,
+      scopes: kind === "publishable" ? [PUBLIC_SCOPE] : scopes,
     };
     setSeq((s) => s + 1);
     setCreated(key);
@@ -242,7 +245,18 @@ function CreateKeyDialog({ open, onOpenChange, onCreate }: { open: boolean; onOp
                 <Input id="key-name" value={name} onChange={(e) => setName(e.target.value)} aria-invalid={tried && !!nameError} autoFocus />
               </Field>
               <div className="grid gap-3 sm:grid-cols-2">
-                <Field label="Тип">
+                <Field
+                  label="Тип"
+                  hint={
+                    kind === "publishable" ? (
+                      <>
+                        Только <span className="font-mono text-fg-2">{PUBLIC_SCOPE}</span> — можно вставлять в код сайта
+                      </>
+                    ) : (
+                      "Только для сервера — покажем один раз"
+                    )
+                  }
+                >
                   <div role="radiogroup" aria-label="Тип ключа" className="grid grid-cols-2 gap-1 rounded-lg border border-line bg-surface-2 p-0.5">
                     {(["secret", "publishable"] as const).map((k) => (
                       <button
@@ -250,7 +264,11 @@ function CreateKeyDialog({ open, onOpenChange, onCreate }: { open: boolean; onOp
                         type="button"
                         role="radio"
                         aria-checked={kind === k}
-                        onClick={() => setKind(k)}
+                        onClick={() => {
+                          setKind(k);
+                          // a public key only reads the catalog; a secret key starts from the same safe default
+                          setScopes(k === "publishable" ? [PUBLIC_SCOPE] : (list) => (list.length ? list : ["orders:read"]));
+                        }}
                         className={cn(
                           "h-7 rounded-md text-[12.5px] font-medium transition-colors",
                           kind === k ? "bg-surface-4 text-fg shadow-raise" : "text-fg-3 hover:text-fg-2",
@@ -279,14 +297,16 @@ function CreateKeyDialog({ open, onOpenChange, onCreate }: { open: boolean; onOp
                 <legend className="mb-1.5 text-[13px] font-medium text-fg-2">Права</legend>
                 <div className="grid gap-x-4 gap-y-2 rounded-lg border border-line px-3.5 py-3 sm:grid-cols-2">
                   {SCOPES.map((s) => {
-                    const disabled = kind === "publishable" && !s.key.endsWith(":read");
+                    // a public key is locked to the catalog: products:read stays on, everything else is off
+                    const locked = kind === "publishable";
+                    const disabled = locked && s.key !== PUBLIC_SCOPE;
                     const id = `scope-${s.key}`;
                     return (
-                      <label key={s.key} htmlFor={id} className={cn("flex items-start gap-2", disabled ? "opacity-40" : "cursor-pointer")}>
+                      <label key={s.key} htmlFor={id} className={cn("flex items-start gap-2", disabled ? "opacity-40" : locked ? "" : "cursor-pointer")}>
                         <Checkbox
                           id={id}
-                          disabled={disabled}
-                          checked={scopes.includes(s.key) && !disabled}
+                          disabled={locked}
+                          checked={locked ? s.key === PUBLIC_SCOPE : scopes.includes(s.key)}
                           onCheckedChange={(v) => setScopes((list) => (v === true ? [...list, s.key] : list.filter((x) => x !== s.key)))}
                           className="mt-0.5"
                         />

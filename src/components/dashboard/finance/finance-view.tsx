@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUrlFlag, useUrlTab } from "@/components/dashboard/system/url-state";
+import { TabsScroller } from "@/components/dashboard/system/tabs-scroller";
 import { FinanceOverview } from "./overview";
 import { PayoutsTable } from "./payouts-table";
 import { SplitEditor } from "./split-editor";
@@ -65,7 +66,7 @@ export function FinanceView({
       />
 
       <Tabs value={tab} onValueChange={setTab}>
-        <div className="-mx-4 overflow-x-auto px-4 scrollbar-none sm:mx-0 sm:px-0">
+        <TabsScroller active={tab}>
           <TabsList className="w-max min-w-full">
             {FINANCE_TABS.map((t) => (
               <TabsTrigger key={t} value={t}>
@@ -75,7 +76,7 @@ export function FinanceView({
               </TabsTrigger>
             ))}
           </TabsList>
-        </div>
+        </TabsScroller>
 
         <TabsContent value="overview" className="pt-5">
           <FinanceOverview data={data} available={available} members={members} onWithdraw={() => setPayoutOpen(true)} onOpenTab={openTab} />

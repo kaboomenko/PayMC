@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CodeBlock } from "@/components/ui/code-block";
 import { CopyButton } from "@/components/ui/copy-button";
+import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Field, Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/toaster";
 
@@ -33,7 +35,8 @@ interface Endpoint {
   id: string;
   url: string;
   events: string[];
-  success: number;
+  /** share of delivered events over 30 days; null until the first real event */
+  success: number | null;
   last: { code: number; ms: number; ago: string };
   enabled: boolean;
   /** 30 daily delivery rates for the strip */
@@ -70,7 +73,16 @@ export function WebhooksPanel({ payload }: { payload: { json: string; orderId: s
   const [reveal, setReveal] = React.useState(false);
   const [secret, setSecret] = React.useState(SECRET);
   const [test, setTest] = React.useState<"idle" | "sending" | "done">("idle");
+  const [addOpen, setAddOpen] = React.useState(false);
   const ep = endpoints.find((e) => e.id === selected) ?? endpoints[0];
+
+  function addEndpoint(url: string, events: string[]) {
+    const id = `we_${endpoints.length + 1}`;
+    setEndpoints((list) => [...list, { id, url, events, success: null, last: { code: 200, ms: 143, ago: "только что" }, enabled: true, history: [] }]);
+    setSelected(id);
+    setTest("idle");
+    toast.success("Эндпоинт добавлен", { description: `${url.replace("https://", "")} ответил 200 на проверочный запрос` });
+  }
   const masked = `${secret.slice(0, 6)}${"•".repeat(16)}${secret.slice(-4)}`;
   const ts = Math.floor(NOW_MS / 1000);
 
@@ -97,7 +109,7 @@ export function WebhooksPanel({ payload }: { payload: { json: string; orderId: s
             Подписанные HMAC-SHA256 события. Не ответили 2xx за 10 с — повторим 8 раз в течение суток.
           </p>
         </div>
-        <Button variant="secondary" size="sm" onClick={() => toast("Новый эндпоинт", { description: "Укажите HTTPS-адрес — пришлём проверочный запрос" })}>
+        <Button variant="secondary" size="sm" onClick={() => setAddOpen(true)}>
           <Plus />
           Добавить эндпоинт
         </Button>
@@ -133,13 +145,17 @@ export function WebhooksPanel({ payload }: { payload: { json: string; orderId: s
                       aria-label={`Включить ${e.url}`}
                     />
                   </div>
-                  <div className="mt-2 flex h-4 items-end gap-px" aria-hidden>
-                    {e.history.map((v, i) => (
-                      <span key={i} className={cn("flex-1 rounded-[1px]", v < 100 ? "h-2.5 bg-warn/80" : "h-4 bg-ok/50")} />
-                    ))}
-                  </div>
+                  {e.history.length ? (
+                    <div className="mt-2 flex h-4 items-end gap-px" aria-hidden>
+                      {e.history.map((v, i) => (
+                        <span key={i} className={cn("flex-1 rounded-[1px]", v < 100 ? "h-2.5 bg-warn/80" : "h-4 bg-ok/50")} />
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-2 flex h-4 items-center text-[11.5px] text-fg-4">история доставки появится с первыми событиями</p>
+                  )}
                   <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11.5px] text-fg-3">
-                    <span className="text-ok">{formatPercent(e.success, { digits: 2 })} доставлено</span>
+                    {e.success !== null ? <span className="text-ok">{formatPercent(e.success, { digits: 2 })} доставлено</span> : <span>проверка пройдена</span>}
                     <span>
                       {e.last.code} · {e.last.ms} мс · {e.last.ago}
                     </span>
@@ -242,6 +258,117 @@ export function WebhooksPanel({ payload }: { payload: { json: string; orderId: s
           </AnimatePresence>
         </div>
       </div>
+
+      <AddEndpointDialog open={addOpen} onOpenChange={setAddOpen} existing={endpoints.map((e) => e.url)} onAdd={addEndpoint} />
     </section>
+  );
+}
+
+const DEFAULT_EVENTS = ["order.paid", "order.delivered", "order.failed"];
+
+function AddEndpointDialog({
+  open,
+  onOpenChange,
+  existing,
+  onAdd,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  existing: string[];
+  onAdd: (url: string, events: string[]) => void;
+}) {
+  const [url, setUrl] = React.useState("https://");
+  const [events, setEvents] = React.useState<string[]>(DEFAULT_EVENTS);
+  const [tried, setTried] = React.useState(false);
+  const [wasOpen, setWasOpen] = React.useState(open);
+  if (wasOpen !== open) {
+    setWasOpen(open);
+    if (open) {
+      setUrl("https://");
+      setEvents(DEFAULT_EVENTS);
+      setTried(false);
+    }
+  }
+
+  const value = url.trim();
+  const urlError = (() => {
+    if (!value.startsWith("https://")) return "Только HTTPS — подпись не спасёт от перехвата по HTTP";
+    try {
+      const u = new URL(value);
+      if (!u.hostname.includes(".")) return "Похоже, в адресе нет домена";
+    } catch {
+      return "Похоже, в адресе опечатка";
+    }
+    if (existing.includes(value)) return "Этот адрес уже получает события";
+    return null;
+  })();
+  const eventsError = events.length === 0 ? "Выберите хотя бы одно событие" : null;
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setTried(true);
+    if (urlError || eventsError) return;
+    onAdd(value, events);
+    onOpenChange(false);
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[560px]">
+        <form onSubmit={submit} noValidate>
+          <DialogHeader>
+            <DialogTitle>Новый эндпоинт</DialogTitle>
+            <DialogDescription>Пришлём на адрес проверочный запрос — эндпоинт должен ответить 2xx за 10 с.</DialogDescription>
+          </DialogHeader>
+          <DialogBody className="space-y-4">
+            <Field label="Адрес" htmlFor="wh-url" error={tried ? urlError : null} hint="Например: https://api.arcticmc.ru/paymc/webhook">
+              <Input
+                id="wh-url"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                aria-invalid={tried && !!urlError}
+                spellCheck={false}
+                autoComplete="off"
+                autoFocus
+                className="font-mono text-[13px]"
+              />
+            </Field>
+            <fieldset>
+              <legend className="mb-1.5 text-[13px] font-medium text-fg-2">События</legend>
+              <div className="grid max-h-[260px] gap-x-4 gap-y-2.5 overflow-y-auto rounded-lg border border-line px-3.5 py-3 sm:grid-cols-2">
+                {EVENT_TYPES.map((t) => {
+                  const id = `new-ev-${t.key}`;
+                  const on = events.includes(t.key);
+                  return (
+                    <label key={t.key} htmlFor={id} className="flex cursor-pointer items-start gap-2.5">
+                      <Checkbox
+                        id={id}
+                        checked={on}
+                        onCheckedChange={(v) => setEvents((list) => (v === true ? [...list, t.key] : list.filter((k) => k !== t.key)))}
+                        className="mt-0.5"
+                      />
+                      <span className="min-w-0">
+                        <span className={cn("block font-mono text-[12.5px]", on ? "text-fg" : "text-fg-3")}>{t.key}</span>
+                        <span className="block text-[11.5px] text-fg-4">{t.hint}</span>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+              {tried && eventsError ? <p className="mt-1.5 text-xs text-bad">{eventsError}</p> : null}
+            </fieldset>
+          </DialogBody>
+          <DialogFooter>
+            <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
+              Отмена
+            </Button>
+            <Button type="submit" variant="primary" size="sm">
+              <Plus />
+              Добавить
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

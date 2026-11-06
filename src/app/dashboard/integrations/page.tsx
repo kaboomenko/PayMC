@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { DAILY, INTEGRATIONS, PAYOUTS, SERVERS, getOrder, getOrders, getPlayer, getServer, mskDayStart } from "@/lib/mock";
+import { DAILY, INTEGRATIONS, PAYOUTS, SERVERS, getOrder, getOrders, getPlayer, getServer, isPaid, mskDayStart } from "@/lib/mock";
 import { formatDate } from "@/lib/format";
 import { TelegramCard } from "@/components/dashboard/system/telegram-card";
 import { IntegrationGroups } from "@/components/dashboard/system/integration-groups";
@@ -57,7 +57,13 @@ export default function IntegrationsPage() {
   const lastSale = getOrders({ status: "delivered", days: 1 })[0];
   const todaysPayout = PAYOUTS.find((p) => new Date(p.createdAt).getTime() >= mskDayStart(0));
 
+  // paid order amounts over the same 30-day window as the overview, compressed to [amount, count]
+  const amountCounts = new Map<number, number>();
+  for (const o of getOrders({ days: 30 })) if (isPaid(o)) amountCounts.set(o.amount, (amountCounts.get(o.amount) ?? 0) + 1);
+  const sales30 = [...amountCounts.entries()].sort((a, b) => a[0] - b[0]);
+
   const preview = {
+    sales30,
     sale: lastSale
       ? { player: lastSale.playerName, item: lastSale.items[0]?.name ?? "", amount: lastSale.amount, ms: lastSale.deliveryMs ?? 300, at: lastSale.createdAt, orderId: lastSale.id }
       : null,
