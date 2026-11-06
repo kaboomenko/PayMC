@@ -53,7 +53,7 @@ export function Topbar({
   const pathname = usePathname();
   const item = findNavItem(pathname);
   const current = data.projects.find((p) => p.id === data.currentProjectId) ?? data.projects[0];
-  const crumbs = buildCrumbs(pathname, item?.label);
+  const crumbs = buildCrumbs(pathname, item?.label, data.search);
 
   return (
     <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-line-soft bg-canvas/85 px-4 backdrop-blur-md supports-[backdrop-filter]:bg-canvas/70 lg:px-6">
@@ -102,13 +102,27 @@ export function Topbar({
   );
 }
 
-function buildCrumbs(pathname: string, label?: string) {
+function buildCrumbs(pathname: string, label: string | undefined, search: ShellData["search"]) {
   const crumbs: { href: string; label: string }[] = [];
   const item = findNavItem(pathname);
   if (item) crumbs.push({ href: item.href, label: label ?? item.label });
   if (item && pathname !== item.href) {
     const rest = pathname.slice(item.href.length).split("/").filter(Boolean);
-    if (rest.length) crumbs.push({ href: pathname, label: rest[rest.length - 1] === "new" ? "Новый" : decodeURIComponent(rest[rest.length - 1]) });
+    const last = rest[rest.length - 1];
+    if (last) {
+      const known = search.find((s) => s.href === pathname)?.label;
+      const fallback =
+        last === "new"
+          ? item.href.endsWith("/products")
+            ? "Новый товар"
+            : "Новый"
+          : item.href.endsWith("/players")
+            ? "Профиль игрока"
+            : item.href.endsWith("/products")
+              ? "Товар"
+              : decodeURIComponent(last);
+      crumbs.push({ href: pathname, label: known ?? fallback });
+    }
   }
   if (!crumbs.length) crumbs.push({ href: "/dashboard", label: "Обзор" });
   return crumbs;
