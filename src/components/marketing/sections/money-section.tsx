@@ -41,7 +41,7 @@ export function MoneySection() {
         index="04"
         eyebrow="Деньги"
         title="Деньги не застрянут."
-        muted="Выплаты каждый день, даже если банк капризничает."
+        muted="Выплаты каждый день, даже если банк капризничает"
         lead="Выплата в 12:00 по Москве — на карту или по СБП, в выходные и праздники тоже. Каждая часть ниже работает: нажмите на день, переключите банк, сравните способы оплаты."
       />
       <MoneyBento members={members} week={week} receipt={<ReceiptCard income={TAX.yearIncome} limit={TAX.limit} item={receiptItem} />} />

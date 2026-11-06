@@ -561,7 +561,7 @@ export function ProductEditor({
                             onCheckedChange={(v) => set("serverIds", v ? [...form.serverIds, s.id] : form.serverIds.filter((x) => x !== s.id))}
                             aria-label={s.name}
                           />
-                          <StatusDot tone={STATUS_TONE[s.status]} pulse={s.status === "online"} />
+                          <StatusDot tone={STATUS_TONE[s.status]} />
                           <span className="min-w-0 flex-1">
                             <span className="block text-[13px] font-medium text-fg">{s.name}</span>
                             <span className="block truncate font-mono text-[11px] text-fg-4">{s.platform}</span>
@@ -735,12 +735,9 @@ export function ProductEditor({
             <div
               role="region"
               aria-label="Несохранённые изменения"
-              className="pointer-events-auto flex w-full max-w-xl items-center gap-3 rounded-xl border border-line-strong bg-surface-3/95 py-2 pr-2 pl-4 shadow-pop backdrop-blur-md"
+              className="pointer-events-auto flex w-full max-w-xl items-center gap-3 rounded-xl border border-line-strong bg-surface-3 py-2 pr-2 pl-4 shadow-pop"
             >
-              <span className="relative flex size-2 shrink-0">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-azure-400 opacity-50" />
-                <span className="relative inline-flex size-2 rounded-full bg-azure-400" />
-              </span>
+              <span aria-hidden className="size-2 shrink-0 rounded-full bg-azure-400" />
               <p className="min-w-0 flex-1 truncate text-[13px] text-fg">
                 Есть несохранённые изменения
                 {showErrors && errorCount ? <span className="text-bad"> · {pluralize(errorCount, ["ошибка", "ошибки", "ошибок"])}</span> : null}
@@ -776,7 +773,7 @@ function Section({
       <section aria-labelledby={id}>
         <div className="flex items-start justify-between gap-4 border-b border-line-soft px-5 py-3.5">
           <div className="min-w-0">
-            <h2 id={id} className="text-sm font-semibold tracking-[-0.01em] text-fg">
+            <h2 id={id} className="text-sm font-medium text-fg">
               {title}
             </h2>
             {description ? <p className="mt-0.5 text-[12.5px] text-fg-3">{description}</p> : null}

@@ -76,7 +76,6 @@ export function CommandBuilder({
         </Reorder.Group>
       ) : (
         <div className="relative overflow-hidden rounded-lg border border-dashed border-line-strong px-4 py-6">
-          <div aria-hidden className="absolute inset-0 bg-dots opacity-40 mask-radial" />
           <div className="relative flex flex-col items-start gap-3 sm:flex-row sm:items-center">
             <SquareTerminal className="size-5 shrink-0 text-fg-3" />
             <div className="min-w-0 flex-1">

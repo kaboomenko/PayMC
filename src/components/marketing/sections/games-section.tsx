@@ -11,7 +11,7 @@ export function GamesSection() {
       <SectionHeading
         eyebrow="Игры"
         title={`${GAME_LIST.length} игр.`}
-        muted="Плагин, мод, ресурс или RCON."
+        muted="Плагин, мод, ресурс или RCON"
         lead="Выдача — командами вашей же консоли: LuckPerms, Oxide, ArkShop, VIP Core. Если на сервере можно поставить агента — ставим агента, если нет — работаем по RCON."
         aside={
           <dl className="flex gap-6 border-l border-line pl-4 lg:mb-1">

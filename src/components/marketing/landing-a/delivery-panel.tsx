@@ -138,7 +138,7 @@ export function DeliveryPanel({ demo, className }: { demo: DeliveryDemo; classNa
           <Kbd className="h-[18px] text-[10px]">/</Kbd>
         </div>
         <p className="ml-auto flex shrink-0 items-center gap-2 font-mono text-[11px] text-fg-3 md:ml-0">
-          <StatusDot tone="ok" pulse className="size-1.5" />
+          <StatusDot tone="ok" className="size-1.5" />
           <span className="hidden sm:inline">
             {demo.serversUp} из {pluralize(demo.serversTotal, ["сервера", "серверов", "серверов"])} на связи
           </span>

@@ -62,7 +62,7 @@ function Slot({ item, nav }: { item?: StoreProduct | "qr" | null; nav?: React.Re
     <span className={base} title={`${item.name} · ${formatMoney(item.price)}`}>
       <span
         className={cn(
-          "flex size-[78%] items-center justify-center rounded-[2px] bg-gradient-to-br font-display text-[9px] font-bold tracking-[-0.04em] text-white",
+          "flex size-[78%] items-center justify-center rounded-[2px] bg-gradient-to-br font-display text-[9px] font-bold text-white",
           ART_TINTS[item.tint % ART_TINTS.length],
         )}
       >

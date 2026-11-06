@@ -40,7 +40,7 @@ export function Cell({
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="label-mono text-[10px] text-fg-4">{kicker}</p>
-          <h3 className="mt-1.5 text-[16px] font-semibold tracking-[-0.01em] text-fg">{title}</h3>
+          <h3 className="mt-1.5 text-[16px] font-medium text-fg">{title}</h3>
         </div>
         {aside ? <div className="shrink-0">{aside}</div> : null}
       </div>

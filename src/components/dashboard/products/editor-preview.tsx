@@ -72,7 +72,7 @@ export function StorefrontPreview({
             <ProductArt tint={tint} glyph={glyph} size={60} />
             <div className="min-w-0 flex-1">
               <div className="flex items-start justify-between gap-2">
-                <p className={cn("text-[15px] leading-snug font-semibold tracking-[-0.01em] break-words", name.trim() ? "text-fg" : "text-fg-4")}>
+                <p className={cn("text-[15px] leading-snug font-medium break-words", name.trim() ? "text-fg" : "text-fg-4")}>
                   {name.trim() || "Название товара"}
                 </p>
                 {badge ? (

@@ -54,7 +54,7 @@ export function StoreHeader({ data, preview = false }: { data: StoreData; previe
             <span className="min-w-0">
               <span className="block truncate font-display text-[17px] leading-tight font-semibold tracking-[-0.03em] text-fg">{data.name}</span>
               <span className="flex items-center gap-1.5 text-[11.5px] leading-tight text-fg-3">
-                <StatusDot tone="ok" pulse className="size-1.5" />
+                <StatusDot tone="ok" className="size-1.5" />
                 <span className="font-mono text-fg-2 nums">{formatNumber(data.online)}</span>
                 {plural(data.online, ["игрок", "игрока", "игроков"])} онлайн
               </span>

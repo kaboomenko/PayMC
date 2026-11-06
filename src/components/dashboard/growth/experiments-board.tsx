@@ -437,7 +437,7 @@ function CompletedCard({ e }: { e: ExperimentView }) {
             {e.startedAt ? formatDateShort(e.startedAt) : ""} – {e.endsAt ? formatDateShort(e.endsAt) : ""} · {METRIC[e.metric].short.toLowerCase()}
           </span>
         </div>
-        <h3 className="mt-2 text-[15px] font-semibold tracking-[-0.015em] text-fg">{e.name}</h3>
+        <h3 className="mt-2 text-[15px] font-medium text-fg">{e.name}</h3>
       </header>
       <div className="mt-3 grid grid-cols-2 gap-px border-y border-line-soft bg-line-soft">
         {[a, b].map((v) => (
@@ -490,7 +490,7 @@ function DraftCard({ e, onLaunch }: { e: ExperimentView; onLaunch: () => void })
           <Badge tone="outline">Черновик</Badge>
           <span className="label-mono text-fg-4">цель: {METRIC[e.metric].label}</span>
         </div>
-        <h3 className="mt-2 text-[15px] font-semibold tracking-[-0.015em] text-fg">{e.name}</h3>
+        <h3 className="mt-2 text-[15px] font-medium text-fg">{e.name}</h3>
         <p className="mt-1 text-[13px] text-fg-3">{e.hypothesis}</p>
       </header>
       <ul className="mt-4 space-y-2 px-4 sm:px-5">

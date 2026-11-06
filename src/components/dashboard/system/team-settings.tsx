@@ -55,7 +55,7 @@ export function TeamSettings({ team: initial, audit, now }: { team: TeamRow[]; a
       <section className="rounded-xl border border-line bg-surface shadow-raise">
         <header className="flex flex-wrap items-start justify-between gap-3 border-b border-line-soft px-5 py-4">
           <div>
-            <h2 className="text-sm font-semibold tracking-[-0.01em] text-fg">Команда</h2>
+            <h2 className="text-sm font-medium text-fg">Команда</h2>
             <p className="mt-0.5 text-[13px] text-fg-3">Роль определяет, что человек видит и меняет. Доли выплат — во вкладке «Распределение» в финансах.</p>
           </div>
           <Button variant="primary" size="sm" onClick={() => setInviteOpen(true)}>
@@ -120,7 +120,7 @@ export function TeamSettings({ team: initial, audit, now }: { team: TeamRow[]; a
       <section className="rounded-xl border border-line bg-surface shadow-raise">
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line-soft px-5 py-3.5">
           <div>
-            <h2 className="text-sm font-semibold tracking-[-0.01em] text-fg">Журнал действий</h2>
+            <h2 className="text-sm font-medium text-fg">Журнал действий</h2>
             <p className="mt-0.5 text-[12.5px] text-fg-3">Кто, что и когда менял. Хранится 1 год, нельзя удалить даже владельцу.</p>
           </div>
           <div className="-mx-1 max-w-full overflow-x-auto px-1 scrollbar-none">

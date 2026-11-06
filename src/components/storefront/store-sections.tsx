@@ -103,7 +103,7 @@ export function GoalWidget({ goal }: { goal: NonNullable<StoreData["goal"]> }) {
           ещё {pluralize(goal.daysLeft, ["день", "дня", "дней"])}
         </p>
       </div>
-      <p className="mt-2 text-[15px] font-medium tracking-[-0.01em] text-fg">{goal.title}</p>
+      <p className="mt-2 text-[15px] font-medium text-fg">{goal.title}</p>
       <p className="mt-3 flex items-baseline gap-1.5 font-mono nums">
         <span className="text-[26px] leading-none font-semibold tracking-[-0.03em] text-fg">{formatNumber(goal.raised)}</span>
         <span className="text-[13px] text-fg-3">из {formatMoney(goal.target)}</span>
@@ -164,7 +164,7 @@ export function RecentTicker({ items, now }: { items: StorePurchase[]; now: numb
   return (
     <div className="flex items-center overflow-hidden rounded-(--st-r-card) border border-white/[0.08] bg-surface/60">
       <p className="label-mono flex h-11 shrink-0 items-center gap-2 border-r border-white/[0.06] px-3.5 text-[10.5px] text-fg-2">
-        <StatusDot tone="ok" pulse className="size-1.5" />
+        <StatusDot tone="ok" className="size-1.5" />
         <span className="hidden @md:inline">Только что купили</span>
         <span className="@md:hidden">Купили</span>
       </p>
@@ -253,7 +253,7 @@ function CompactCard({
         <ProductArt p={p} size="md" className="size-14 self-start" />
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-1.5">
-            <h4 className="line-clamp-2 text-[14px] leading-tight font-semibold tracking-[-0.01em] text-fg">{p.name}</h4>
+            <h4 className="line-clamp-2 text-[14px] leading-tight font-medium text-fg">{p.name}</h4>
             <BadgeTag p={p} />
           </div>
           <p className="mt-0.5 truncate text-xs text-fg-3">
@@ -319,7 +319,7 @@ function TallCard({ p, dur, onBuy, className }: { p: StoreProduct; dur: string |
       </div>
       <div className="flex flex-1 flex-col px-2 pt-3 pb-1.5">
         <div className="flex items-baseline justify-between gap-2">
-          <h4 className="truncate text-[15px] font-semibold tracking-[-0.015em] text-fg">{p.name}</h4>
+          <h4 className="truncate text-[15px] font-medium text-fg">{p.name}</h4>
           {dur ? <span className="shrink-0 font-mono text-[11px] text-fg-3">{dur}</span> : null}
         </div>
         <p className="mt-1 line-clamp-2 text-[12.5px] leading-snug text-fg-3">{p.description}</p>
@@ -354,7 +354,7 @@ export function PoolCard({ p, now, onBuy }: { p: StoreProduct; now: number; onBu
             <Clock3 className="size-3" /> до {formatDateTime(pool.endsAt)} · {formatRelative(pool.endsAt, now)}
           </span>
         </div>
-        <h4 className="mt-1.5 text-[15px] font-semibold tracking-[-0.015em] text-fg">{p.name}</h4>
+        <h4 className="mt-1.5 text-[15px] font-medium text-fg">{p.name}</h4>
         <p className="mt-1 text-[12.5px] leading-snug text-fg-3">{p.description}</p>
         <div className="mt-3.5 flex items-baseline justify-between gap-3 font-mono nums">
           <span className="text-[13px] text-fg-2">

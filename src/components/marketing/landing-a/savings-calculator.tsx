@@ -77,7 +77,7 @@ export function SavingsCalculator() {
               className="relative mt-4 flex h-5 w-full touch-none items-center select-none"
             >
               <S.Track className="relative h-1 grow overflow-hidden rounded-full bg-white/[0.08]">
-                <S.Range className="absolute h-full rounded-full bg-gradient-to-r from-azure-500 to-ice-400" />
+                <S.Range className="absolute h-full rounded-full bg-azure-500" />
               </S.Track>
               <S.Thumb
                 aria-labelledby="calc-turnover-label"

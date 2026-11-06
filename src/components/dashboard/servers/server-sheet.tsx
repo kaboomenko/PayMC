@@ -204,7 +204,7 @@ function SheetInner({
     <>
       <SheetHeader>
         <div className="flex items-center gap-2.5">
-          <StatusDot tone={STATUS_TONE[s.status]} pulse={s.status === "online"} />
+          <StatusDot tone={STATUS_TONE[s.status]} />
           <SheetTitle>{s.name}</SheetTitle>
           <Badge tone={meta.tone}>{meta.label}</Badge>
         </div>

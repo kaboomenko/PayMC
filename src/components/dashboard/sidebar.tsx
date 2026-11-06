@@ -5,11 +5,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowUpRight, Check, ChevronsUpDown, LifeBuoy, LogOut, Plus, Search, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatMoney } from "@/lib/format";
 import { LogoMark } from "@/components/brand/logo";
 import { Kbd } from "@/components/ui/kbd";
 import { Avatar } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,9 +54,9 @@ export function Sidebar({
 
       <nav className="flex-1 overflow-y-auto px-3 pt-1.5 pb-3">
         {NAV.map((group) => (
-          <div key={group.label} className="mb-3">
-            <p className="label-mono mb-1 px-2 text-[10px] text-fg-4">{group.label}</p>
-            <ul className="space-y-px">
+          <div key={group.label} className="mb-4">
+            <p className="mb-1 px-2 text-xs text-fg-4">{group.label}</p>
+            <ul className="space-y-0.5">
               {group.items.map((item) => {
                 const active = item.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(item.href);
                 const Icon = item.icon;
@@ -74,12 +72,12 @@ export function Sidebar({
                       href={item.href}
                       onClick={onNavigate}
                       className={cn(
-                        "group relative flex h-[30px] items-center gap-2.5 rounded-md px-2 text-[13px] font-medium transition-colors",
+                        "group relative flex h-8 items-center gap-2.5 rounded-md px-2 text-[13px] font-medium transition-colors",
                         active ? "bg-white/[0.07] text-fg" : "text-fg-3 hover:bg-white/[0.04] hover:text-fg-2",
                       )}
                     >
                       {active ? (
-                        <span aria-hidden className="absolute top-[7px] bottom-[7px] -left-3 w-[2px] rounded-r-full bg-azure-400" />
+                        <span aria-hidden className="absolute top-2 bottom-2 -left-3 w-0.5 rounded-r-full bg-azure-400" />
                       ) : null}
                       <Icon className={cn("size-4 shrink-0", active ? "text-azure-300" : "text-fg-4 group-hover:text-fg-3")} />
                       <span className="flex-1 truncate">{item.label}</span>
@@ -103,33 +101,13 @@ export function Sidebar({
       </nav>
 
       <div className="shrink-0 space-y-1.5 border-t border-line-soft p-3">
-        {data.goal ? (
-          <Link
-            href="/dashboard/storefront"
-            onClick={onNavigate}
-            className="block rounded-lg border border-line bg-surface/60 px-2.5 py-2 transition-colors hover:border-line-strong"
-          >
-            <div className="flex items-center justify-between text-[11px]">
-              <span className="label-mono text-[10px] text-fg-4">Цель месяца</span>
-              <span className="font-mono text-ice-300 nums">{Math.round((data.goal.raised / data.goal.target) * 100)}%</span>
-            </div>
-            <p className="mt-0.5 truncate text-xs text-fg-2">{data.goal.title}</p>
-            <Progress value={data.goal.raised} max={data.goal.target} tone="ice" size="sm" className="mt-1.5" />
-            <p className="mt-1 font-mono text-[10.5px] text-fg-4 nums">
-              {formatMoney(data.goal.raised)} из {formatMoney(data.goal.target)}
-            </p>
-          </Link>
-        ) : null}
         <a
           href={current.storefrontUrl}
           target="_blank"
           rel="noreferrer"
           className="flex h-8 items-center gap-2 rounded-md px-2 text-[13px] text-fg-3 transition-colors hover:bg-white/[0.04] hover:text-fg-2"
         >
-          <span className="relative flex size-2">
-            <span className="absolute inline-flex size-full animate-ping rounded-full bg-ok opacity-50" />
-            <span className="relative inline-flex size-2 rounded-full bg-ok" />
-          </span>
+          <span aria-hidden className="size-2 rounded-full bg-ok" />
           <span className="flex-1 truncate">Магазин открыт</span>
           <ArrowUpRight className="size-3.5" />
         </a>

@@ -115,7 +115,7 @@ export function NotificationsMatrix() {
           <table className="w-full border-collapse text-[13px] sm:min-w-[560px]">
             <thead>
               <tr className="border-b border-line">
-                <th scope="col" className="h-11 px-4 text-left font-mono text-[10.5px] font-medium tracking-[0.07em] text-fg-3 uppercase sm:px-5">
+                <th scope="col" className="h-11 px-4 text-left label-mono tracking-[0.07em] text-fg-3 sm:px-5">
                   Событие
                 </th>
                 {CHANNELS.map((c) => {
@@ -123,7 +123,7 @@ export function NotificationsMatrix() {
                   return (
                     <th key={c.key} scope="col" className={cn("h-11 w-[96px] px-3 text-center sm:table-cell sm:w-[120px]", c.key !== mobileCh && "hidden")}>
                       <label className="inline-flex cursor-pointer flex-col items-center gap-1.5">
-                        <span className="font-mono text-[10.5px] font-medium tracking-[0.07em] text-fg-3 uppercase">{c.label}</span>
+                        <span className="label-mono tracking-[0.07em] text-fg-3">{c.label}</span>
                         <Checkbox checked={st} onCheckedChange={(v) => setCol(c.key, v === true)} aria-label={`${c.label}: все события`} />
                       </label>
                     </th>

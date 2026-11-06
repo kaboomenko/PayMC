@@ -102,7 +102,7 @@ export function WebhooksPanel({ payload }: { payload: { json: string; orderId: s
     <section id="webhooks" aria-labelledby="wh-title" className="scroll-mt-20">
       <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 id="wh-title" className="text-[15px] font-semibold tracking-[-0.015em] text-fg">
+          <h2 id="wh-title" className="text-[15px] font-medium text-fg">
             Вебхуки
           </h2>
           <p className="mt-0.5 text-[13px] text-fg-3">

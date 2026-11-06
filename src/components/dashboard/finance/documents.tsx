@@ -68,7 +68,7 @@ export function DocumentsPanel() {
       <section className="rounded-xl border border-line bg-surface shadow-raise">
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line-soft px-5 py-3.5">
           <div>
-            <h2 className="text-sm font-semibold tracking-[-0.01em] text-fg">Документы</h2>
+            <h2 className="text-sm font-medium text-fg">Документы</h2>
             <p className="mt-0.5 text-[12.5px] text-fg-3">Отчёт агента и акт подписаны усиленной электронной подписью PayMC.</p>
           </div>
           <div className="w-full sm:w-[220px]">

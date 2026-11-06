@@ -17,14 +17,13 @@ const STEPS = [
 const FACTS = [
   { v: "4,9 %", l: "всё включено, без абонентской платы" },
   { v: "12:00", l: "выплата каждый день на карту или СБП" },
-  { v: "0,4 с", l: "средняя выдача покупки в игру" },
+  { v: "0,4 с", l: "цель для выдачи игроку онлайн" },
 ];
 
 /** Right column of the auth screens: a real fragment of the product, not a slogan. */
 export function AuthVisual() {
   return (
     <div className="relative flex h-full flex-col justify-between p-10 xl:p-14">
-      <div aria-hidden className="absolute inset-0 bg-grid mask-radial opacity-90" />
       <div aria-hidden className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-b from-transparent to-surface" />
 
       <div className="relative flex items-center justify-end">

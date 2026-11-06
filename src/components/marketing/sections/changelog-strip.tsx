@@ -21,9 +21,9 @@ export function ChangelogStrip() {
         </p>
         <div className="flex flex-wrap items-center gap-2">
           <span className="inline-flex h-7 items-center gap-2 rounded-full border border-line bg-surface px-3 text-[12.5px] text-fg-2">
-            <StatusDot tone="ok" pulse className="size-1.5" />
+            <StatusDot tone="ok" className="size-1.5" />
             Все системы работают
-            <span className="font-mono text-[11.5px] text-fg-3 nums">99,98 % за 90 дней</span>
+            <span className="font-mono text-[11.5px] text-fg-3 nums">цель доступности 99,98&nbsp;%</span>
           </span>
         </div>
       </div>
@@ -41,7 +41,7 @@ export function ChangelogStrip() {
             <div className="lg:mt-4">
               <p className="flex items-center gap-2 font-mono text-[12px] text-fg-3 nums">
                 {r.date}
-                {i === 0 ? <span className="rounded-xs bg-azure-500/15 px-1.5 text-[10.5px] text-azure-200">новое</span> : null}
+                {i === 0 ? <span className="text-fg-4">· последний релиз</span> : null}
               </p>
               <p className="mt-1 text-[14px] leading-snug font-medium text-fg">{r.title}</p>
               <p className="mt-1 text-[12.5px] leading-snug text-fg-3">{r.text}</p>

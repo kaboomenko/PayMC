@@ -61,13 +61,10 @@ export function Avatar({ name, size = 28, className }: { name: string; size?: nu
     .slice(0, 2)
     .join("")
     .toUpperCase();
-  const h = hash(name);
-  const hues = ["from-azure-600 to-azure-800", "from-ice-500 to-azure-700", "from-azure-400 to-azure-700", "from-ice-600 to-azure-900"];
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br font-medium text-white ring-1 ring-white/10",
-        hues[h % hues.length],
+        "inline-flex shrink-0 items-center justify-center rounded-full bg-surface-4 font-medium text-fg-2 ring-1 ring-line-strong",
         className,
       )}
       style={{ width: size, height: size, fontSize: Math.max(10, size * 0.38) }}

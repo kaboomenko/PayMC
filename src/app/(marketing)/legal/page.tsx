@@ -55,7 +55,7 @@ export default function LegalPage() {
   return (
     <div className="container-page pt-32 pb-24">
       <p className="label-mono text-azure-300">Документы</p>
-      <h1 className="mt-5 max-w-3xl text-h1">Коротко и по делу.</h1>
+      <h1 className="mt-5 max-w-3xl text-h1">Коротко и по делу</h1>
       <p className="mt-5 max-w-2xl text-[17px] leading-relaxed text-fg-2">
         Ниже — главные положения документов PayMC. Полные тексты публикуются вместе с запуском приёма платежей.
       </p>
@@ -101,7 +101,7 @@ export default function LegalPage() {
               <dt className="text-fg-4">ИНН и ОГРН</dt>
               <dd className="text-fg-2">опубликуем при запуске приёма платежей</dd>
               <dt className="text-fg-4">Поддержка</dt>
-              <dd className="text-fg-2">Telegram, ответ в рабочее время — до 15 минут</dd>
+              <dd className="text-fg-2">Telegram, в рабочее время (цель — ответ за 15 минут)</dd>
               <dt className="text-fg-4">Хранение данных</dt>
               <dd className="text-fg-2">Российская Федерация</dd>
             </dl>

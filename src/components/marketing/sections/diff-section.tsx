@@ -50,7 +50,7 @@ export function DiffSection() {
             className="mb-0 lg:mb-0"
             eyebrow="Где теряются деньги"
             title={"Донат на сервере обычно устроен так\u00A0—"}
-            muted="и вот что меняется."
+            muted="и вот что меняется"
           />
           <p className="mt-5 max-w-md text-[17px] leading-relaxed text-fg-2">
             Каждая мелочь отъедает пару процентов выручки или вечер в неделю: потерянная выдача, ручные чеки, перевод

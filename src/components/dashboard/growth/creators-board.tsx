@@ -93,7 +93,6 @@ function CreatorKpis({ rows, kpi }: { rows: CreatorRow[]; kpi: CreatorKpiBase })
             </>
           ),
           sub: `${selling} ${plural(selling, ["блогер приносит", "блогера приносят", "блогеров приносят"])} продажи`,
-          accent: <Sparkline data={kpi.daily} width={84} height={26} tone="azure" />,
         },
         {
           label: "Покупателей пришло",
@@ -160,7 +159,7 @@ export function CreatorsBoard({ creators, kpi }: { creators: CreatorRow[]; kpi: 
       <div className="mt-8 overflow-hidden rounded-xl border border-line bg-surface shadow-raise">
         <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3 sm:px-5">
           <div>
-            <h2 className="text-[15px] font-semibold tracking-[-0.015em] text-fg">Лидерборд</h2>
+            <h2 className="text-[15px] font-medium text-fg">Лидерборд</h2>
             <p className="text-[12.5px] text-fg-3">По выручке за 30 дней · доля начисляется с каждой оплаты по коду</p>
           </div>
         </div>

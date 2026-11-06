@@ -117,7 +117,7 @@ export function ImportFlow({ data }: { data: ImportData }) {
       <section className="rounded-xl border border-line bg-surface shadow-raise">
         <header className="flex flex-col gap-4 border-b border-line-soft px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h2 className="text-sm font-semibold tracking-[-0.01em] text-fg">Переезд с другой платформы</h2>
+            <h2 className="text-sm font-medium text-fg">Переезд с другой платформы</h2>
             <p className="mt-0.5 text-[13px] text-fg-3">Товары, команды выдачи, промокоды и покупатели с остатком привилегий — за несколько минут, без потери истории.</p>
           </div>
           <ol className="flex items-center gap-1.5" aria-label="Шаги импорта">
@@ -155,7 +155,7 @@ export function ImportFlow({ data }: { data: ImportData }) {
                   )}
                 >
                   <span className="flex items-center justify-between gap-2">
-                    <span className="text-[13.5px] font-semibold tracking-[-0.01em] text-fg">{s.name}</span>
+                    <span className="text-[13.5px] font-medium text-fg">{s.name}</span>
                     {s.how === "api" ? <KeyRound className="size-3.5 text-fg-4" /> : <FileUp className="size-3.5 text-fg-4" />}
                   </span>
                   <span className="mt-1 font-mono text-[11px] text-fg-3">{s.how === "api" ? "по API-ключу" : "файл выгрузки"}</span>

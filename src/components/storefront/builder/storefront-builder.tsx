@@ -176,7 +176,7 @@ export function StorefrontBuilder({ data }: { data: StoreData }) {
               ]}
             />
           </div>
-          <div className={cn("bg-canvas", device === "mobile" && "bg-grid-sm py-5")}>
+          <div className={cn("bg-canvas", device === "mobile" && "py-5")}>
             {device === "desktop" ? (
               <ScaledFrame key="desktop" width={1280} height={720} label="Превью витрины: компьютер">
                 <Storefront data={data} theme={theme} blocks={blocks} preview />
@@ -254,9 +254,9 @@ function ThemePanel({ theme, onChange }: { theme: StoreTheme; onChange: (t: Stor
           value={theme.background}
           onChange={(v) => set("background", v)}
           options={[
+            { value: "solid", label: "Однотонный" },
             { value: "grid", label: "Сетка" },
             { value: "pixels", label: "Пиксели" },
-            { value: "solid", label: "Однотонный" },
           ]}
         />
       </Group>

@@ -57,7 +57,7 @@ export function GamesTable() {
           <col className="w-[24%] sm:w-[20%] lg:w-[13%]" />
         </colgroup>
         <thead>
-          <tr className="border-b border-line text-left font-mono text-[10.5px] tracking-[0.07em] text-fg-3 uppercase">
+          <tr className="border-b border-line text-left label-mono tracking-[0.07em] text-fg-3">
             <th className="h-9 pl-3 font-medium sm:pl-4">Игра</th>
             <th className="hidden h-9 px-3 font-medium lg:table-cell">Как подключается</th>
             <th className="hidden h-9 px-3 font-medium sm:table-cell">Платформы</th>

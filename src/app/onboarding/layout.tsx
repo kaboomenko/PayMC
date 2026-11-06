@@ -10,7 +10,6 @@ export const metadata: Metadata = {
 export default function OnboardingLayout({ children }: LayoutProps<"/onboarding">) {
   return (
     <div className="relative min-h-dvh overflow-x-clip bg-canvas">
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-grid mask-fade-b opacity-60" />
       <header className="relative border-b border-line-soft">
         <div className="mx-auto flex h-14 max-w-[1120px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <Link href="/" aria-label="PayMC — на главную" className="rounded-md outline-offset-4">

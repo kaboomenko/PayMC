@@ -282,7 +282,7 @@ function RouteCard({ data, onOpenTab, className }: { data: FinanceData; onOpenTa
       <div className="flex items-start justify-between gap-3 px-5 pt-4">
         <div>
           <p className="label-mono text-fg-3">Маршрут выплат</p>
-          <h2 className="mt-2 text-[15px] font-semibold tracking-[-0.015em] text-fg">Два банка, переключение само</h2>
+          <h2 className="mt-2 text-[15px] font-medium text-fg">Два банка, переключение само</h2>
         </div>
         <Badge tone="ok" dot>
           работает
@@ -414,7 +414,7 @@ function FeeTierCard({ data, className }: { data: FinanceData; className?: strin
       <div className="flex items-start justify-between gap-3 px-5 pt-4">
         <div>
           <p className="label-mono text-fg-3">Комиссия</p>
-          <h2 className="mt-2 text-[15px] font-semibold tracking-[-0.015em] text-fg">
+          <h2 className="mt-2 text-[15px] font-medium text-fg">
             {tier.label} · {formatPercent(tier.rate)}
           </h2>
         </div>

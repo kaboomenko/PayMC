@@ -971,7 +971,7 @@ function StepDots({ step }: { step: Step }) {
   return (
     <div className="ml-auto flex shrink-0 items-center gap-1" aria-label={`Шаг ${idx + 1} из 3`}>
       {[0, 1, 2].map((i) => (
-        <span key={i} className={cn("h-1 rounded-full transition-all duration-200", i === idx ? "w-4 bg-azure-400" : i < idx ? "w-1.5 bg-azure-400/60" : "w-1.5 bg-white/15")} />
+        <span key={i} className={cn("h-1 rounded-full transition-[width,background-color] duration-200", i === idx ? "w-4 bg-azure-400" : i < idx ? "w-1.5 bg-azure-400/60" : "w-1.5 bg-white/15")} />
       ))}
     </div>
   );

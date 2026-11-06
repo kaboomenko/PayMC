@@ -43,10 +43,7 @@ export default async function PlayersPage(props: PageProps<"/dashboard/players">
           label="Онлайн сейчас"
           value={
             <span className="inline-flex items-center gap-2.5">
-              <span className="relative flex size-2">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-ok opacity-50" />
-                <span className="relative inline-flex size-2 rounded-full bg-ok" />
-              </span>
+              <span aria-hidden className="size-2 shrink-0 rounded-full bg-ok" />
               {formatNumber(ONLINE_NOW)}
             </span>
           }

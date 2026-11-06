@@ -36,15 +36,11 @@ export function DeliverySection() {
         index="01"
         eyebrow="Доставка"
         title="Выдача, которую можно проверить."
-        muted={"Каждый шаг\u00A0— с временем и выводом консоли."}
+        muted={"Каждый шаг\u00A0— с временем и выводом консоли"}
         lead="Так выглядит раздел «Заказы» в кабинете. Выберите заказ — увидите, что происходило между оплатой и сообщением в чате. Офлайн-игрока и перегруженный сервер можно «починить» прямо здесь."
       />
 
       <div className="relative">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 -top-10 -bottom-10 bg-grid lg:-inset-x-8 [mask-image:radial-gradient(ellipse_60%_55%_at_50%_45%,#000_10%,transparent_75%)]"
-        />
         <DeliveryPanel demo={demo} className="relative" />
       </div>
 
@@ -65,7 +61,7 @@ export function DeliverySection() {
           <p className="label-mono text-azure-300">Библиотека команд</p>
           <h3 className="mt-4 text-h3 text-fg">
             {COMMAND_LIBRARY.length} {plural(COMMAND_LIBRARY.length, ["готовая команда", "готовые команды", "готовых команд"])} для
-            популярных плагинов.
+            популярных плагинов
           </h3>
           <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-fg-2">
             Не нужно помнить синтаксис: выберите, что выдать — команда соберётся сама.

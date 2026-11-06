@@ -358,8 +358,8 @@ export default async function PlayerPage(props: PageProps<"/dashboard/players/[i
               </div>
             </CardHeader>
             <CardContent>
-              <div className="relative mb-4 h-1.5 rounded-full bg-[linear-gradient(90deg,var(--color-ok)_0%,var(--color-ok)_30%,var(--color-warn)_30%,var(--color-warn)_60%,var(--color-bad)_60%)] opacity-30" aria-hidden />
-              <div className="relative -mt-[22px] mb-4 h-1.5" aria-hidden>
+              <div className="relative mb-4 h-1.5" aria-hidden>
+                <div className="absolute inset-0 rounded-full bg-[linear-gradient(90deg,var(--color-ok)_0%,var(--color-ok)_30%,var(--color-warn)_30%,var(--color-warn)_60%,var(--color-bad)_60%)] opacity-30" />
                 <span className={cn("absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-surface", toneBg[tone])} style={{ left: `${Math.min(98, Math.max(2, p.risk))}%` }} />
               </div>
               <ul className="space-y-2.5">

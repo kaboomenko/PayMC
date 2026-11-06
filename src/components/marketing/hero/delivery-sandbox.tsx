@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 import { formatMoney } from "@/lib/format";
 import { Switch } from "@/components/ui/switch";
 import { SCENARIOS, buildSteps, fillTemplate, type ScenarioStep } from "./scenarios";
-import { PURCHASE_EVENT } from "./pixel-field";
 
 type Phase = "idle" | "running" | "done";
 
@@ -46,7 +45,6 @@ export function DeliverySandbox({ className }: { className?: string }) {
     setPhase("running");
     setVisible(0);
     setOrderNo((n) => n + 1);
-    window.dispatchEvent(new CustomEvent(PURCHASE_EVENT));
     if (reduce) {
       setVisible(steps.length);
       setPhase("done");
@@ -70,22 +68,34 @@ export function DeliverySandbox({ className }: { className?: string }) {
     setVisible(0);
   };
 
-  // autoplay once when first scrolled into view
+  // autoplay once when first scrolled into view. The flag is set only when the run
+  // actually starts, so a remount (Strict Mode, fast refresh) simply reschedules it.
+  const runRef = React.useRef(run);
+  React.useEffect(() => {
+    runRef.current = run;
+  }, [run]);
   React.useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
+    let timer: number | null = null;
     const io = new IntersectionObserver(
       ([e]) => {
-        if (e.isIntersecting && !autoplayed.current) {
-          autoplayed.current = true;
-          timers.current.push(window.setTimeout(() => run(), 900));
+        if (e.isIntersecting && !autoplayed.current && timer === null) {
+          timer = window.setTimeout(() => {
+            timer = null;
+            autoplayed.current = true;
+            runRef.current();
+          }, 900);
         }
       },
       { threshold: 0.4 },
     );
     io.observe(el);
-    return () => io.disconnect();
-  }, [run]);
+    return () => {
+      io.disconnect();
+      if (timer !== null) window.clearTimeout(timer);
+    };
+  }, []);
 
   React.useEffect(() => clear, []);
 
@@ -136,7 +146,7 @@ export function DeliverySandbox({ className }: { className?: string }) {
           <ProductArt glyph={scenario.product.glyph} />
           <div className="min-w-0 flex-1">
             <div className="flex items-baseline justify-between gap-3">
-              <p className="truncate text-[15px] font-semibold tracking-[-0.01em] text-fg">{scenario.product.name}</p>
+              <p className="truncate text-[15px] font-medium text-fg">{scenario.product.name}</p>
               <p className="shrink-0 font-mono text-[15px] font-semibold text-fg nums">{formatMoney(scenario.product.price)}</p>
             </div>
             <p className="text-xs text-fg-3">

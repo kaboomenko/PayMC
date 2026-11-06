@@ -33,7 +33,7 @@ export function MigrateSection() {
       <SectionHeading
         eyebrow="Переезд"
         title="Переезд за вечер."
-        muted={"Товары, команды, промокоды и игроки\u00A0— с собой."}
+        muted={"Товары, команды, промокоды и игроки\u00A0— с собой"}
       />
 
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:gap-14">
@@ -50,7 +50,7 @@ export function MigrateSection() {
                 </span>
                 <div className="min-w-0 pt-0.5">
                   <div className="flex items-baseline justify-between gap-3">
-                    <p className="text-[15px] font-medium tracking-[-0.01em] text-fg">{s.title}</p>
+                    <p className="text-[15px] font-medium text-fg">{s.title}</p>
                     <span className="shrink-0 font-mono text-[11px] text-fg-4">≈ {s.time}</span>
                   </div>
                   <p className="mt-1 text-[13.5px] leading-relaxed text-fg-3">{s.text}</p>

@@ -66,6 +66,9 @@
   --color-bad-soft: rgb(242 97 111 / 0.12);
 
   /* Typography */
+  /* semibold is for rare emphasis only — softened so hierarchy comes from size and colour */
+  --font-weight-semibold: 560;
+
   --font-sans: "Onest Variable", "Onest", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-display: "Geologica Variable", "Onest Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -77,22 +80,22 @@
   --text-display: clamp(2.75rem, 6.4vw, 5.25rem);
   --text-display--line-height: 0.98;
   --text-display--letter-spacing: -0.042em;
-  --text-display--font-weight: 600;
+  --text-display--font-weight: 500;
 
   --text-h1: clamp(2.25rem, 4.6vw, 3.75rem);
   --text-h1--line-height: 1.02;
   --text-h1--letter-spacing: -0.036em;
-  --text-h1--font-weight: 600;
+  --text-h1--font-weight: 500;
 
   --text-h2: clamp(1.875rem, 3.4vw, 2.75rem);
   --text-h2--line-height: 1.06;
   --text-h2--letter-spacing: -0.03em;
-  --text-h2--font-weight: 600;
+  --text-h2--font-weight: 500;
 
   --text-h3: 1.375rem;
   --text-h3--line-height: 1.25;
   --text-h3--letter-spacing: -0.02em;
-  --text-h3--font-weight: 600;
+  --text-h3--font-weight: 500;
 
   /* Radii — small and consistent; no bubbly 24px cards */
   --radius-xs: 4px;
@@ -255,10 +258,9 @@
 /* Mono uppercase label — section eyebrows, table heads, meta */
 @utility label-mono {
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: 0.71875rem;
   line-height: 1rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0;
   font-weight: 500;
 }
 

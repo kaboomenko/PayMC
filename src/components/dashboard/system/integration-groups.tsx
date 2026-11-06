@@ -63,7 +63,7 @@ export function IntegrationGroups({ items }: { items: Integration[] }) {
     <section aria-labelledby="int-all">
       <div className="mb-3 flex items-end justify-between gap-4">
         <div>
-          <h2 id="int-all" className="text-[15px] font-semibold tracking-[-0.015em] text-fg">
+          <h2 id="int-all" className="text-[15px] font-medium text-fg">
             Все интеграции
           </h2>
           <p className="mt-0.5 text-[13px] text-fg-3">

@@ -130,7 +130,7 @@ export function CreatorBoard({
       <div className="overflow-hidden rounded-lg border border-line">
         <table className="w-full text-[12.5px]">
           <thead>
-            <tr className="border-b border-line bg-surface-2/60 text-left font-mono text-[10px] tracking-[0.07em] text-fg-4 uppercase">
+            <tr className="border-b border-line bg-surface-2/60 text-left label-mono tracking-[0.07em] text-fg-4">
               <th className="h-8 pl-3 font-medium">Блогер</th>
               <th className="h-8 px-2 font-medium">Код</th>
               <th className="hidden h-8 px-2 text-right font-medium sm:table-cell">Выручка</th>

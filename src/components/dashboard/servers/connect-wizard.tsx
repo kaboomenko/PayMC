@@ -139,7 +139,7 @@ function WizardBody({
           {STEPS.map((label, i) => (
             <li key={label} aria-current={i === step ? "step" : undefined}>
               <div className={cn("h-0.5 rounded-full", i < step ? "bg-azure-400" : i === step ? "bg-fg" : "bg-line-strong")} />
-              <p className={cn("mt-1.5 font-mono text-[10.5px] tracking-wide uppercase", i === step ? "text-fg" : i < step ? "text-azure-300" : "text-fg-4")}>
+              <p className={cn("mt-1.5 label-mono", i === step ? "text-fg" : i < step ? "text-azure-300" : "text-fg-4")}>
                 {i + 1} · {label}
               </p>
             </li>

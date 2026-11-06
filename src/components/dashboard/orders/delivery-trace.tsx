@@ -211,10 +211,10 @@ function RetriesItem({ steps, last }: { steps: TraceStep[]; last: boolean }) {
           <table className="w-full text-[11.5px]">
             <thead>
               <tr className="bg-white/[0.02] text-left">
-                <th className="h-7 px-2.5 font-mono text-[10px] font-medium tracking-[0.06em] text-fg-4 uppercase">Попытка</th>
-                <th className="h-7 px-2.5 font-mono text-[10px] font-medium tracking-[0.06em] text-fg-4 uppercase">Время</th>
-                <th className="h-7 px-2.5 text-right font-mono text-[10px] font-medium tracking-[0.06em] text-fg-4 uppercase">Пауза</th>
-                <th className="h-7 px-2.5 text-right font-mono text-[10px] font-medium tracking-[0.06em] text-fg-4 uppercase">Итог</th>
+                <th className="h-7 px-2.5 label-mono tracking-[0.06em] text-fg-4">Попытка</th>
+                <th className="h-7 px-2.5 label-mono tracking-[0.06em] text-fg-4">Время</th>
+                <th className="h-7 px-2.5 text-right label-mono tracking-[0.06em] text-fg-4">Пауза</th>
+                <th className="h-7 px-2.5 text-right label-mono tracking-[0.06em] text-fg-4">Итог</th>
               </tr>
             </thead>
             <tbody>

@@ -47,15 +47,14 @@ export function PricingSection() {
 
   return (
     <Section id="pricing">
-      <SectionHeading eyebrow="Цены" title="Одна ставка." muted="Всё включено." />
+      <SectionHeading eyebrow="Цены" title="Одна ставка." muted="Всё включено" />
 
       <div className="grid gap-4 lg:grid-cols-12">
         {/* the rate */}
         <div className="relative flex flex-col overflow-hidden rounded-xl border border-line-strong bg-surface p-6 sm:p-8 lg:col-span-5">
-          <div aria-hidden className="absolute inset-0 bg-grid-sm opacity-60 mask-fade-b" />
           <div className="relative">
             <p className="label-mono text-fg-4">С каждого платежа</p>
-            <p className="mt-4 font-display text-[96px] leading-[0.85] font-semibold tracking-[-0.05em] text-fg nums sm:text-[120px]">
+            <p className="mt-4 font-display text-[96px] leading-[0.85] font-medium tracking-[-0.05em] text-fg nums sm:text-[120px]">
               {formatNumber(PLAN_FEES.start * 100, 1)}
               <span className="ml-2 text-[0.45em] font-medium tracking-normal text-fg-3">%</span>
             </p>
@@ -102,7 +101,7 @@ export function PricingSection() {
                   i % 2 === 1 && "sm:border-l",
                 )}
               >
-                <Check className="mt-0.5 size-4 shrink-0 text-azure-300" />
+                <Check className="mt-0.5 size-4 shrink-0 text-fg-3" />
                 <div>
                   <p className="text-[14px] font-medium text-fg">{title}</p>
                   <p className="mt-0.5 text-[12.5px] leading-snug text-fg-3">{text}</p>
@@ -134,7 +133,7 @@ export function PricingSection() {
           <div>
             <table className="w-full text-[13px]">
               <thead>
-                <tr className="border-b border-line-soft text-left font-mono text-[10.5px] tracking-[0.07em] text-fg-4 uppercase">
+                <tr className="border-b border-line-soft text-left label-mono tracking-[0.07em] text-fg-4">
                   <th className="h-9 pl-6 font-medium">Оборот</th>
                   <th className="h-9 px-3 font-medium">Ставка</th>
                   <th className="hidden h-9 pr-6 text-right font-medium sm:table-cell">Пример</th>

@@ -35,7 +35,7 @@ export function SettingsSection({
     >
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-line-soft px-5 py-4">
         <div className="min-w-0">
-          <h2 className={cn("text-sm font-semibold tracking-[-0.01em]", tone === "danger" ? "text-bad" : "text-fg")}>{title}</h2>
+          <h2 className={cn("text-sm font-medium", tone === "danger" ? "text-bad" : "text-fg")}>{title}</h2>
           {description ? <p className="mt-0.5 max-w-xl text-[13px] text-fg-3">{description}</p> : null}
         </div>
         {aside ? <div className="flex shrink-0 items-center gap-2">{aside}</div> : null}

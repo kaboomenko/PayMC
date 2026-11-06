@@ -93,8 +93,8 @@ export function Storefront({
           <div className="flex flex-col gap-4">
             <div>
               <p className="label-mono text-[10.5px] text-(--st-accent-text)">Донат-магазин · {data.game === "minecraft" ? "Minecraft 1.21" : GAMES[data.game].name}</p>
-              <h1 className="mt-2 font-display text-[30px] leading-[1.02] font-semibold tracking-[-0.04em] text-fg @3xl:text-[44px]">
-                Поддержите {data.name} —<span className="text-fg-3"> покупка придёт в игру сразу.</span>
+              <h1 className="mt-2 font-display text-[30px] leading-[1.02] font-medium tracking-[-0.035em] text-fg @3xl:text-[44px]">
+                Поддержите {data.name} —<span className="text-fg-3"> покупка придёт в игру сразу</span>
               </h1>
               <p className="mt-3 max-w-[520px] text-[14px] leading-relaxed text-fg-2">
                 Офлайн — выдадим при входе. Сроки привилегий суммируются, шансы кейсов открыты.
@@ -148,7 +148,7 @@ export function Storefront({
                       <div key={g.id} role="tabpanel" aria-label={g.label}>
                         {activeTab === "all" ? (
                           <div className="mb-3 flex items-baseline justify-between gap-3 border-b border-white/[0.06] pb-2">
-                            <h3 className="text-[15px] font-semibold tracking-[-0.015em] text-fg">{g.label}</h3>
+                            <h3 className="text-[15px] font-medium text-fg">{g.label}</h3>
                             <span className="font-mono text-[11px] text-fg-4">{pluralize(g.products.length, ["товар", "товара", "товаров"])}</span>
                           </div>
                         ) : null}

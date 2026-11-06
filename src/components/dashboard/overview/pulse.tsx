@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { AreaTrend, CHART } from "@/components/charts";
-import { Sparkline } from "@/components/ui/sparkline";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { formatDate, formatDateShort, formatMoney, formatPercent, formatWeekday, pluralize } from "@/lib/format";
@@ -31,8 +30,7 @@ export function KpiTiles({ data }: { data: OverviewPulseData }) {
           <p className="mt-1.5 truncate font-mono text-[10.5px] text-fg-4 nums sm:text-[11px]">
             {k.sub ? k.sub : <>было {k.prev}</>}
           </p>
-          <Sparkline data={k.spark} width={240} height={34} tone={k.delta >= 0 ? "azure" : "ice"} className="mt-3 h-auto w-full" />
-          <p className="mt-2 border-t border-line-soft pt-2 text-[11px] leading-snug text-fg-4">{k.caption}</p>
+          <p className="mt-3 border-t border-line-soft pt-2 text-[11px] leading-snug text-fg-4">{k.caption}</p>
         </div>
       ))}
     </div>

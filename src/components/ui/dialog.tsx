@@ -45,7 +45,7 @@ export function DialogHeader({ className, ...props }: React.HTMLAttributes<HTMLD
 }
 
 export function DialogTitle({ className, ...props }: React.ComponentProps<typeof D.Title>) {
-  return <D.Title className={cn("pr-8 text-base font-semibold tracking-[-0.01em]", className)} {...props} />;
+  return <D.Title className={cn("pr-8 text-base font-medium", className)} {...props} />;
 }
 
 export function DialogDescription({ className, ...props }: React.ComponentProps<typeof D.Description>) {

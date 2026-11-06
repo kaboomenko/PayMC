@@ -277,8 +277,8 @@ function ServerRow({ s, queue, now, onOpen, active }: { s: ServerView; queue: nu
         {/* name + status */}
         <div className="min-w-0">
           <div className="flex items-center gap-2.5">
-            <StatusDot tone={STATUS_TONE[s.status]} pulse={s.status === "online"} />
-            <span className="truncate text-[14px] font-semibold tracking-[-0.01em] text-fg">{s.name}</span>
+            <StatusDot tone={STATUS_TONE[s.status]} />
+            <span className="truncate text-[14px] font-medium text-fg">{s.name}</span>
           </div>
           <p className="mt-0.5 truncate pl-[18px] text-xs">
             <span className={s.status === "online" ? "text-fg-3" : s.status === "degraded" ? "text-warn" : "text-bad"}>{meta.label}</span>

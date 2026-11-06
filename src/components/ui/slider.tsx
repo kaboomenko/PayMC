@@ -9,7 +9,7 @@ export function Slider({ className, ...props }: React.ComponentProps<typeof S.Ro
   return (
     <S.Root className={cn("relative flex h-5 w-full touch-none items-center select-none", className)} {...props}>
       <S.Track className="relative h-1 grow overflow-hidden rounded-full bg-white/[0.08]">
-        <S.Range className="absolute h-full rounded-full bg-gradient-to-r from-azure-500 to-ice-400" />
+        <S.Range className="absolute h-full rounded-full bg-azure-500" />
       </S.Track>
       {Array.from({ length: count }).map((_, i) => (
         <S.Thumb

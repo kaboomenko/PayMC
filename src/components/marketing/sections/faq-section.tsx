@@ -55,10 +55,10 @@ export function FaqSection() {
           <div className="lg:sticky lg:top-28">
             <p className="label-mono text-azure-300">Вопросы</p>
             <h2 className="mt-5 text-h2 text-fg">
-              Коротко <span className="text-fg-3">о&nbsp;главном.</span>
+              Коротко <span className="text-fg-3">о&nbsp;главном</span>
             </h2>
             <p className="mt-5 max-w-sm text-[15px] leading-relaxed text-fg-2">
-              Не нашли ответ? Напишите в Telegram — отвечаем за 15 минут в рабочее время.
+              Не нашли ответ? Напишите в Telegram — наша цель: ответ за 15&nbsp;минут в рабочее время.
             </p>
             <Button asChild variant="secondary" size="md" className="mt-6">
               <Link href="https://t.me/paymc">

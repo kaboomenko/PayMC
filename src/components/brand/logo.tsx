@@ -6,22 +6,11 @@ import { cn } from "@/lib/utils";
  * "a game block you can pay into". Works at 16px+.
  */
 export function LogoMark({ size = 24, className }: { size?: number; className?: string }) {
-  const id = React.useId();
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={cn("shrink-0", className)} aria-hidden>
-      <defs>
-        <linearGradient id={`${id}-l`} x1="3" y1="7" x2="12" y2="22" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#5c98ff" />
-          <stop offset="1" stopColor="#215fed" />
-        </linearGradient>
-        <linearGradient id={`${id}-r`} x1="21" y1="7" x2="12" y2="22" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#55cfff" />
-          <stop offset="1" stopColor="#1b4cc4" />
-        </linearGradient>
-      </defs>
       <path d="M12 1.6 21.2 6.9 12 12.2 2.8 6.9 12 1.6Z" fill="#edf1f8" />
-      <path d="M2.8 6.9 12 12.2v10.2L2.8 17.1V6.9Z" fill={`url(#${id}-l)`} />
-      <path d="M21.2 6.9 12 12.2v10.2l9.2-5.3V6.9Z" fill={`url(#${id}-r)`} />
+      <path d="M2.8 6.9 12 12.2v10.2L2.8 17.1V6.9Z" fill="#3377ff" />
+      <path d="M21.2 6.9 12 12.2v10.2l9.2-5.3V6.9Z" fill="#1b4cc4" />
       <path d="M9.1 5.6 14.9 8.2" stroke="#0a0d14" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );

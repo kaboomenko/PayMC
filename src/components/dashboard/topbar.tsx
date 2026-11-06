@@ -27,18 +27,18 @@ import { findNavItem } from "./nav";
 import type { ShellData } from "./shell-types";
 import type { ActivityKind } from "@/lib/mock/types";
 
-const KIND_ICON: Record<ActivityKind, { icon: React.ComponentType<{ className?: string }>; cls: string }> = {
-  order: { icon: CircleDollarSign, cls: "text-azure-300" },
-  delivery_failed: { icon: AlertTriangle, cls: "text-warn" },
-  awaiting_player: { icon: Clock, cls: "text-ice-300" },
-  payout: { icon: Wallet, cls: "text-ok" },
-  chargeback: { icon: ShieldAlert, cls: "text-bad" },
-  server_offline: { icon: ServerCrash, cls: "text-bad" },
-  server_online: { icon: Server, cls: "text-ok" },
-  campaign: { icon: Megaphone, cls: "text-azure-300" },
-  member: { icon: UserPlus, cls: "text-fg-2" },
-  receipt: { icon: FileCheck2, cls: "text-fg-2" },
-  fraud_blocked: { icon: ShieldCheck, cls: "text-ice-300" },
+const KIND_ICON: Record<ActivityKind, { icon: React.ComponentType<{ className?: string }>; dot?: string }> = {
+  order: { icon: CircleDollarSign },
+  delivery_failed: { icon: AlertTriangle, dot: "bg-warn" },
+  awaiting_player: { icon: Clock },
+  payout: { icon: Wallet, dot: "bg-ok" },
+  chargeback: { icon: ShieldAlert, dot: "bg-bad" },
+  server_offline: { icon: ServerCrash, dot: "bg-bad" },
+  server_online: { icon: Server, dot: "bg-ok" },
+  campaign: { icon: Megaphone },
+  member: { icon: UserPlus },
+  receipt: { icon: FileCheck2 },
+  fraud_blocked: { icon: ShieldCheck },
 };
 
 export function Topbar({
@@ -82,10 +82,7 @@ export function Topbar({
           href="/dashboard/orders"
           className="hidden h-7 items-center gap-2 rounded-full border border-line bg-surface/70 pr-3 pl-2.5 text-xs text-fg-2 transition-colors hover:border-line-strong md:flex"
         >
-          <span className="relative flex size-2">
-            <span className="absolute inline-flex size-full animate-ping rounded-full bg-ok opacity-60" />
-            <span className="relative inline-flex size-2 rounded-full bg-ok" />
-          </span>
+          <span aria-hidden className="size-2 shrink-0 animate-pulse-dot rounded-full bg-ok text-ok/40" />
           <span className="font-mono nums text-fg">{data.salesLastHour}</span>
           <span className="text-fg-3">{plural(data.salesLastHour, ["продажа", "продажи", "продаж"])} за час</span>
         </Link>
@@ -137,7 +134,7 @@ function Notifications({ data, now }: { data: ShellData; now: number }) {
         <Button variant="ghost" size="icon-sm" aria-label="Уведомления" className="relative">
           <Bell />
           {unread ? (
-            <span className="absolute top-1 right-1 flex size-3.5 items-center justify-center rounded-full bg-azure-500 font-mono text-[9px] font-bold text-white ring-2 ring-canvas">
+            <span className="absolute top-1 right-1 flex size-3.5 items-center justify-center rounded-full bg-azure-500 font-mono text-[9px] font-medium text-white ring-2 ring-canvas">
               {unread}
             </span>
           ) : null}
@@ -156,8 +153,9 @@ function Notifications({ data, now }: { data: ShellData; now: number }) {
             const Icon = meta.icon;
             const body = (
               <div className="flex gap-3 px-4 py-2.5 transition-colors hover:bg-white/[0.03]">
-                <span className={cn("mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md border border-line bg-surface-3", meta.cls)}>
+                <span className="relative mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md border border-line bg-surface-3 text-fg-3">
                   <Icon className="size-3.5" />
+                  {meta.dot ? <span aria-hidden className={cn("absolute -top-0.5 -right-0.5 size-2 rounded-full ring-2 ring-surface-2", meta.dot)} /> : null}
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-[13px] leading-snug text-fg">{n.title}</p>

@@ -66,7 +66,7 @@ export function AttentionCard({ data, now }: { data: AttentionData; now: number 
           {data.groups.map((g) => (
             <section key={g.id} className="px-4 py-3 sm:px-5" aria-label={`${g.server}: ${g.title}`}>
               <div className="flex items-start gap-2.5">
-                <StatusDot tone={g.tone} pulse={g.pulse} className="mt-[5px]" />
+                <StatusDot tone={g.tone} className="mt-1.5" />
                 <div className="min-w-0 flex-1">
                   <p className="text-[13px] leading-snug">
                     <span className="font-medium text-fg">{g.server}</span>
@@ -110,7 +110,7 @@ export function AttentionCard({ data, now }: { data: AttentionData; now: number 
                         </span>
                         <Button
                           size="xs"
-                          variant={o.status === "failed" && state === "idle" ? "primary" : "secondary"}
+                          variant="secondary"
                           className="h-6 shrink-0 px-2"
                           disabled={state !== "idle"}
                           onClick={() => resend(o)}

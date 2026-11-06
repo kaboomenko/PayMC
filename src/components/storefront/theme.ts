@@ -3,7 +3,7 @@ import type { StoreAccent, StoreBlock, StoreBlockId, StoreTheme } from "./types"
 
 export const DEFAULT_THEME: StoreTheme = {
   accent: "azure",
-  background: "grid",
+  background: "solid",
   density: "comfortable",
   corners: "soft",
 };

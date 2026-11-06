@@ -81,7 +81,7 @@ export function ApiKeysPanel() {
     <section id="api-keys" aria-labelledby="api-title" className="scroll-mt-20">
       <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 id="api-title" className="text-[15px] font-semibold tracking-[-0.015em] text-fg">
+          <h2 id="api-title" className="text-[15px] font-medium text-fg">
             Ключи API
           </h2>
           <p className="mt-0.5 text-[13px] text-fg-3">

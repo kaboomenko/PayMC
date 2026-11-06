@@ -39,7 +39,7 @@ export function SetupSection() {
       <SectionHeading
         eyebrow="Подключение"
         title="Первый платёж — сегодня вечером."
-        muted="Десять минут на всё."
+        muted="Десять минут на всё"
         lead="Магазин собирается в тестовом режиме сразу. Принимать деньги можно, как только подключите самозанятость или ИП — это ещё пара минут в «Мой налог»."
       />
 
@@ -56,7 +56,7 @@ export function SetupSection() {
             />
             <div className="lg:mt-5">
               <p className="font-mono text-[13px] text-azure-300 nums">{s.t}</p>
-              <p className="mt-1 text-[16px] font-semibold tracking-[-0.015em] text-fg">{s.title}</p>
+              <p className="mt-1 text-[16px] font-medium text-fg">{s.title}</p>
               <p className="mt-1 max-w-[260px] text-[13.5px] leading-relaxed text-fg-3">{typo(s.text)}</p>
             </div>
           </li>
@@ -68,7 +68,7 @@ export function SetupSection() {
         <div className="min-w-0 overflow-hidden rounded-xl border border-line-strong bg-[#070a10] shadow-[0_30px_80px_-40px_rgb(0_0_0/0.9)] lg:col-span-7">
           <div className="flex h-10 items-center justify-between border-b border-line-soft pr-1.5 pl-4">
             <span className="flex min-w-0 items-center gap-2.5">
-              <StatusDot tone="ok" pulse className="size-1.5 shrink-0" />
+              <StatusDot tone="ok" className="size-1.5 shrink-0" />
               <span className="label-mono truncate text-fg-4">{consoleLabel}</span>
             </span>
             <span className="flex items-center gap-1.5">

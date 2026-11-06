@@ -52,10 +52,7 @@ export default function OverviewPage() {
         title="Обзор"
         meta={
           <>
-            <span className="relative flex size-2">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-ok opacity-60" />
-              <span className="relative inline-flex size-2 rounded-full bg-ok" />
-            </span>
+            <span aria-hidden className="size-2 shrink-0 rounded-full bg-ok" />
             <span className="font-mono text-[11.5px] text-fg-3 nums">
               {WEEKDAY_FULL[formatWeekday(NOW_MS)]}, {formatDate(NOW_MS, { year: false })} · {formatTime(NOW_MS)} МСК
             </span>

@@ -79,7 +79,7 @@ export function CheckoutTile({ items }: { items: CheckoutItem[] }) {
                       active && "bg-azure-500/20 ring-2 ring-ice-300",
                     )}
                   >
-                    <span className="font-display text-[11px] font-semibold tracking-[-0.03em] text-white sm:text-[12px]">{it.glyph}</span>
+                    <span className="font-display text-[11px] font-semibold text-white sm:text-[12px]">{it.glyph}</span>
                   </button>
                 );
               })}

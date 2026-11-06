@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Segmented } from "@/components/ui/segmented";
-import { Sparkline } from "@/components/ui/sparkline";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
   DropdownMenu,
@@ -316,7 +315,6 @@ function CampaignKpis({ campaigns, kpi }: { campaigns: CampaignView[]; kpi: Camp
             </>
           ),
           sub: `${formatPercent(kpi.revenueShare)} всей выручки проекта`,
-          accent: <Sparkline data={kpi.daily} width={84} height={26} tone="ice" />,
         },
         {
           label: "Показы · 30 дн",
@@ -477,7 +475,7 @@ function CampaignCard({
               {badge.label}
             </Badge>
           </div>
-          <h3 className="mt-1.5 truncate text-[15px] font-semibold tracking-[-0.015em] text-fg">{c.name}</h3>
+          <h3 className="mt-1.5 truncate text-[15px] font-medium text-fg">{c.name}</h3>
           <p className="mt-1 flex items-start gap-1.5 text-[13px] leading-snug text-fg-3">
             <Zap className="mt-0.5 size-3.5 shrink-0 text-fg-4" />
             {c.trigger}
@@ -575,10 +573,7 @@ function CampaignCard({
           </div>
         ) : s.reached === 0 ? (
           <div className="flex items-center gap-3 rounded-lg border border-dashed border-line-strong px-3.5 py-3">
-            <span className="relative flex size-2">
-              <span className="absolute inset-0 animate-ping rounded-full bg-azure-400/60 motion-reduce:animate-none" />
-              <span className="relative size-2 rounded-full bg-azure-400" />
-            </span>
+            <span aria-hidden className="size-2 shrink-0 rounded-full bg-azure-400" />
             <p className="text-[13px] text-fg-2">
               Ждём первого срабатывания — показы и покупки появятся здесь, как только триггер сработает у первого игрока
             </p>

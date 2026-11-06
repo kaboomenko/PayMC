@@ -18,7 +18,6 @@ export function EmptyState({
     <div className={cn("flex flex-col items-center justify-center px-6 py-14 text-center", className)}>
       {icon ? (
         <div className="relative mb-4 flex size-11 items-center justify-center rounded-lg border border-line bg-surface-2 text-fg-3 [&_svg]:size-5">
-          <div className="absolute inset-0 bg-dots opacity-60 mask-radial" />
           <span className="relative">{icon}</span>
         </div>
       ) : null}

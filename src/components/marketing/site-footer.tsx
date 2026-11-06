@@ -60,7 +60,7 @@ export function SiteFooter() {
             href="/#changelog"
             className="mt-6 inline-flex h-8 items-center gap-2 rounded-full border border-line bg-surface/60 px-3 text-xs text-fg-2 transition-colors hover:border-line-strong"
           >
-            <span className="size-2 rounded-full bg-ok shadow-[0_0_8px_rgb(63_209_143/0.8)]" />
+            <span aria-hidden className="size-2 rounded-full bg-ok" />
             Все системы работают
           </Link>
         </div>

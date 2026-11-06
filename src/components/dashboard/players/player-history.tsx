@@ -71,7 +71,7 @@ export function PlayerHistory({ rows, total, allHref }: { rows: PlayerOrderRow[]
                 <th
                   key={h}
                   className={cn(
-                    "h-9 px-3 text-left font-mono text-[10.5px] font-medium tracking-[0.07em] whitespace-nowrap text-fg-3 uppercase first:pl-5 last:pr-5",
+                    "h-9 px-3 text-left label-mono tracking-[0.07em] whitespace-nowrap text-fg-3 first:pl-5 last:pr-5",
                     (i === 2 || i === 4) && "text-right",
                   )}
                 >

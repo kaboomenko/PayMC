@@ -95,7 +95,7 @@ export function SplitEditor({
         <section className="rounded-xl border border-line bg-surface shadow-raise lg:col-span-7">
           <header className="flex flex-wrap items-start justify-between gap-3 border-b border-line-soft px-5 py-4">
             <div>
-              <h2 className="text-sm font-semibold tracking-[-0.01em] text-fg">Кто получает выплаты</h2>
+              <h2 className="text-sm font-medium text-fg">Кто получает выплаты</h2>
               <p className="mt-0.5 text-[13px] text-fg-3">Каждая выплата делится по долям. Каждый получает деньги и чек на свою часть.</p>
             </div>
             <Button variant="secondary" size="sm" onClick={() => setAddOpen(true)} disabled={candidates.length === 0}>
@@ -217,7 +217,7 @@ export function SplitEditor({
         <section className="rounded-xl border border-line bg-surface shadow-raise lg:col-span-5">
           <header className="border-b border-line-soft px-5 py-4">
             <p className="label-mono text-fg-3">Предпросмотр</p>
-            <h2 className="mt-1.5 text-sm font-semibold tracking-[-0.01em] text-fg">
+            <h2 className="mt-1.5 text-sm font-medium text-fg">
               Как разделилась бы последняя выплата
             </h2>
             {lastPayout ? (

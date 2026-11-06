@@ -11,7 +11,6 @@ export function PaymentsStrip() {
       <div className="container-page flex flex-col gap-3 py-4 lg:flex-row lg:items-center lg:gap-6">
         <p className="flex shrink-0 items-center gap-2 text-[13px] text-fg-2">
           <span className="relative flex size-1.5" aria-hidden>
-            <span className="absolute inline-flex size-full animate-ping rounded-full bg-ok opacity-40 motion-reduce:hidden" />
             <span className="relative inline-flex size-1.5 rounded-full bg-ok" />
           </span>
           Игроки платят так, как привыкли

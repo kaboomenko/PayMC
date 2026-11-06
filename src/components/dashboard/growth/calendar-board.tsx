@@ -209,7 +209,7 @@ export function CalendarBoard({
               <Button variant="ghost" size="icon-sm" aria-label="Предыдущий месяц" disabled={month === 0} onClick={() => setMonth((v) => v - 1)}>
                 <ChevronLeft />
               </Button>
-              <h2 className="min-w-[132px] text-center text-[15px] font-semibold tracking-[-0.015em] text-fg">
+              <h2 className="min-w-[132px] text-center text-[15px] font-medium text-fg">
                 {MONTHS_NOM[m]} <span className="font-mono text-fg-3">{y}</span>
               </h2>
               <Button variant="ghost" size="icon-sm" aria-label="Следующий месяц" disabled={month === MONTHS.length - 1} onClick={() => setMonth((v) => v + 1)}>
@@ -240,7 +240,7 @@ export function CalendarBoard({
             <div>
               <div className="grid grid-cols-7 border-b border-line-soft">
                 {WEEKDAYS.map((d, i) => (
-                  <div key={d} className={cn("px-2 py-1.5 font-mono text-[10.5px] tracking-[0.06em] uppercase", i >= 5 ? "text-fg-4" : "text-fg-3")}>
+                  <div key={d} className={cn("px-2 py-1.5 label-mono tracking-[0.06em]", i >= 5 ? "text-fg-4" : "text-fg-3")}>
                     {d}
                   </div>
                 ))}
@@ -329,7 +329,7 @@ export function CalendarBoard({
 
         <aside className="rounded-xl border border-line bg-surface shadow-raise">
           <div className="flex items-center justify-between border-b border-line px-4 py-3">
-            <h2 className="text-[15px] font-semibold tracking-[-0.015em] text-fg">Ближайшие</h2>
+            <h2 className="text-[15px] font-medium text-fg">Ближайшие</h2>
             <span className="font-mono text-[11px] text-fg-4">автозапуск</span>
           </div>
           {upcoming.length ? (
@@ -596,7 +596,7 @@ function WipeSchedule() {
     <section className="mt-4 overflow-hidden rounded-xl border border-line bg-surface shadow-raise">
       <header className="flex flex-wrap items-end justify-between gap-2 border-b border-line px-4 py-3 sm:px-5">
         <div>
-          <h2 className="text-[15px] font-semibold tracking-[-0.015em] text-fg">Расписание вайпов и сезонов</h2>
+          <h2 className="text-[15px] font-medium text-fg">Расписание вайпов и сезонов</h2>
           <p className="text-[12.5px] text-fg-3">Акции привязываются к циклу сервера, а не к датам — после переноса вайпа всё сдвинется само</p>
         </div>
         <Link href="/dashboard/servers" className="inline-flex items-center gap-1 text-xs text-azure-300 hover:text-azure-200">
@@ -612,7 +612,7 @@ function WipeSchedule() {
                 {c.server}
               </p>
               <p className="row-span-2 self-center text-right font-mono text-[12px] text-fg-2 nums">
-                <span className="block text-[10px] tracking-[0.06em] text-fg-4 uppercase">след.</span>
+                <span className="block text-[11px] tracking-[0.06em] text-fg-4">след.</span>
                 {c.next}
               </p>
               <p className="pl-3.5 text-xs text-fg-3">

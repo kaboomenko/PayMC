@@ -46,7 +46,7 @@ export default function DesignPage() {
 
       <section className="mt-12">
         <p className="label-mono text-azure-300">Типографика</p>
-        <h1 className="mt-4 text-display">Донат, который доходит.</h1>
+        <h1 className="mt-4 text-display">Донат, который <span className="text-fg-3">доходит</span></h1>
         <h2 className="mt-6 text-h1">Заголовок H1 — 60/1.02</h2>
         <h2 className="mt-4 text-h2">Заголовок H2 — выплаты каждый день</h2>
         <h3 className="mt-4 text-h3">Заголовок H3 — трассировка доставки</h3>
@@ -113,7 +113,7 @@ export default function DesignPage() {
             <Badge tone="outline">MC 1.21</Badge>
             <Badge tone="white">NEW</Badge>
             <span className="inline-flex items-center gap-2 text-[13px] text-fg-2">
-              <StatusDot tone="ok" pulse /> online
+              <StatusDot tone="ok" /> online
             </span>
             <span className="inline-flex items-center gap-2 text-[13px] text-fg-2">
               <StatusDot tone="warn" /> деградация

@@ -19,10 +19,7 @@ export function RecentOrders({ orders, now, salesLastHour }: { orders: RecentOrd
         title="Последние заказы"
         meta={
           <span className="hidden items-center gap-1.5 sm:flex">
-            <span className="relative flex size-1.5">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-ok opacity-60" />
-              <span className="relative inline-flex size-1.5 rounded-full bg-ok" />
-            </span>
+            <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-ok" />
             <span className="font-mono text-[11px] nums">{pluralize(salesLastHour, ["продажа", "продажи", "продаж"])} за час</span>
           </span>
         }
@@ -131,7 +128,7 @@ export function ServersCard({ servers, onlineNow, nowHour }: { servers: ServerRo
               >
                 <span className="min-w-0">
                   <span className="flex items-center gap-2">
-                    <StatusDot tone={DOT_TONE[s.status]} pulse={s.status !== "online"} />
+                    <StatusDot tone={DOT_TONE[s.status]} />
                     <span className="truncate text-[13px] font-medium text-fg">{s.name}</span>
                   </span>
                   <span

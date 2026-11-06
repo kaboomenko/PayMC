@@ -77,7 +77,7 @@ export function PanelHeader({
   return (
     <div className={cn("flex min-h-12 items-center justify-between gap-3 border-b border-line-soft px-4 py-2.5 sm:px-5", className)}>
       <div className="flex min-w-0 items-center gap-2.5">
-        <h2 className="truncate text-[13.5px] font-semibold tracking-[-0.01em] text-fg">{title}</h2>
+        <h2 className="truncate text-[13.5px] font-medium text-fg">{title}</h2>
         {meta ? <div className="flex min-w-0 items-center gap-2 text-xs text-fg-3">{meta}</div> : null}
       </div>
       {actions ? <div className="flex shrink-0 items-center gap-1.5">{actions}</div> : null}

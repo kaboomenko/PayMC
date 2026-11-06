@@ -101,7 +101,7 @@ export function TaxesPanel({ tax, receipts, now }: { tax: TaxInfo; receipts: Rec
         <section className="min-w-0 rounded-xl border border-line bg-surface shadow-raise lg:col-span-8">
           <header className="flex items-start justify-between gap-3 border-b border-line-soft px-4 py-3.5 sm:px-5">
             <div className="min-w-0">
-              <h2 className="text-sm font-semibold tracking-[-0.01em] text-fg">Последние чеки</h2>
+              <h2 className="text-sm font-medium text-fg">Последние чеки</h2>
               <p className="mt-0.5 text-[12.5px] text-fg-3">Чек формируется в момент оплаты и уходит игроку на почту — обычно за 1–2 с.</p>
             </div>
             <Button asChild variant="ghost" size="xs" className="shrink-0">
@@ -179,7 +179,7 @@ export function TaxesPanel({ tax, receipts, now }: { tax: TaxInfo; receipts: Rec
         <section className="flex min-w-0 flex-col rounded-xl border border-line bg-surface shadow-raise lg:col-span-4">
           <div className="border-b border-line-soft bg-[linear-gradient(180deg,rgb(243_184_77/0.06),transparent)] px-5 py-4">
             <p className="label-mono text-warn">Скоро упрётесь в лимит</p>
-            <h2 className="mt-1.5 text-[15px] font-semibold tracking-[-0.015em] text-fg">Подходите к лимиту? Мастер перехода на ИП</h2>
+            <h2 className="mt-1.5 text-[15px] font-medium text-fg">Подходите к лимиту? Мастер перехода на ИП</h2>
             <p className="mt-1.5 text-[12.5px] leading-relaxed text-fg-3">
               После 2,4 млн ₽ статус самозанятого слетает, а налог с превышения считается по ставке ИП. Переход занимает около недели — лучше начать до 95 %.
             </p>
@@ -311,7 +311,7 @@ function IpWizard({ open, onOpenChange, projected }: { open: boolean; onOpenChan
           </ol>
           <div className="mt-4 min-h-[148px] rounded-lg border border-line-soft bg-surface-2/60 px-4 py-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 className="text-[15px] font-semibold tracking-[-0.015em] text-fg">{STEPS[step].title}</h3>
+              <h3 className="text-[15px] font-medium text-fg">{STEPS[step].title}</h3>
               <span className="font-mono text-[11.5px] text-fg-3">{STEPS[step].meta}</span>
             </div>
             <p className="mt-2 text-[13px] leading-relaxed text-fg-2">{STEPS[step].body}</p>
