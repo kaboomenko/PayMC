@@ -490,14 +490,16 @@ export const ORDERS: Order[] = drafts2.map((d, i) => {
     o.id = `PMC-${100001 + i}`;
   });
 
+  // a receipt is registered within about a minute of payment — only the freshest are still pending
+  for (const o of ORDERS) if (NOW_MS - new Date(o.createdAt).getTime() < 60_000) o.receipt = { status: "pending" };
+
   // queue length on servers = commands waiting there
   for (const s of SERVERS) {
     if (s.projectId !== CURRENT_PROJECT_ID) continue;
     const waiting = ORDERS.filter((o) => o.serverId === s.id && (o.status === "retrying" || o.status === "awaiting_player"));
     s.queue = waiting.reduce((acc, o) => acc + o.items.reduce((a, it) => a + (PRODUCT_SEEDS.find((p) => p.id === it.productId)?.commands.length ?? 1), 0), 0);
   }
-  // receipts for the last minutes are still being registered
-  ORDERS.slice(-3).forEach((o) => (o.receipt = { status: "pending" }));
+
   // chargebacks — card payments of flagged players, older than a week
   const cbPlayers = [...flagMap.entries()].filter(([, f]) => f.includes("chargeback")).map(([id]) => id);
   for (const pid of cbPlayers) {
