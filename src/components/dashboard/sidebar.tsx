@@ -54,9 +54,9 @@ export function Sidebar({
         </button>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 pt-2 pb-4">
+      <nav className="flex-1 overflow-y-auto px-3 pt-1.5 pb-3">
         {NAV.map((group) => (
-          <div key={group.label} className="mb-4">
+          <div key={group.label} className="mb-3">
             <p className="label-mono mb-1 px-2 text-[10px] text-fg-4">{group.label}</p>
             <ul className="space-y-px">
               {group.items.map((item) => {
@@ -74,12 +74,12 @@ export function Sidebar({
                       href={item.href}
                       onClick={onNavigate}
                       className={cn(
-                        "group relative flex h-8 items-center gap-2.5 rounded-md px-2 text-[13px] font-medium transition-colors",
+                        "group relative flex h-[30px] items-center gap-2.5 rounded-md px-2 text-[13px] font-medium transition-colors",
                         active ? "bg-white/[0.07] text-fg" : "text-fg-3 hover:bg-white/[0.04] hover:text-fg-2",
                       )}
                     >
                       {active ? (
-                        <span aria-hidden className="absolute top-1.5 bottom-1.5 -left-3 w-[2px] rounded-r-full bg-azure-400" />
+                        <span aria-hidden className="absolute top-[7px] bottom-[7px] -left-3 w-[2px] rounded-r-full bg-azure-400" />
                       ) : null}
                       <Icon className={cn("size-4 shrink-0", active ? "text-azure-300" : "text-fg-4 group-hover:text-fg-3")} />
                       <span className="flex-1 truncate">{item.label}</span>
@@ -102,20 +102,20 @@ export function Sidebar({
         ))}
       </nav>
 
-      <div className="shrink-0 space-y-2 border-t border-line-soft p-3">
+      <div className="shrink-0 space-y-1.5 border-t border-line-soft p-3">
         {data.goal ? (
           <Link
             href="/dashboard/storefront"
             onClick={onNavigate}
-            className="block rounded-lg border border-line bg-surface/60 p-2.5 transition-colors hover:border-line-strong"
+            className="block rounded-lg border border-line bg-surface/60 px-2.5 py-2 transition-colors hover:border-line-strong"
           >
             <div className="flex items-center justify-between text-[11px]">
               <span className="label-mono text-[10px] text-fg-4">Цель месяца</span>
               <span className="font-mono text-ice-300 nums">{Math.round((data.goal.raised / data.goal.target) * 100)}%</span>
             </div>
-            <p className="mt-1 truncate text-xs text-fg-2">{data.goal.title}</p>
-            <Progress value={data.goal.raised} max={data.goal.target} tone="ice" size="sm" className="mt-2" />
-            <p className="mt-1.5 font-mono text-[10.5px] text-fg-4 nums">
+            <p className="mt-0.5 truncate text-xs text-fg-2">{data.goal.title}</p>
+            <Progress value={data.goal.raised} max={data.goal.target} tone="ice" size="sm" className="mt-1.5" />
+            <p className="mt-1 font-mono text-[10.5px] text-fg-4 nums">
               {formatMoney(data.goal.raised)} из {formatMoney(data.goal.target)}
             </p>
           </Link>
