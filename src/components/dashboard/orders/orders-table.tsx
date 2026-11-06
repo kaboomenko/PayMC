@@ -253,7 +253,7 @@ export function OrdersTable({
                         </span>
                       </TD>
                       <TD className="whitespace-nowrap">
-                        <DeliveryCell status={statusOf(r)} deliveryMs={r.deliveryMs} manual={Boolean(overrides[r.id])} />
+                        <DeliveryCell status={statusOf(r)} deliveryMs={r.deliveryMs} manual={Boolean(overrides[r.id])} serverOffline={serverById.get(r.serverId)?.status === "offline"} />
                       </TD>
                       <TD className="text-right whitespace-nowrap">
                         <Tooltip content={formatExact(r.createdAt)} side="left">
@@ -288,7 +288,7 @@ export function OrdersTable({
                     <span className="shrink-0 font-mono text-[10.5px] text-fg-4 nums">{r.id}</span>
                   </span>
                   <span className="mt-1.5 flex items-center justify-between gap-3">
-                    <DeliveryCell status={statusOf(r)} deliveryMs={r.deliveryMs} manual={Boolean(overrides[r.id])} compact />
+                    <DeliveryCell status={statusOf(r)} deliveryMs={r.deliveryMs} manual={Boolean(overrides[r.id])} serverOffline={serverById.get(r.serverId)?.status === "offline"} compact />
                     <span className="shrink-0 text-[11.5px] whitespace-nowrap text-fg-4 nums">{formatRelative(r.createdAt, NOW_MS)}</span>
                   </span>
                 </button>
@@ -378,14 +378,27 @@ function SourceTag({ row }: { row: OrderRow }) {
   return null;
 }
 
-function DeliveryCell({ status, deliveryMs, manual, compact }: { status: OrderStatus; deliveryMs?: number; manual?: boolean; compact?: boolean }) {
+function DeliveryCell({
+  status,
+  deliveryMs,
+  manual,
+  compact,
+  serverOffline,
+}: {
+  status: OrderStatus;
+  deliveryMs?: number;
+  manual?: boolean;
+  compact?: boolean;
+  serverOffline?: boolean;
+}) {
   const meta = orderStatusMeta[status];
   let note: string | null = null;
   if (manual && status === "delivering") note = "в очереди";
   else if (status === "delivered" && deliveryMs !== undefined)
     note = deliveryMs > 60_000 ? `${compact ? "" : "при входе · "}${formatDeliveryTime(deliveryMs)}` : formatDeliveryTime(deliveryMs);
   else if (status === "awaiting_player") note = "ждёт входа";
-  else if (status === "retrying") note = compact ? "1/5" : "попытка 1/5";
+  else if (status === "retrying" && serverOffline) note = compact ? "очередь" : "ждёт сервер";
+  else if (status === "retrying") note = compact ? "3/5" : "попытка 3/5";
   else if (status === "failed") note = compact ? "5/5" : "5/5 попыток";
   return (
     <Tooltip content={meta.hint}>

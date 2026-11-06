@@ -460,9 +460,11 @@ export const ORDERS: Order[] = drafts2.map((d, i) => {
     setItem(o, skyProducts[i % skyProducts.length]);
     asPending(o, "retrying");
   });
-  // Anarchy lags: two timeouts being retried, two orders hit a missing plugin
-  take(2, (o) => recent(o, 3 * HOUR)).forEach((o) => {
+  // Anarchy lags: two fresh timeouts are being retried right now (attempt 3 of 5),
+  // and two older orders hit a missing plugin
+  take(2, (o) => recent(o, 3 * HOUR)).forEach((o, i) => {
     o.serverId = "srv-anarchy";
+    o.createdAt = new Date(NOW_MS - (i === 0 ? 4 * MINUTE + 20_000 : 7 * MINUTE + 50_000)).toISOString();
     asPending(o, "retrying");
   });
   take(2, (o) => recent(o, 7 * HOUR) && !recent(o, 3 * HOUR)).forEach((o) => {
@@ -481,6 +483,12 @@ export const ORDERS: Order[] = drafts2.map((d, i) => {
   last.createdAt = new Date(NOW_MS - 1400).toISOString();
   last.serverId = "srv-survival";
   asPending(last, "delivering");
+
+  // keep the log chronological after re-timing and renumber ids accordingly
+  ORDERS.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  ORDERS.forEach((o, i) => {
+    o.id = `PMC-${100001 + i}`;
+  });
 
   // queue length on servers = commands waiting there
   for (const s of SERVERS) {

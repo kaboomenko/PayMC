@@ -105,7 +105,23 @@ export function buildTrace(order: Order): TraceStep[] {
 
   if (order.status === "retrying") {
     push({ kind: "error", title: "Сервер не ответил за 5 000 мс", detail: "TPS 16,8 — сервер перегружен", status: "warn" }, 5000);
-    push({ kind: "retry", title: "Повтор 1 из 5 через 30 с", detail: "Интервал растёт: 30 с → 1 мин → 2 мин → 5 мин", status: "pending" }, 1);
+    // retries at +30 s, +1 min, +2 min, +5 min — show the ones that already happened
+    const schedule = [30_000, 60_000, 120_000, 300_000];
+    const elapsed = NOW_MS - t;
+    let acc = 0;
+    let made = 0;
+    for (const gap of schedule) {
+      if (acc + gap > elapsed) break;
+      acc += gap;
+      made += 1;
+      push({ kind: "retry", title: `Повтор ${made} из 5`, detail: "Нет ответа за 5 000 мс", output: "Timed out waiting for agent response", status: "warn" }, gap);
+    }
+    const next = schedule[made] ?? 300_000;
+    const left = Math.max(5, Math.round((acc + next - elapsed) / 1000));
+    push(
+      { kind: "retry", title: `Повтор ${made + 1} из 5 через ${left > 90 ? `${Math.round(left / 60)} мин` : `${left} с`}`, detail: "Интервал растёт: 30 с → 1 мин → 2 мин → 5 мин. Если не выйдет — пришлём алерт в Telegram", status: "pending" },
+      1,
+    );
     return steps;
   }
 
