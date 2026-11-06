@@ -22,14 +22,14 @@ export default function NotFound() {
               <span className="text-ok">✓</span> Запрос принят
             </p>
             <p className="text-fg-3">
-              <span className="text-ok">✓</span> Маршрут найден в очереди
+              <span className="text-ok">✓</span> Сервер ответил
             </p>
-            <p className="text-bad">✕ Страница не найдена — 404</p>
+            <p className="text-bad">✕ Маршрут не найден — 404</p>
             <p className="text-fg-4">Повторы не помогут: такой страницы нет.</p>
           </div>
         </div>
         <h1 className="mt-10 text-h1">
-          Эта выдача не дошла. <span className="text-fg-3">Но остальные — доходят.</span>
+          Эта выдача не дошла. <span className="text-fg-3">{"Но остальные\u00a0— доходят."}</span>
         </h1>
         <div className="mt-8 flex flex-wrap gap-3">
           <Button asChild variant="white" size="lg">

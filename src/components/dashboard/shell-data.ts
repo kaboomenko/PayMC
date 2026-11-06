@@ -1,6 +1,7 @@
 import "server-only";
 import { GAMES } from "@/lib/games";
 import { PLAN_META } from "@/lib/payments";
+import { formatMoney, pluralize } from "@/lib/format";
 import {
   ACTIVITY,
   CURRENT_PROJECT_ID,
@@ -51,14 +52,14 @@ export function buildShellData(): ShellData {
       ...topPlayers.map((p) => ({
         id: p.id,
         label: p.name,
-        sub: `LTV ${p.ltv.toLocaleString("ru-RU")} ₽ · ${p.orders} заказов`,
+        sub: `LTV ${formatMoney(p.ltv)} · ${pluralize(p.orders, ["заказ", "заказа", "заказов"])}`,
         href: `/dashboard/players/${p.id}`,
         kind: "player" as const,
       })),
       ...PRODUCTS.map((p) => ({
         id: p.id,
         label: p.name,
-        sub: `${p.category} · ${p.price.toLocaleString("ru-RU")} ₽`,
+        sub: `${p.category} · ${formatMoney(p.price)}`,
         href: `/dashboard/products/${p.id}`,
         kind: "product" as const,
       })),

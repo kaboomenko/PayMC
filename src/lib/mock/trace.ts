@@ -9,6 +9,7 @@ import { PRODUCT_SEEDS, SERVERS } from "./catalog";
 import { MINUTE, NOW_MS } from "./now";
 import { BANKS } from "./orders";
 import type { Order, TraceStep } from "./types";
+import { pluralize } from "@/lib/format";
 
 const SERVER_NAME = new Map(SERVERS.map((s) => [s.id, s.name]));
 const SEED_INDEX = new Map(PRODUCT_SEEDS.map((p) => [p.id, p]));
@@ -71,9 +72,17 @@ export function buildTrace(order: Order): TraceStep[] {
   const serverName = SERVER_NAME.get(order.serverId) ?? "Сервер";
   const slow = order.serverId === "srv-anarchy";
 
-  push({ kind: "payment", title: "Платёж подтверждён", detail: `${method.label}${order.method === "sbp" || order.method === "card" ? ` · ${bank}` : ""} · 3-D Secure не требовался`, status: "ok" });
+  const confirmation =
+    order.method === "card"
+      ? `${bank} · 3-D Secure пройден`
+      : order.method === "sbp"
+        ? `${bank} · подтверждён в приложении банка`
+        : order.method === "mobile"
+          ? "подтверждён по СМС"
+          : "подтверждён в приложении";
+  push({ kind: "payment", title: "Платёж подтверждён", detail: `${method.label} · ${confirmation}`, status: "ok" });
   push({ kind: "webhook", title: "Вебхук принят, подпись проверена", detail: `Антифрод: риск ${order.risk} / 100`, status: order.risk > 60 ? "warn" : "ok" }, int(28, 110));
-  push({ kind: "queued", title: `Задание в очереди сервера «${serverName}»`, detail: `${order.items.reduce((a, it) => a + (SEED_INDEX.get(it.productId)?.commands.length ?? 1), 0)} команд(ы)`, status: "ok" }, int(2, 9));
+  push({ kind: "queued", title: `Задание в очереди сервера «${serverName}»`, detail: pluralize(order.items.reduce((a, it) => a + (SEED_INDEX.get(it.productId)?.commands.length ?? 1), 0), ["команда", "команды", "команд"]), status: "ok" }, int(2, 9));
 
   const commands = order.items.flatMap((it) => {
     const seed = SEED_INDEX.get(it.productId);

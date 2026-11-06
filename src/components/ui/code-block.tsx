@@ -40,7 +40,7 @@ export function CodeBlock({
 }
 
 export function HighlightLine({ line }: { line: string }) {
-  if (/^\s*(#|\/\/)/.test(line)) return <span className="text-fg-4">{line}</span>;
+  if (/^\s*(#\s|\/\/)/.test(line)) return <span className="text-fg-4">{line}</span>;
   const parts = line.split(/(\{[a-z_]+\}|^\s*[$>]\s)/gi);
   return (
     <>

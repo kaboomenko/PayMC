@@ -1,5 +1,8 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { typo } from "@/lib/format";
+
+const t = (node: React.ReactNode) => (typeof node === "string" ? typo(node) : node);
 
 /**
  * Landing section wrapper: consistent rhythm, anchor offset for the fixed
@@ -68,10 +71,15 @@ export function SectionHeading({
           {eyebrow}
         </p>
         <h2 className="mt-5 text-h2 text-fg">
-          {title}
-          {muted ? <span className="text-fg-3"> {muted}</span> : null}
+          {t(title)}
+          {muted ? (
+            <span className="text-fg-3">
+              {typeof muted === "string" && muted.startsWith("—") ? "\u00a0" : " "}
+              {t(muted)}
+            </span>
+          ) : null}
         </h2>
-        {lead ? <p className="mt-5 max-w-2xl text-[17px] leading-relaxed text-fg-2">{lead}</p> : null}
+        {lead ? <p className="mt-5 max-w-2xl text-[17px] leading-relaxed text-fg-2">{t(lead)}</p> : null}
       </div>
       {aside ? <div className="shrink-0">{aside}</div> : null}
     </div>

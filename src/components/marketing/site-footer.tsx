@@ -5,7 +5,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
     title: "Продукт",
     links: [
-      { label: "Трассировка доставки", href: "/#delivery" },
+      { label: "Трассировка выдачи", href: "/#delivery" },
       { label: "Кампании в игре", href: "/#growth" },
       { label: "Выплаты и сплит", href: "/#money" },
       { label: "Калькулятор", href: "/#calculator" },

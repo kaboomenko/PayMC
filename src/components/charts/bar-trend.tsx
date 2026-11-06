@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { CHART, axisTick } from "./theme";
+import { CHART, axisTick, maxOf, niceScale } from "./theme";
 import { ChartTooltipBox } from "./chart-tooltip";
 
 type Datum = Record<string, string | number | null | undefined>;
@@ -35,6 +35,7 @@ export function BarTrend({
   className?: string;
 }) {
   const [active, setActive] = React.useState<number | null>(null);
+  const scale = niceScale(maxOf(data, [yKey]));
   return (
     <div className={className} style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
@@ -46,7 +47,7 @@ export function BarTrend({
         >
           <CartesianGrid vertical={false} stroke={CHART.grid} />
           <XAxis dataKey={xKey} tickLine={false} axisLine={false} tick={axisTick} tickFormatter={formatX} minTickGap={20} dy={6} />
-          {showYAxis ? <YAxis tickLine={false} axisLine={false} tick={axisTick} tickFormatter={formatY} width={56} /> : <YAxis hide />}
+          {showYAxis ? <YAxis tickLine={false} axisLine={false} tick={axisTick} tickFormatter={formatY} width={56} domain={scale.domain} ticks={scale.ticks} /> : <YAxis hide domain={scale.domain} />}
           <Tooltip
             cursor={{ fill: "rgba(148,166,204,0.05)" }}
             content={({ active: a, payload, label: l }) =>

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Bar, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { CHART, axisTick } from "./theme";
+import { CHART, axisTick, maxOf, niceScale } from "./theme";
 import { ChartTooltipBox } from "./chart-tooltip";
 
 type Datum = Record<string, string | number | null | undefined>;
@@ -27,14 +27,16 @@ export function ComboChart({
   formatTitle?: (v: string | number) => React.ReactNode;
   className?: string;
 }) {
+  const left = niceScale(maxOf(data, [bar.key]));
+  const right = niceScale(maxOf(data, [line.key]));
   return (
     <div className={className} style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={data} margin={{ top: 8, right: 0, bottom: 0, left: 0 }}>
           <CartesianGrid vertical={false} stroke={CHART.grid} />
           <XAxis dataKey={xKey} tickLine={false} axisLine={false} tick={axisTick} tickFormatter={formatX} minTickGap={24} dy={6} />
-          <YAxis yAxisId="l" tickLine={false} axisLine={false} tick={axisTick} tickFormatter={bar.format} width={56} />
-          <YAxis yAxisId="r" orientation="right" tickLine={false} axisLine={false} tick={axisTick} tickFormatter={line.format} width={40} />
+          <YAxis yAxisId="l" tickLine={false} axisLine={false} tick={axisTick} tickFormatter={bar.format} width={56} domain={left.domain} ticks={left.ticks} />
+          <YAxis yAxisId="r" orientation="right" tickLine={false} axisLine={false} tick={axisTick} tickFormatter={line.format} width={40} domain={right.domain} ticks={right.ticks} />
           <Tooltip
             cursor={{ fill: "rgba(148,166,204,0.05)" }}
             content={({ active, payload, label }) =>

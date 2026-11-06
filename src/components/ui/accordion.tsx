@@ -16,14 +16,14 @@ export function AccordionTrigger({ className, children, ...props }: React.Compon
     <A.Header className="flex">
       <A.Trigger
         className={cn(
-          "group flex flex-1 items-center justify-between gap-6 py-5 text-left text-[15px] font-medium text-fg transition-colors outline-none hover:text-white sm:text-base",
+          "group flex flex-1 items-center justify-between gap-6 py-5 text-left text-[15px] font-medium text-fg transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-azure-400 sm:text-base",
           className,
         )}
         {...props}
       >
         {children}
-        <span className="flex size-7 shrink-0 items-center justify-center rounded-md border border-line text-fg-3 transition-[transform,color,border-color] duration-200 group-hover:border-line-strong group-hover:text-fg group-data-[state=open]:rotate-45 group-data-[state=open]:text-azure-300">
-          <Plus className="size-4" />
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-md border border-line text-fg-3 transition-[color,border-color] duration-200 group-hover:border-line-strong group-hover:text-fg group-data-[state=open]:text-azure-300">
+          <Plus className="size-4 transition-transform duration-200 group-data-[state=open]:rotate-45" />
         </span>
       </A.Trigger>
     </A.Header>

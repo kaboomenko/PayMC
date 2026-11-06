@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { CHART, axisTick } from "./theme";
+import { CHART, axisTick, maxOf, niceScale } from "./theme";
 import { ChartTooltipBox } from "./chart-tooltip";
 
 export interface Series {
@@ -40,6 +40,7 @@ export function AreaTrend({
   className?: string;
 }) {
   const uid = React.useId().replace(/:/g, "");
+  const scale = niceScale(maxOf(data, series.map((s) => s.key)));
   return (
     <div className={className} style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
@@ -63,7 +64,7 @@ export function AreaTrend({
             dy={6}
           />
           {showYAxis ? (
-            <YAxis tickLine={false} axisLine={false} tick={axisTick} tickFormatter={formatY} width={56} />
+            <YAxis tickLine={false} axisLine={false} tick={axisTick} tickFormatter={formatY} width={56} domain={scale.domain} ticks={scale.ticks} />
           ) : (
             <YAxis hide />
           )}

@@ -1,4 +1,9 @@
-import { NOW_MS, DAY } from "./now";
+import { NOW_MS, DAY, mskDayStart } from "./now";
+
+/** Start of a calendar window of `days` days ending today (MSK) — matches DAILY.slice(-days). */
+export function windowStart(days: number, offsetDays = 0) {
+  return mskDayStart(days - 1 + offsetDays);
+}
 import { DAILY } from "./analytics";
 import { SERVERS } from "./catalog";
 import { ORDERS, ORDER_INDEX, ORDER_LOG_DAYS, PLAYERS, PLAYER_BY_NAME, PLAYER_INDEX, PRODUCTS, PRODUCT_INDEX, ordersByPlayer, isPaid } from "./orders";
@@ -21,7 +26,7 @@ const ISSUE_STATUSES: OrderStatus[] = ["failed", "retrying"];
 /** Newest first. */
 export function getOrders(f: OrderFilters = {}): Order[] {
   const q = f.query?.trim().toLowerCase();
-  const from = f.days ? NOW_MS - f.days * DAY : 0;
+  const from = f.days ? windowStart(f.days) : 0;
   const out: Order[] = [];
   for (let i = ORDERS.length - 1; i >= 0; i--) {
     const o = ORDERS[i];
@@ -130,10 +135,10 @@ function exactDistinctBuyers(from: number, to: number) {
  * Outside the order log we scale daily buyer sums by the ratio observed in the log.
  */
 function distinctBuyers(days: number, offset: number) {
-  const to = NOW_MS - offset * DAY;
-  const from = to - days * DAY;
+  const from = windowStart(days, offset);
+  const to = offset === 0 ? NOW_MS + 1 : windowStart(offset);
   if (from >= NOW_MS - ORDER_LOG_DAYS * DAY) return exactDistinctBuyers(from, to);
-  const ratio = exactDistinctBuyers(NOW_MS - days * DAY, NOW_MS) / (sumRange(days, 0, "buyers") || 1);
+  const ratio = exactDistinctBuyers(windowStart(days), NOW_MS + 1) / (sumRange(days, 0, "buyers") || 1);
   return Math.round(sumRange(days, offset, "buyers") * ratio);
 }
 

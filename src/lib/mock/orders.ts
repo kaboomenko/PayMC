@@ -652,10 +652,7 @@ export const PLAYERS: Player[] = drafts.map((d) => {
   const months = [5, 6, 7, 8, 9, 10];
   const spendHistory = months.map((m) => {
     const fromOrders = paid.filter((o) => new Date(new Date(o.createdAt).getTime() + 3 * HOUR).getUTCMonth() === m).reduce((a, o) => a + o.amount, 0);
-    if (fromOrders) return fromOrders;
-    const monthStart = Date.UTC(2026, m, 1);
-    if (m >= 8 || d.firstSeen > monthStart || !paid.length) return 0;
-    return Math.round((ltv / Math.max(1, paid.length)) * (r() < 0.5 ? 0 : 1 + int(0, 2)));
+    return fromOrders; // months before the order log starts stay empty — no invented history
   });
 
   return {

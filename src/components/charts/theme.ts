@@ -19,3 +19,25 @@ export const axisTick = {
   fontSize: 10.5,
   fontFamily: "var(--font-mono)",
 } as const;
+
+/**
+ * Round axis scale: 4 steps of 1/2/2.5/5 × 10^k that cover `max`.
+ * Avoids Recharts' auto ticks like 9 500 / 19 000 / 28 500 (rendered as «29 тыс»).
+ */
+export function niceScale(max: number, steps = 4): { domain: [number, number]; ticks: number[] } {
+  if (!Number.isFinite(max) || max <= 0) return { domain: [0, 1], ticks: [0, 1] };
+  const raw = max / steps;
+  const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 2.5, 5, 10].map((m) => m * pow).find((s) => s * steps >= max) ?? 10 * pow;
+  const top = step * steps;
+  return { domain: [0, top], ticks: Array.from({ length: steps + 1 }, (_, i) => Math.round(i * step * 1000) / 1000) };
+}
+
+export function maxOf<T extends Record<string, unknown>>(data: T[], keys: string[]) {
+  let m = 0;
+  for (const d of data) for (const k of keys) {
+    const v = Number(d[k]);
+    if (Number.isFinite(v) && v > m) m = v;
+  }
+  return m;
+}

@@ -1,4 +1,4 @@
-export { CHART, axisTick } from "./theme";
+export { CHART, axisTick, niceScale, maxOf } from "./theme";
 export { ChartTooltipBox } from "./chart-tooltip";
 export { AreaTrend, type Series } from "./area-trend";
 export { BarTrend } from "./bar-trend";

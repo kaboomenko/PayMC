@@ -13,10 +13,9 @@ const FACTS = [
 export function Hero() {
   return (
     <section className="relative isolate overflow-hidden pt-28 pb-20 sm:pt-32 lg:pt-36 lg:pb-28">
-      {/* background: payment pulse field + one restrained glow behind the product */}
+      {/* background: payment pulse field, fading into the page */}
       <div aria-hidden className="absolute inset-0 -z-10">
         <PixelField className="absolute inset-0 h-full w-full [mask-image:radial-gradient(ellipse_70%_60%_at_70%_45%,#000_20%,transparent_75%)]" />
-        <div className="absolute top-[18%] right-[-10%] h-[520px] w-[760px] rounded-full bg-[radial-gradient(closest-side,rgb(51_119_255/0.16),transparent)]" />
         <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-canvas" />
       </div>
 

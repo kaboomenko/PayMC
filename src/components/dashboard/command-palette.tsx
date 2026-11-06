@@ -140,6 +140,37 @@ export function CommandPalette({
                   ))}
                 </Command.Group>
               ) : null}
+
+              {query.trim().length > 1 ? (
+                <Command.Group heading="Искать везде" className={groupCls} forceMount>
+                  {/^pmc-\d{5,}$/i.test(query.trim()) ? (
+                    <Command.Item
+                      forceMount
+                      value={`open-order ${query}`}
+                      className={itemCls}
+                      onSelect={() => go(`/dashboard/orders?id=${query.trim().toUpperCase()}`)}
+                    >
+                      <Receipt /> Открыть заказ <span className="font-mono">{query.trim().toUpperCase()}</span>
+                    </Command.Item>
+                  ) : null}
+                  <Command.Item
+                    forceMount
+                    value={`search-orders ${query}`}
+                    className={itemCls}
+                    onSelect={() => go(`/dashboard/orders?q=${encodeURIComponent(query.trim())}&days=90`)}
+                  >
+                    <Search /> Искать «{query.trim()}» в заказах за 90 дней
+                  </Command.Item>
+                  <Command.Item
+                    forceMount
+                    value={`search-players ${query}`}
+                    className={itemCls}
+                    onSelect={() => go(`/dashboard/players?q=${encodeURIComponent(query.trim())}`)}
+                  >
+                    <UserRound /> Искать «{query.trim()}» среди всех игроков
+                  </Command.Item>
+                </Command.Group>
+              ) : null}
             </Command.List>
             <div className="flex h-9 items-center gap-4 border-t border-line px-4 text-[11px] text-fg-4">
               <span className="flex items-center gap-1.5">

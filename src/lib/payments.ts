@@ -73,3 +73,7 @@ export function feeRateFor(turnover: number) {
   if (turnover >= TIER_THRESHOLDS.pro) return PLAN_FEES.pro;
   return PLAN_FEES.start;
 }
+
+/** Typical competitor model used in landing comparisons (no names): commission range + paid withdrawals. */
+export const TYPICAL_PLATFORM = { commissionMin: 0.07, commissionMax: 0.12, withdrawalFee: 0.02 } as const;
+export const TYPICAL_WITHDRAWAL_FEE = TYPICAL_PLATFORM.withdrawalFee;

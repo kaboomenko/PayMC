@@ -176,3 +176,14 @@ export function formatPlaytime(minutes: number) {
   if (h < 100) return `${h} ч${minutes % 60 ? ` ${minutes % 60} мин` : ""}`;
   return `${formatNumber(h)} ч`;
 }
+
+/**
+ * Russian typography for display strings: a dash never starts a line, one-letter
+ * prepositions stick to the next word, units stick to their numbers.
+ */
+export function typo(text: string) {
+  return text
+    .replace(/ — /g, " — ")
+    .replace(/(^|[\s(«])([вскоуиаВСКОУИА]) /g, "$1$2 ")
+    .replace(/(\d) (₽|%|мин|сек|с|ч|дн|тыс|млн)(?=[\s.,;:!?)»]|$)/g, "$1 $2");
+}

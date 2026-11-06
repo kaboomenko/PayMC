@@ -9,7 +9,7 @@ import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 
 export const MARKETING_NAV = [
-  { href: "/#delivery", label: "Доставка" },
+  { href: "/#delivery", label: "Выдача" },
   { href: "/#growth", label: "Рост продаж" },
   { href: "/#money", label: "Деньги" },
   { href: "/#games", label: "Игры" },

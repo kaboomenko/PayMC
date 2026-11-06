@@ -20,7 +20,7 @@ import {
   Server,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatRelative, formatMoney } from "@/lib/format";
+import { formatRelative, formatMoney, plural } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { findNavItem } from "./nav";
@@ -87,7 +87,7 @@ export function Topbar({
             <span className="relative inline-flex size-2 rounded-full bg-ok" />
           </span>
           <span className="font-mono nums text-fg">{data.salesLastHour}</span>
-          <span className="text-fg-3">продаж за час</span>
+          <span className="text-fg-3">{plural(data.salesLastHour, ["продажа", "продажи", "продаж"])} за час</span>
         </Link>
 
         <Notifications data={data} now={now} />

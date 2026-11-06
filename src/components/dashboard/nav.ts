@@ -38,7 +38,7 @@ export const NAV: NavGroup[] = [
     items: [
       { href: "/dashboard", label: "Обзор", icon: LayoutGrid, key: "h", hint: "Пульс проекта" },
       { href: "/dashboard/analytics", label: "Аналитика", icon: BarChart3, key: "a", hint: "Выручка × онлайн, когорты, прогноз" },
-      { href: "/dashboard/orders", label: "Заказы", icon: Receipt, key: "o", hint: "Трассировка доставки" },
+      { href: "/dashboard/orders", label: "Заказы", icon: Receipt, key: "o", hint: "Трасса выдачи каждого заказа" },
       { href: "/dashboard/players", label: "Игроки", icon: Users, key: "i", hint: "Профили, LTV, риски" },
     ],
   },
@@ -67,7 +67,7 @@ export const NAV: NavGroup[] = [
   {
     label: "Система",
     items: [
-      { href: "/dashboard/integrations", label: "Интеграции", icon: Plug, hint: "Discord, Telegram, API" },
+      { href: "/dashboard/integrations", label: "Интеграции", icon: Plug, hint: "Telegram, VK, вебхуки и API" },
       { href: "/dashboard/settings", label: "Настройки", icon: Settings, key: ",", hint: "Проект, команда, антифрод" },
     ],
   },

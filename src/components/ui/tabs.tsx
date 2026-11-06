@@ -33,7 +33,7 @@ export function TabsTrigger({ className, ...props }: React.ComponentProps<typeof
   return (
     <T.Trigger
       className={cn(
-        "relative inline-flex items-center gap-1.5 whitespace-nowrap text-[13px] font-medium text-fg-3 transition-colors outline-none hover:text-fg-2 data-[state=active]:text-fg [&_svg]:size-4",
+        "relative inline-flex items-center gap-1.5 whitespace-nowrap text-[13px] font-medium text-fg-3 transition-colors hover:text-fg-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-azure-400 data-[state=active]:text-fg [&_svg]:size-4",
         // underline
         "group-data-[variant=underline]/tabs:h-10 group-data-[variant=underline]/tabs:after:absolute group-data-[variant=underline]/tabs:after:inset-x-0 group-data-[variant=underline]/tabs:after:-bottom-px group-data-[variant=underline]/tabs:after:h-px group-data-[variant=underline]/tabs:after:bg-transparent group-data-[variant=underline]/tabs:data-[state=active]:after:bg-fg",
         // pill

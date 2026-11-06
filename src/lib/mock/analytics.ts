@@ -7,6 +7,7 @@ import { COUNTRIES, PAYMENT_METHODS } from "@/lib/payments";
 import { PRODUCT_INDEX, ORDERS, ORDER_LOG_DAYS, PLAYERS, isPaid } from "./orders";
 import { CAMPAIGNS, SERVERS, TEAM } from "./catalog";
 import { DAY, HOUR, MINUTE, NOW_MS, ago, mskDayStart } from "./now";
+import { pluralize } from "@/lib/format";
 import type {
   ActivityEvent,
   Balance,
@@ -88,10 +89,13 @@ for (let d = DAILY_DAYS - 1; d >= 0; d--) {
 
 /* ───────────── Heatmap: weekday × hour (MSK), last 30 days ───────────── */
 
+/** Calendar window of the last 30 days (MSK), same as DAILY.slice(-30). */
+const last30Start = mskDayStart(29);
+
 export const HOURLY_HEATMAP: number[][] = Array.from({ length: 7 }, () => Array.from({ length: 24 }, () => 0));
 for (const o of ORDERS) {
   const t = new Date(o.createdAt).getTime();
-  if (NOW_MS - t > 30 * DAY || !isPaid(o)) continue;
+  if (t < last30Start || !isPaid(o)) continue;
   const m = new Date(t + 3 * HOUR);
   const dow = (m.getUTCDay() + 6) % 7; // Mon = 0
   HOURLY_HEATMAP[dow][m.getUTCHours()] += o.amount;
@@ -99,7 +103,7 @@ for (const o of ORDERS) {
 
 /* ───────────── Splits (last 30 days) ───────────── */
 
-const last30 = ORDERS.filter((o) => isPaid(o) && NOW_MS - new Date(o.createdAt).getTime() <= 30 * DAY);
+const last30 = ORDERS.filter((o) => isPaid(o) && new Date(o.createdAt).getTime() >= last30Start);
 
 function split<K extends string>(keyOf: (o: (typeof ORDERS)[number]) => K) {
   const map = new Map<K, { amount: number; count: number }>();
@@ -190,7 +194,7 @@ export const PAYOUTS: Payout[] = (() => {
     if (!day) continue;
     const gross = Math.round(day.revenue * 0.961);
     const createdAt = new Date(mskDayStart(d) + 12 * HOUR).toISOString();
-    const failed = d === 12;
+    const failed = d === 4;
     const status = d === 0 ? "processing" : failed ? "failed" : "paid";
     out.push({
       id: `po-${String(2026_1106 - d)}`,
@@ -252,14 +256,16 @@ export const ACTIVITY: ActivityEvent[] = (() => {
       ev.push({ id: `a-${o.id}`, kind: "delivery_failed", title: `Выдача ждёт сервер: ${label}`, description: `${o.playerName} · повторим автоматически`, at: o.createdAt, href: `/dashboard/orders?id=${o.id}`, amount: o.amount });
     } else if (o.status === "awaiting_player") {
       ev.push({ id: `a-${o.id}`, kind: "awaiting_player", title: `Ждёт входа игрока: ${label}`, description: `${o.playerName} офлайн — выдадим при входе`, at: o.createdAt, href: `/dashboard/orders?id=${o.id}`, amount: o.amount });
+    } else if (o.status === "delivering") {
+      ev.push({ id: `a-${o.id}`, kind: "order", title: `${o.playerName} покупает ${label}`, description: `${PAYMENT_METHODS[o.method].label} · выдаётся прямо сейчас`, at: o.createdAt, href: `/dashboard/orders?id=${o.id}`, amount: o.amount });
     } else {
       ev.push({ id: `a-${o.id}`, kind: "order", title: `${o.playerName} купил ${label}`, description: `${PAYMENT_METHODS[o.method].label} · выдано за ${o.deliveryMs ? (o.deliveryMs < 1000 ? `${o.deliveryMs} мс` : `${(o.deliveryMs / 1000).toFixed(1).replace(".", ",")} с`) : "—"}`, at: o.createdAt, href: `/dashboard/orders?id=${o.id}`, amount: o.amount });
     }
   }
   const sky = SERVERS.find((s) => s.id === "srv-skyblock")!;
-  ev.push({ id: "a-sky", kind: "server_offline", title: "SkyBlock не на связи", description: "Задания копятся в очереди: 12 команд. Уведомление ушло в Telegram.", at: sky.lastSeenAt, href: "/dashboard/servers" });
+  ev.push({ id: "a-sky", kind: "server_offline", title: "SkyBlock не на связи", description: `Задания копятся в очереди: ${pluralize(sky.queue, ["команда", "команды", "команд"])}. Уведомление ушло в Telegram.`, at: sky.lastSeenAt, href: "/dashboard/servers" });
   ev.push({ id: "a-fraud", kind: "fraud_blocked", title: "Платёж отклонён антифродом", description: "Карта в общем чёрном списке PayMC · 990 ₽", at: ago(2 * HOUR + 12 * MINUTE), href: "/dashboard/players" });
-  ev.push({ id: "a-payout", kind: "payout", title: "Выплата отправлена", description: "Разделена между 3 участниками по СБП", at: new Date(mskDayStart(0) + 12 * HOUR).toISOString(), href: "/dashboard/finance", amount: PAYOUTS[0]?.amount });
+  ev.push({ id: "a-payout", kind: "payout", title: "Выплата отправлена", description: `Разделена между ${pluralize(SPLIT_MEMBERS.length, ["участником", "участниками", "участниками"])}: ${SPLIT_MEMBERS.filter((m) => m.payoutDestination?.includes("СБП")).length} по СБП, ${SPLIT_MEMBERS.filter((m) => !m.payoutDestination?.includes("СБП")).length} на карту`, at: new Date(mskDayStart(0) + 12 * HOUR).toISOString(), href: "/dashboard/finance", amount: PAYOUTS[0]?.amount });
   ev.push({ id: "a-camp", kind: "campaign", title: "«Вернуть в корзину» принесла 2 140 ₽ за утро", description: "7 игроков оплатили после напоминания в чате", at: ago(3 * HOUR + 5 * MINUTE), href: "/dashboard/campaigns" });
   ev.push({ id: "a-receipts", kind: "receipt", title: "Чеки за вчера зарегистрированы", description: "«Мой налог» · 0 ошибок", at: ago(11 * HOUR + 2 * MINUTE), href: "/dashboard/finance" });
   ev.push({ id: "a-anarchy", kind: "delivery_failed", title: "«Анархия» отвечает медленно", description: "TPS 16,8, задержка агента 640 мс. Плагин PayMC устарел: 2.3.0 → 2.4.1", at: ago(52 * MINUTE), href: "/dashboard/servers" });

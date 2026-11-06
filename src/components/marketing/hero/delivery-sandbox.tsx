@@ -214,7 +214,7 @@ export function DeliverySandbox({ className }: { className?: string }) {
               exit={{ opacity: 0 }}
               className="flex items-center gap-1.5 font-mono text-[11.5px] text-ok"
             >
-              <Check className="size-3.5" /> выдано за {totalMs} мс
+              <Check className="size-3.5" /> {offline ? `выдано при входе · ${totalMs} мс после входа` : `выдано за ${totalMs} мс`}
             </motion.p>
           ) : running ? (
             <motion.p key="run" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="font-mono text-[11.5px] text-ice-300">
