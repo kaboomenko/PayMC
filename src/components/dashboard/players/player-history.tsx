@@ -29,9 +29,41 @@ export function PlayerHistory({ rows, total, allHref }: { rows: PlayerOrderRow[]
     );
   }
 
+  const itemsText = (o: PlayerOrderRow) => o.items.map((it) => (it.qty > 1 ? `${it.name} ×${it.qty}` : it.name)).join(", ");
+
   return (
     <>
-      <div className="overflow-x-auto">
+      {/* Phone: stacked rows, same layout as the orders list */}
+      <ul className="divide-y divide-line-soft md:hidden">
+        <AnimatePresence initial={false}>
+          {list.map((o) => {
+            const meta = orderStatusMeta[o.status];
+            return (
+              <motion.li
+                key={o.id}
+                layout={reduce ? false : "position"}
+                initial={o.manual && !reduce ? { opacity: 0, backgroundColor: "rgba(51,119,255,0.16)" } : false}
+                animate={{ opacity: 1, backgroundColor: "rgba(51,119,255,0)" }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {o.manual ? (
+                  <div className="px-4 py-3">
+                    <HistoryRowBody o={o} meta={meta} items={itemsText(o)} />
+                  </div>
+                ) : (
+                  <Link href={`/dashboard/orders?id=${o.id}`} className="block px-4 py-3 transition-colors hover:bg-white/[0.02] focus-visible:bg-white/[0.03]">
+                    <HistoryRowBody o={o} meta={meta} items={itemsText(o)} />
+                  </Link>
+                )}
+              </motion.li>
+            );
+          })}
+        </AnimatePresence>
+      </ul>
+
+      {/* Tablet / desktop: table */}
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full min-w-[560px] text-[13px]">
           <thead>
             <tr className="border-b border-line">
@@ -73,9 +105,7 @@ export function PlayerHistory({ rows, total, allHref }: { rows: PlayerOrderRow[]
                     </td>
                     <td className="h-11 max-w-[240px] px-3">
                       <span className="flex min-w-0 items-center gap-2">
-                        <span className="truncate text-fg-2">
-                          {o.items.map((it) => (it.qty > 1 ? `${it.name} ×${it.qty}` : it.name)).join(", ")}
-                        </span>
+                        <span className="truncate text-fg-2">{itemsText(o)}</span>
                         {o.manual ? (
                           <Tooltip content={`Выдано вручную · ${o.manual.reason}`}>
                             <span className="inline-flex shrink-0 items-center gap-1 rounded-xs bg-azure-500/12 px-1.5 py-px text-[10.5px] text-azure-300">
@@ -106,7 +136,7 @@ export function PlayerHistory({ rows, total, allHref }: { rows: PlayerOrderRow[]
         </table>
       </div>
       {total > rows.length ? (
-        <div className="flex items-center justify-between border-t border-line-soft px-5 py-2.5 text-[12.5px] text-fg-3">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-line-soft px-4 py-2.5 text-[12.5px] text-fg-3 sm:px-5">
           <span>
             Показаны последние <span className="font-mono text-fg-2 nums">{formatNumber(rows.length)}</span> из{" "}
             <span className="font-mono text-fg-2 nums">{formatNumber(total)}</span>
@@ -116,6 +146,33 @@ export function PlayerHistory({ rows, total, allHref }: { rows: PlayerOrderRow[]
           </Link>
         </div>
       ) : null}
+    </>
+  );
+}
+
+function HistoryRowBody({ o, meta, items }: { o: PlayerOrderRow; meta: (typeof orderStatusMeta)[keyof typeof orderStatusMeta]; items: string }) {
+  return (
+    <>
+      <span className="flex items-baseline justify-between gap-3">
+        <span className={cn("font-mono text-[12.5px] nums", o.manual ? "text-fg-3" : "text-fg")}>{o.id}</span>
+        <span className="shrink-0 font-mono text-[13px] text-fg nums">{o.manual ? <span className="text-fg-4">0 ₽</span> : formatMoney(o.amount)}</span>
+      </span>
+      <span className="mt-0.5 flex min-w-0 items-center gap-2 text-[12.5px] text-fg-3">
+        <span className="min-w-0 truncate">{items}</span>
+        {o.manual ? (
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-xs bg-azure-500/12 px-1.5 py-px text-[10.5px] text-azure-300">
+            <Hand className="size-3" /> вручную
+          </span>
+        ) : null}
+      </span>
+      <span className="mt-1.5 flex items-center justify-between gap-3">
+        <Badge tone={meta.tone} dot>
+          {meta.label}
+        </Badge>
+        <span className="shrink-0 text-[11.5px] whitespace-nowrap text-fg-4 nums">
+          {formatRelative(o.createdAt, NOW_MS)} · {o.serverName}
+        </span>
+      </span>
     </>
   );
 }

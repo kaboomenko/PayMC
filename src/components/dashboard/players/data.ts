@@ -1,9 +1,24 @@
 import "server-only";
-import { DAY, NOW_MS, PLAYERS, SERVERS, getPlayers } from "@/lib/mock";
+import { DAY, NOW_MS, ORDERS, PLAYERS, SERVERS, getPlayers } from "@/lib/mock";
 import type { Player } from "@/lib/mock/types";
+import { createRng } from "@/lib/utils";
 import { PLAYERS_PAGE_SIZE, type PlayerRow, type PlayersQuery, type SegmentFilter } from "./params";
 
 const SERVER_NAME = new Map(SERVERS.map((s) => [s.id, s.name]));
+
+/** First order of the log (9 Aug): LTV and monthly spend only count orders from here on. */
+export const ORDER_LOG_START = ORDERS[0]?.createdAt ?? new Date(NOW_MS).toISOString();
+
+/**
+ * VK is not in the player model yet: a stable mock link per player (about a
+ * quarter of players), so the profile can show Telegram + VK — the channels
+ * that work in Russia.
+ */
+export function vkFor(p: Player): string | undefined {
+  const rng = createRng(Number(p.id.replace(/\D/g, "")) * 97 + 13);
+  const slug = p.name.toLowerCase().replace(/[^a-z0-9_.]/g, "");
+  return rng() < 0.27 && slug ? `vk.com/${slug}` : undefined;
+}
 
 export function daysLeft(expiresAt: string | null) {
   if (!expiresAt) return null;

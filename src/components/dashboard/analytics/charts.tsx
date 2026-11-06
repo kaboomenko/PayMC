@@ -15,7 +15,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { CHART, ChartTooltipBox, Donut, Heatmap, axisTick } from "@/components/charts";
+import { CHART, ChartTooltipBox, Heatmap, axisTick, maxOf, niceScale } from "@/components/charts";
 import { cn } from "@/lib/utils";
 import { formatDateShort, formatMoney, formatNumber, formatPercent, formatWeekday } from "@/lib/format";
 import { axisMoney } from "@/components/dashboard/overview/bits";
@@ -39,18 +39,23 @@ function useWidth<T extends HTMLElement>(fallback: number) {
   return [ref, width] as const;
 }
 
+type ComboDatum = { date: string; revenue: number; online: number | null; onlineSoFar: number | null };
+
 export function RevenueOnlineChart({
   data,
   events,
   height = 280,
 }: {
-  data: { date: string; revenue: number; online: number }[];
+  data: ComboDatum[];
   events: ChartEvent[];
   height?: number;
 }) {
   const n = data.length || 1;
   const [laneRef, laneWidth] = useWidth<HTMLDivElement>(980);
   const lastDate = data[data.length - 1]?.date;
+  // round ticks on both axes: 0 · 10 тыс · 20 тыс… and 0 · 150 · 300…
+  const left = React.useMemo(() => niceScale(maxOf(data, ["revenue"])), [data]);
+  const right = React.useMemo(() => niceScale(maxOf(data, ["online"])), [data]);
 
   // greedy two-lane layout so neighbouring labels never collide
   const placed = React.useMemo(() => {
@@ -104,22 +109,39 @@ export function RevenueOnlineChart({
             <ComposedChart data={data} margin={{ top: PLOT.top, right: 0, bottom: 0, left: 0 }}>
               <CartesianGrid vertical={false} stroke={CHART.grid} />
               <XAxis dataKey="date" tickLine={false} axisLine={false} tick={axisTick} tickFormatter={(v) => formatDateShort(String(v))} minTickGap={24} dy={6} height={PLOT.bottom} />
-              <YAxis yAxisId="l" tickLine={false} axisLine={false} tick={axisTick} tickFormatter={axisMoney} width={PLOT.left} />
-              <YAxis yAxisId="r" orientation="right" tickLine={false} axisLine={false} tick={axisTick} tickFormatter={(v) => formatNumber(Number(v))} width={PLOT.right} />
+              <YAxis yAxisId="l" tickLine={false} axisLine={false} tick={axisTick} tickFormatter={axisMoney} width={PLOT.left} domain={left.domain} ticks={left.ticks} />
+              <YAxis
+                yAxisId="r"
+                orientation="right"
+                tickLine={false}
+                axisLine={false}
+                tick={axisTick}
+                tickFormatter={(v) => formatNumber(Number(v))}
+                width={PLOT.right}
+                domain={right.domain}
+                ticks={right.ticks}
+              />
               <Tooltip
                 cursor={{ fill: "rgba(148,166,204,0.05)" }}
                 content={({ active, payload, label }) => {
                   if (!active || !payload?.length) return null;
-                  const d = payload[0].payload as { date: string; revenue: number; online: number };
+                  const d = payload[0].payload as ComboDatum;
                   const partial = d.date === lastDate;
                   return (
                     <ChartTooltipBox
-                      title={partial ? `${formatDateShort(String(label))} · до 12:00` : `${formatWeekday(String(label))}, ${formatDateShort(String(label))}`}
-                      rows={[
-                        { label: "Выручка", value: formatMoney(d.revenue), color: CHART.azureStrong },
-                        { label: "Пиковый онлайн", value: formatNumber(d.online), color: CHART.ice },
-                        { label: "₽ на игрока онлайн", value: d.online ? formatMoney(d.revenue / d.online, { fraction: true }) : "—" },
-                      ]}
+                      title={partial ? `${formatDateShort(String(label))} · до 12:00, день не закончился` : `${formatWeekday(String(label))}, ${formatDateShort(String(label))}`}
+                      rows={
+                        partial
+                          ? [
+                              { label: "Выручка к 12:00", value: formatMoney(d.revenue), color: CHART.azureStrong },
+                              { label: "Пик онлайна к 12:00", value: d.onlineSoFar !== null ? formatNumber(d.onlineSoFar) : "—", color: CHART.ice },
+                            ]
+                          : [
+                              { label: "Выручка", value: formatMoney(d.revenue), color: CHART.azureStrong },
+                              { label: "Пиковый онлайн", value: d.online !== null ? formatNumber(d.online) : "—", color: CHART.ice },
+                              { label: "₽ на игрока онлайн", value: d.online ? formatMoney(d.revenue / d.online, { fraction: true }) : "—" },
+                            ]
+                      }
                     />
                   );
                 }}
@@ -136,6 +158,7 @@ export function RevenueOnlineChart({
                 stroke={CHART.ice}
                 strokeWidth={1.75}
                 dot={false}
+                connectNulls={false}
                 activeDot={{ r: 3.5, strokeWidth: 2, stroke: "#05070b", fill: CHART.ice }}
                 isAnimationActive={false}
               />
@@ -182,13 +205,14 @@ export function ForecastChart({
   height?: number;
 }) {
   const label = (value: string, fill: string, row: 0 | 1) => ({ value, position: "insideTopRight" as const, fill, fontSize: 10.5, fontFamily: "var(--font-mono)", dy: row ? -16 : -30, dx: 4 });
+  const scale = React.useMemo(() => niceScale(Math.max(maxOf(data, ["actual", "mid"]), ...data.map((d) => d.band?.[1] ?? 0))), [data]);
   return (
     <div style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={data} margin={{ top: 34, right: 18, bottom: 0, left: 0 }}>
           <CartesianGrid vertical={false} stroke={CHART.grid} />
           <XAxis dataKey="date" tickLine={false} axisLine={false} tick={axisTick} tickFormatter={(v) => formatDateShort(String(v))} minTickGap={28} dy={6} />
-          <YAxis tickLine={false} axisLine={false} tick={axisTick} tickFormatter={axisMoney} width={56} />
+          <YAxis tickLine={false} axisLine={false} tick={axisTick} tickFormatter={axisMoney} width={56} domain={scale.domain} ticks={scale.ticks} />
           <Tooltip
             cursor={{ stroke: "rgba(148,166,204,0.25)", strokeWidth: 1 }}
             content={({ active, payload, label: l }) => {
@@ -225,46 +249,37 @@ export function ForecastChart({
 /* ───────────── Categories ───────────── */
 
 export function CategoryDonut({ items }: { items: { label: string; amount: number; share: number; lineShare: number }[] }) {
-  const data = items.map((c, i) => ({ label: c.label, value: c.amount, color: CHART.series[i % CHART.series.length] }));
-  const top = items[0];
+  const color = (i: number) => CHART.series[i % CHART.series.length];
+  if (!items.length) return <p className="py-6 text-center text-[13px] text-fg-3">Оплат за период нет — категории появятся после первых заказов.</p>;
   return (
-    <div className="flex items-start gap-4">
-      <Donut
-        data={data}
-        size={96}
-        thickness={11}
-        format={(v) => formatMoney(v)}
-        className="mt-1"
-        center={
-          top ? (
-            <>
-              <span className="font-mono text-[14px] font-semibold text-fg nums">{formatPercent(top.share * 100, { digits: 0 })}</span>
-              <span className="max-w-16 truncate text-[10px] text-fg-3">{top.label}</span>
-            </>
-          ) : null
-        }
-      />
-      <table className="w-full min-w-0 text-[12.5px]">
+    <div>
+      {/* one stacked bar instead of a small donut: the table below gets the full card width */}
+      <div className="flex h-2 gap-px overflow-hidden rounded-full bg-white/[0.04]" role="img" aria-label="Доли категорий в выручке">
+        {items.map((c, i) => (
+          <span key={c.label} className="h-full first:rounded-l-full last:rounded-r-full" style={{ width: `${c.share * 100}%`, background: color(i) }} title={`${c.label}: ${formatMoney(c.amount)}`} />
+        ))}
+      </div>
+      <table className="mt-3.5 w-full text-[12.5px]">
         <thead>
           <tr className="text-left">
-            <th className="label-mono pb-1.5 text-[9.5px] font-medium text-fg-4">Категория</th>
+            <th className="label-mono w-full pb-1.5 text-[9.5px] font-medium text-fg-4">Категория</th>
             <th className="label-mono pb-1.5 text-right text-[9.5px] font-medium text-fg-4">Выручка</th>
-            <th className="label-mono pb-1.5 text-right text-[9.5px] font-medium text-fg-4">Покупки</th>
+            <th className="label-mono pb-1.5 pl-3 text-right text-[9.5px] font-medium text-fg-4">Покупки</th>
           </tr>
         </thead>
         <tbody>
           {items.map((c, i) => (
             <tr key={c.label}>
-              <td className="max-w-0 py-[3px] pr-2">
-                <span className="flex items-center gap-2">
-                  <span aria-hidden className="size-2 shrink-0 rounded-[2px]" style={{ background: CHART.series[i % CHART.series.length] }} />
-                  <span className="truncate text-fg-2" title={`${c.label}: ${formatMoney(c.amount)}`}>
+              <td className="py-[3px] pr-2">
+                <span className="flex min-w-0 items-center gap-2">
+                  <span aria-hidden className="size-2 shrink-0 rounded-[2px]" style={{ background: color(i) }} />
+                  <span className="text-fg-2" title={`${c.label}: ${formatMoney(c.amount)}`}>
                     {c.label}
                   </span>
                 </span>
               </td>
-              <td className="py-[3px] text-right font-mono text-fg nums">{formatPercent(c.share * 100, { digits: c.share < 0.01 ? 1 : 0 })}</td>
-              <td className={cn("py-[3px] pl-3 text-right font-mono nums", c.lineShare > c.share * 1.25 ? "text-ice-300" : "text-fg-3")}>
+              <td className="py-[3px] text-right font-mono whitespace-nowrap text-fg nums">{formatPercent(c.share * 100, { digits: c.share < 0.01 ? 1 : 0 })}</td>
+              <td className={cn("py-[3px] pl-3 text-right font-mono whitespace-nowrap nums", c.lineShare > c.share * 1.25 ? "text-ice-300" : "text-fg-3")}>
                 {formatPercent(c.lineShare * 100, { digits: c.lineShare < 0.01 ? 1 : 0 })}
               </td>
             </tr>

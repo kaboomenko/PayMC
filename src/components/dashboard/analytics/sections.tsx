@@ -8,53 +8,37 @@ import { Tooltip } from "@/components/ui/tooltip";
 import { Table, TableWrap, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { formatDate, formatMoney, formatNumber, formatPercent, plural, pluralize } from "@/lib/format";
-import { Change, PanelHeader } from "@/components/dashboard/overview/bits";
+import { PanelHeader } from "@/components/dashboard/overview/bits";
+import { Stat, StatStrip } from "@/components/dashboard/overview/stat-strip";
 import type { AnalyticsData, StripKpi } from "./data";
 
 /* ───────────── KPI strip ───────────── */
 
 export function KpiStrip({ items }: { items: StripKpi[] }) {
   return (
-    <div className="grid grid-cols-2 overflow-hidden rounded-xl border border-line bg-surface shadow-raise sm:grid-cols-3 xl:grid-cols-5">
+    <StatStrip cols="grid-cols-2 sm:grid-cols-3 xl:grid-cols-5">
       {items.map((k, i) => (
-        <div
+        <Stat
           key={k.id}
-          className={cn(
-            "min-w-0 border-line-soft px-4 py-3.5 sm:px-5 sm:py-4",
-            "border-b xl:border-b-0",
-            i % 2 === 1 ? "border-l sm:border-l-0" : "",
-            "sm:[&:not(:nth-child(3n+1))]:border-l xl:[&:not(:first-child)]:border-l",
-            i === items.length - 1 && "col-span-2 sm:col-span-1",
-          )}
-        >
-          <Tooltip content={k.hint}>
-            <p
-              tabIndex={0}
-              className="w-fit max-w-full cursor-help truncate text-[12.5px] text-fg-3 decoration-fg-4 decoration-dotted underline-offset-4 outline-none hover:underline focus-visible:underline"
-            >
-              {k.label}
-            </p>
-          </Tooltip>
-          <p className="mt-2 font-mono text-[20px] leading-none font-semibold tracking-[-0.03em] text-fg nums sm:text-[24px]">
-            {k.format === "money" ? formatMoney(k.value) : formatPercent(k.value, { digits: k.value < 3 ? 2 : 1 })}
-          </p>
-          <p className="mt-2 flex min-w-0 items-center gap-2 text-[11.5px] text-fg-4">
-            <Change value={k.delta} unit={k.unit} invert={k.invert} className="shrink-0" />
-            <span className="truncate">{k.sub}</span>
-          </p>
-        </div>
+          label={k.label}
+          hint={k.hint}
+          value={k.format === "money" ? formatMoney(k.value) : formatPercent(k.value, { digits: k.value < 3 ? 2 : 1 })}
+          delta={{ value: k.delta, unit: k.unit, invert: k.invert }}
+          sub={k.sub}
+          className={cn(i === items.length - 1 && items.length % 2 === 1 && "col-span-2 sm:col-span-1")}
+        />
       ))}
-    </div>
+    </StatStrip>
   );
 }
 
 /* ───────────── Funnel ───────────── */
 
-export function FunnelCard({ funnel }: { funnel: AnalyticsData["funnel"] }) {
+export function FunnelCard({ funnel, period }: { funnel: AnalyticsData["funnel"]; period: AnalyticsData["period"] }) {
   const max = funnel.steps[0]?.value || 1;
   return (
     <Card className="flex min-w-0 flex-col overflow-hidden">
-      <PanelHeader title="Воронка витрины" meta={<span className="text-[11px]">30 дней · shop.arcticmc.ru</span>} />
+      <PanelHeader title="Воронка витрины" meta={<span className="truncate text-[11px]">{pluralize(period, ["день", "дня", "дней"])} · shop.arcticmc.ru</span>} />
       <ol className="space-y-3 px-4 pt-4 sm:px-5">
         {funnel.steps.map((s, i) => {
           const worst = s.id === funnel.worstId;
@@ -225,19 +209,28 @@ function cellStyle(p: number) {
 }
 
 export function CohortTable({ cohorts }: { cohorts: AnalyticsData["cohorts"] }) {
-  const heads = ["в тот же месяц", "+1 мес", "+2 мес", "+3 мес"];
+  const heads: { full: string; short: string }[] = [
+    { full: "в тот же месяц", short: "тот же" },
+    { full: "+1 мес", short: "+1 мес" },
+    { full: "+2 мес", short: "+2 мес" },
+    { full: "+3 мес", short: "+3 мес" },
+  ];
   return (
     <Card className="flex min-w-0 flex-col overflow-hidden">
-      <PanelHeader title="Повторные покупки" meta={<span className="text-[11px]">когорты по месяцу первой покупки</span>} />
-      <div className="overflow-x-auto px-4 pt-4 pb-2 sm:px-5">
-        <table className="w-full min-w-[520px] border-separate border-spacing-1 text-[13px]">
+      <PanelHeader title="Повторные покупки" meta={<span className="hidden text-[11px] sm:inline">когорты по месяцу первой покупки</span>} />
+      <div className="overflow-x-auto px-3 pt-4 pb-2 sm:px-5">
+        {/* phone: buyers fold under the month, cells shrink — all four months fit in 360px */}
+        <table className="w-full border-separate border-spacing-1 text-[12px] sm:min-w-[520px] sm:text-[13px]">
           <thead>
             <tr>
-              <th className="label-mono pb-1 text-left text-[10px] font-medium text-fg-4">Когорта</th>
-              <th className="label-mono pb-1 text-right text-[10px] font-medium text-fg-4">Покупателей</th>
+              <th className="label-mono pb-1 text-left text-[10px] font-medium text-fg-4">
+                Когорта<span className="sm:hidden">, покуп.</span>
+              </th>
+              <th className="label-mono hidden pb-1 text-right text-[10px] font-medium text-fg-4 sm:table-cell">Покупателей</th>
               {heads.map((h) => (
-                <th key={h} className="label-mono pb-1 text-center text-[10px] font-medium text-fg-4">
-                  {h}
+                <th key={h.full} className="label-mono pb-1 text-center text-[10px] font-medium whitespace-nowrap text-fg-4">
+                  <span className="sm:hidden">{h.short}</span>
+                  <span className="hidden sm:inline">{h.full}</span>
                 </th>
               ))}
             </tr>
@@ -245,11 +238,12 @@ export function CohortTable({ cohorts }: { cohorts: AnalyticsData["cohorts"] }) 
           <tbody>
             {cohorts.rows.map((r, ri) => (
               <tr key={r.month}>
-                <td className="pr-2 text-fg-2">
+                <td className="pr-1 leading-tight text-fg-2 sm:pr-2">
                   {r.month}
                   {ri === 0 ? <span className="text-fg-4">*</span> : null}
+                  <span className="block font-mono text-[10.5px] text-fg-4 nums sm:hidden">{formatNumber(r.size)}</span>
                 </td>
-                <td className="pr-2 text-right font-mono text-fg-3 nums">{formatNumber(r.size)}</td>
+                <td className="hidden pr-2 text-right font-mono text-fg-3 nums sm:table-cell">{formatNumber(r.size)}</td>
                 {r.cells.map((c, ci) =>
                   c ? (
                     <td key={ci} className="p-0">
@@ -264,7 +258,7 @@ export function CohortTable({ cohorts }: { cohorts: AnalyticsData["cohorts"] }) 
                         <div
                           tabIndex={0}
                           className={cn(
-                            "flex h-9 items-center justify-center rounded-[5px] font-mono text-[12px] text-white nums outline-none focus-visible:ring-2 focus-visible:ring-azure-300",
+                            "flex h-8 min-w-0 items-center justify-center rounded-[5px] font-mono text-[11px] text-white nums outline-none focus-visible:ring-2 focus-visible:ring-azure-300 sm:h-9 sm:text-[12px]",
                             c.partial && "outline-1 -outline-offset-2 outline-white/35 outline-dashed",
                           )}
                           style={cellStyle(c.pct)}
@@ -276,7 +270,7 @@ export function CohortTable({ cohorts }: { cohorts: AnalyticsData["cohorts"] }) 
                     </td>
                   ) : (
                     <td key={ci} className="p-0">
-                      <div className="h-9 rounded-[5px] border border-dashed border-line-soft" aria-label="Ещё не наступил" />
+                      <div className="h-8 rounded-[5px] border border-dashed border-line-soft sm:h-9" aria-label="Ещё не наступил" />
                     </td>
                   ),
                 )}
@@ -366,7 +360,8 @@ export function InsightsPanel({ insights, heat }: { insights: AnalyticsData["ins
     tone: "azure",
     text: (
       <>
-        <N>{formatNumber(insights.cart.abandoned)}</N> игроков начали оплату и бросили (<N>{formatPercent(insights.cart.rate, { digits: 0 })}</N>). «Вернуть в корзину» уже
+        <N>{formatNumber(insights.cart.abandoned)}</N> {plural(insights.cart.abandoned, ["игрок начал", "игрока начали", "игроков начали"])} оплату и{" "}
+        {plural(insights.cart.abandoned, ["бросил", "бросили", "бросили"])} (<N>{formatPercent(insights.cart.rate, { digits: 0 })}</N>). «Вернуть в корзину» с запуска
         вернула <N>{formatNumber(insights.cart.recovered)}</N> {plural(insights.cart.recovered, ["покупку", "покупки", "покупок"])} на{" "}
         <N>{formatMoney(insights.cart.revenue)}</N>. Пик покупок — {heat.peak}.
       </>

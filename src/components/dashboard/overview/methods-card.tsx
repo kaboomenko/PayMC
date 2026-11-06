@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { CHART, Donut } from "@/components/charts";
 import { formatMoney, formatPercent } from "@/lib/format";
+import { PAYMENT_METHODS } from "@/lib/payments";
 import { PanelHeader, ShareLegend } from "./bits";
 import type { MethodSlice } from "./types";
 
@@ -12,7 +13,8 @@ const HOLD_ORDER = ["без холда", "холд 24 ч", "до 3 дней"];
 const HOLD_COLOR: Record<string, string> = { "без холда": CHART.ice, "холд 24 ч": CHART.azureStrong, "до 3 дней": CHART.muted };
 
 export function MethodsCard({ methods }: { methods: MethodSlice[] }) {
-  const items = methods.map((m, i) => ({ label: m.label, value: m.amount, color: CHART.series[i % CHART.series.length] }));
+  // short names («Карта», «Телефон») fit next to the donut; the full name stays in the row tooltip
+  const items = methods.map((m, i) => ({ label: PAYMENT_METHODS[m.key].short, value: m.amount, color: CHART.series[i % CHART.series.length] }));
   const top = methods[0];
   const total = methods.reduce((a, m) => a + m.amount, 0) || 1;
   const byHold = HOLD_ORDER.map((h) => ({
@@ -41,7 +43,7 @@ export function MethodsCard({ methods }: { methods: MethodSlice[] }) {
             top ? (
               <>
                 <span className="font-mono text-[17px] font-semibold text-fg nums">{formatPercent(top.share * 100, { digits: 0 })}</span>
-                <span className="text-[11px] text-fg-3">{top.label}</span>
+                <span className="text-[11px] text-fg-3">{PAYMENT_METHODS[top.key].short}</span>
               </>
             ) : null
           }

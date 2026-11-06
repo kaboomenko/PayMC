@@ -1,5 +1,5 @@
 import "server-only";
-import { CAMPAIGNS, CURRENT_PROJECT_ID, PROJECTS, SERVERS, getOrder, getOrders, getProduct } from "@/lib/mock";
+import { CAMPAIGNS, CURRENT_PROJECT_ID, PROJECTS, SERVERS, buildTrace, getOrder, getOrders, getProduct, isPaid } from "@/lib/mock";
 import { MOBILE_FEE, PLAN_FEES } from "@/lib/payments";
 import type { Order, ProductKind } from "@/lib/mock/types";
 import { formatDate, formatNumber } from "@/lib/format";
@@ -20,8 +20,22 @@ const VIEW_TEST: Record<OrderView, (o: Order) => boolean> = {
   large: (o) => o.amount >= LARGE_ORDER_RUB,
 };
 
+/**
+ * Auto-retries of a retrying order, read from its trace so the list and the
+ * drawer always show the same count. Only scheduled «Повтор N из M» steps
+ * count; the pending one is the next attempt, not a made one.
+ */
+function retryProgress(o: Order): OrderRow["retry"] {
+  if (o.status !== "retrying") return undefined;
+  const steps = buildTrace(o).filter((s) => s.kind === "retry" && /^Повтор \d+ из \d+/.test(s.title));
+  if (!steps.length) return undefined; // offline server: the job waits in the queue, no attempts yet
+  const max = Number(steps[0].title.match(/из (\d+)/)?.[1] ?? 5);
+  return { done: steps.filter((s) => s.status !== "pending").length, max };
+}
+
 export function toOrderRow(o: Order): OrderRow {
   return {
+    retry: retryProgress(o),
     id: o.id,
     playerId: o.playerId,
     playerName: o.playerName,
@@ -50,7 +64,7 @@ export function queryOrders(q: OrdersQuery) {
     method: q.method,
     serverId: q.server,
     days: Number(q.days),
-  });
+  }).filter((o) => (!q.creator || o.creatorCode === q.creator) && (!q.promo || o.promoCode === q.promo));
 
   const counts = { all: 0, issues: 0, awaiting: 0, disputes: 0, large: 0 } satisfies Record<OrderView, number>;
   for (const o of base) {
@@ -67,12 +81,25 @@ export function queryOrders(q: OrdersQuery) {
   const page = Math.min(q.page, pages);
   const start = (page - 1) * ORDERS_PAGE_SIZE;
   const slice = filtered.slice(start, start + ORDERS_PAGE_SIZE);
-  const sum = filtered.reduce((acc, o) => acc + o.amount, 0);
+  // money of the list: paid orders and refunded/disputed ones are summed apart,
+  // so «оплачено» matches revenue in analytics for the same period
+  let paidSum = 0;
+  let disputedSum = 0;
+  let disputed = 0;
+  for (const o of filtered) {
+    if (isPaid(o)) paidSum += o.amount;
+    else {
+      disputedSum += o.amount;
+      disputed++;
+    }
+  }
 
   return {
     rows: slice.map(toOrderRow),
     total: filtered.length,
-    sum,
+    paidSum,
+    disputedSum,
+    disputed,
     page,
     pages,
     start,

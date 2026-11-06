@@ -25,6 +25,8 @@ export interface OrderRow {
   creatorCode?: string;
   giftTo?: string;
   country: CountryCode;
+  /** auto-retries already made / scheduled in total — same numbers as the trace (retrying orders only) */
+  retry?: { done: number; max: number };
 }
 
 export interface OrderDetail extends Order {

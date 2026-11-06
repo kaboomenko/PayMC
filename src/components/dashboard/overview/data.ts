@@ -24,7 +24,7 @@ import {
 } from "@/lib/mock";
 import { memberRoleMeta, orderStatusMeta } from "@/lib/mock/meta";
 import { PAYMENT_METHODS } from "@/lib/payments";
-import { formatDuration, formatMoney, formatNumber, formatPercent, pluralize } from "@/lib/format";
+import { formatDuration, formatMoney, formatNumber, formatPercent, plural, pluralize } from "@/lib/format";
 import type { Order } from "@/lib/mock/types";
 import type {
   AttentionData,
@@ -130,7 +130,7 @@ function periodBundle(days: 7 | 30): PeriodBundle {
       prev: formatPercent(k.conversionPrev),
       delta: k.conversion - k.conversionPrev,
       deltaUnit: "pp",
-      sub: `${formatNumber(k.buyers)} из ${formatNumber(uniq)} игроков`,
+      sub: `${formatNumber(k.buyers)} из ${formatNumber(uniq)} ${plural(uniq, ["игрока", "игроков", "игроков"])}`,
       spark: full.map((d) => (d.uniquePlayers ? (d.buyers / d.uniquePlayers) * 100 : 0)),
     },
   ];

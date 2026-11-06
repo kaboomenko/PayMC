@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { Clock3, Crown, Infinity as InfinityIcon, Minus, Plus } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +14,8 @@ import { COUNTRIES, PAYMENT_METHODS } from "@/lib/payments";
 import { MONTHS_NOM, MONTHS_SHORT, formatDate, formatMoney, formatNumber, formatPlaytime, formatRelative, plural, pluralize } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { formatExact, riskLabel, riskTone, toneBg, toneText } from "@/components/dashboard/orders/format";
-import { daysLeft } from "@/components/dashboard/players/data";
+import { ORDER_LOG_START, daysLeft, vkFor } from "@/components/dashboard/players/data";
+import { Stat, StatStrip } from "@/components/dashboard/overview/stat-strip";
 import { BlockedBadge, MinorLimitBanner, PlayerActions, type GrantProduct } from "@/components/dashboard/players/player-actions";
 import { PlayerProvider, type PlayerOrderRow } from "@/components/dashboard/players/player-context";
 import { PlayerHistory } from "@/components/dashboard/players/player-history";
@@ -109,7 +109,13 @@ function buildNotes(p: Player, firstOrder?: { at: string; item: string; amount: 
     });
   if (p.telegram) notes.push({ id: "n-tg", author: null, text: `Привязал Telegram ${p.telegram} — уведомления о выдаче уходят туда.`, at: new Date(new Date(p.firstSeenAt).getTime() + 2 * DAY).toISOString() });
   if (firstOrder)
-    notes.push({ id: "n-first", author: null, text: `Первая покупка: ${firstOrder.item} за ${formatMoney(firstOrder.amount)}.`, at: firstOrder.at });
+    notes.push({
+      id: "n-first",
+      author: null,
+      // the order log starts on 9 Aug — for older players this is the first purchase we have, not necessarily the first ever
+      text: `${new Date(p.firstSeenAt).getTime() < new Date(ORDER_LOG_START).getTime() ? "Первая покупка в журнале заказов" : "Первая покупка"}: ${firstOrder.item} за ${formatMoney(firstOrder.amount)}.`,
+      at: firstOrder.at,
+    });
   notes.push({ id: "n-joined", author: null, text: "Впервые зашёл на сервер.", at: p.firstSeenAt });
   return notes.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
 }
@@ -139,9 +145,24 @@ export default async function PlayerPage(props: PageProps<"/dashboard/players/[i
     serverName: SERVER_NAME.get(o.serverId) ?? o.serverId,
   }));
 
-  const spend = p.spendHistory.map((v, i) => ({ month: MONTHS_SHORT[5 + i], full: `${MONTHS_NOM[5 + i]} 2026`, spend: v }));
-  const spendTotal = p.spendHistory.reduce((a, b) => a + b, 0);
+  // spendHistory is Jun..Nov, but orders are logged only from 9 Aug: earlier months are not «zero», they are unknown
+  const logStartMs = new Date(ORDER_LOG_START).getTime();
+  const logMonth = new Date(logStartMs + 3 * 3_600_000).getUTCMonth();
+  const logDay = formatDate(ORDER_LOG_START, { year: false });
+  const nowMonth = new Date(NOW_MS + 3 * 3_600_000).getUTCMonth();
+  const spend = p.spendHistory
+    .map((v, i) => {
+      const m = 5 + i;
+      const note = m === logMonth ? `, с ${logDay.split(" ")[0]}-го` : m === nowMonth ? `, по ${formatDate(NOW_MS, { year: false }).split(" ")[0]}-е` : "";
+      return { m, month: MONTHS_SHORT[m], full: `${MONTHS_NOM[m]} 2026${note}`, spend: v };
+    })
+    .filter((d) => d.m >= logMonth)
+    .map(({ month, full, spend: v }) => ({ month, full, spend: v }));
+  const spendTotal = spend.reduce((a, d) => a + d.spend, 0);
   const peak = spend.reduce((best, d) => (d.spend > best.spend ? d : best), spend[0]);
+  const ltvSince = new Date(Math.max(logStartMs, new Date(p.firstSeenAt).getTime()));
+  const vk = vkFor(p);
+  const linked = [p.telegram, vk].filter(Boolean).length;
   const ranks = p.activeRanks.map((r) => {
     const product = PRODUCTS.find((x) => x.name === r.name);
     return { name: r.name, left: daysLeft(r.expiresAt), duration: product?.durationDays ?? null, expiresAt: r.expiresAt };
@@ -215,13 +236,18 @@ export default async function PlayerPage(props: PageProps<"/dashboard/players/[i
 
       {minor ? <MinorLimitBanner name={p.name} /> : null}
 
-      {/* KPI tiles */}
-      <div className="mb-6 grid grid-cols-2 overflow-hidden rounded-xl border border-line bg-surface shadow-raise lg:grid-cols-4">
-        <Kpi label="LTV" value={formatMoney(p.ltv)} sub={p.ltv ? `за ${pluralize(Math.max(1, Math.round((NOW_MS - new Date(p.firstSeenAt).getTime()) / (30 * DAY))), ["месяц", "месяца", "месяцев"])}` : "ещё не платил"} />
-        <Kpi label="Заказов" value={formatNumber(p.orders)} sub={p.lastOrderAt ? `последний ${formatRelative(p.lastOrderAt, NOW_MS)}` : "—"} />
-        <Kpi label="Средний чек" value={p.avgCheck ? formatMoney(p.avgCheck) : "—"} sub={p.favoriteCategory ? `чаще всего — ${p.favoriteCategory.toLowerCase()}` : "—"} />
-        <Kpi label="Наиграно" value={formatPlaytime(p.playtimeMin)} sub={p.ltv ? `${formatMoney(p.ltv / Math.max(1, p.playtimeMin / 60))} за час игры` : "без покупок"} />
-      </div>
+      {/* KPI strip — the same component as on the players list and in analytics */}
+      <StatStrip cols="grid-cols-2 lg:grid-cols-4" className="mb-6">
+        <Stat
+          label="LTV"
+          hint={`Сумма оплат игрока без возвратов. Журнал заказов ведётся с ${logDay}`}
+          value={formatMoney(p.ltv)}
+          sub={p.ltv ? `с ${formatDate(ltvSince, { year: false })}` : "ещё не платил"}
+        />
+        <Stat label="Заказов" value={formatNumber(p.orders)} sub={p.lastOrderAt ? `последний ${formatRelative(p.lastOrderAt, NOW_MS)}` : "—"} />
+        <Stat label="Средний чек" value={p.avgCheck ? formatMoney(p.avgCheck) : "—"} sub={p.favoriteCategory ? `чаще всего — ${p.favoriteCategory.toLowerCase()}` : "—"} />
+        <Stat label="Наиграно" value={formatPlaytime(p.playtimeMin)} sub={p.ltv ? `${formatMoney(p.ltv / Math.max(1, p.playtimeMin / 60))} за час игры` : "без покупок"} />
+      </StatStrip>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0 space-y-5">
@@ -229,7 +255,9 @@ export default async function PlayerPage(props: PageProps<"/dashboard/players/[i
             <CardHeader>
               <div>
                 <CardTitle>Траты по месяцам</CardTitle>
-                <CardDescription>Июнь — ноябрь 2026{spendTotal ? ` · пик — ${peak.full.split(" ")[0].toLowerCase()}, ${formatMoney(peak.spend)}` : ""}</CardDescription>
+                <CardDescription>
+                  С {logDay} — с начала журнала заказов{spendTotal ? ` · пик — ${peak.full.split(" ")[0].toLowerCase()}, ${formatMoney(peak.spend)}` : ""}
+                </CardDescription>
               </div>
             </CardHeader>
             <CardContent>
@@ -237,7 +265,7 @@ export default async function PlayerPage(props: PageProps<"/dashboard/players/[i
                 <PlayerSpendChart data={spend} />
               ) : (
                 <div className="flex h-[200px] items-center justify-center rounded-lg border border-dashed border-line text-[13px] text-fg-3">
-                  За полгода ни одной покупки
+                  С {logDay} ни одной покупки
                 </div>
               )}
             </CardContent>
@@ -367,24 +395,14 @@ export default async function PlayerPage(props: PageProps<"/dashboard/players/[i
               <div>
                 <CardTitle>Привязанные аккаунты</CardTitle>
                 <CardDescription>
-                  {[p.telegram, p.discord].filter(Boolean).length} из 2 · {plural([p.telegram, p.discord].filter(Boolean).length, ["канал", "канала", "каналов"])} связи
+                  {linked} из 2 · {plural(linked, ["канал", "канала", "каналов"])} связи
                 </CardDescription>
               </div>
             </CardHeader>
-            <LinkedAccounts name={p.name} telegram={p.telegram} discord={p.discord} />
+            <LinkedAccounts name={p.name} telegram={p.telegram} vk={vk} discord={p.discord} />
           </Card>
         </div>
       </div>
     </PlayerProvider>
-  );
-}
-
-function Kpi({ label, value, sub }: { label: string; value: ReactNode; sub: ReactNode }) {
-  return (
-    <div className="border-line-soft p-4 not-last:border-r max-lg:nth-[2]:border-r-0 max-lg:nth-[-n+2]:border-b sm:p-5">
-      <p className="label-mono text-fg-4">{label}</p>
-      <p className="mt-2 font-mono text-[22px] leading-none font-semibold tracking-[-0.02em] text-fg nums sm:text-[24px]">{value}</p>
-      <p className="mt-2 truncate text-[12px] text-fg-3">{sub}</p>
-    </div>
   );
 }

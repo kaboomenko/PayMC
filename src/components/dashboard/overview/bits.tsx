@@ -85,10 +85,12 @@ export function PanelHeader({
   );
 }
 
-/** Y-axis money ticks: 0 · 8 000 · 25 тыс */
+/**
+ * Y-axis money ticks: 0 · 750 · 2,5 тыс · 25 тыс. Never rounds a tick to a
+ * neighbour value (28 500 stays «28,5 тыс», not «29 тыс»).
+ */
 export function axisMoney(v: number) {
   if (v === 0) return "0";
-  if (Math.abs(v) >= 10_000) return `${formatNumber(v / 1000)} тыс`;
-  if (Math.abs(v) >= 1000) return `${formatNumber(v / 1000, v % 1000 === 0 ? 0 : 1)} тыс`;
+  if (Math.abs(v) >= 1000) return `${formatNumber(v / 1000, v % 1000 === 0 ? 0 : 1)} тыс`;
   return formatNumber(v);
 }

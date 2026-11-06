@@ -15,6 +15,7 @@ import { OrdersTable } from "@/components/dashboard/orders/orders-table";
 import { ListPendingBar, NavLink, UrlNavProvider } from "@/components/dashboard/orders/url-nav";
 import { PROJECT_SERVERS, getOrderDetail, queryOrders } from "@/components/dashboard/orders/data";
 import {
+  CLEARED_ORDER_FILTERS,
   ORDER_PERIOD_LABELS,
   ORDER_VIEW_LABELS,
   hasOrderFilters,
@@ -122,9 +123,21 @@ export default async function OrdersPage(props: PageProps<"/dashboard/orders">) 
             prevHref={ordersHref(pagedQuery, { page: result.page - 1, id: undefined })}
             nextHref={ordersHref(pagedQuery, { page: result.page + 1, id: undefined })}
             summary={
-              <>
-                на сумму <span className="font-mono text-fg-2 nums">{formatMoneyCompact(result.sum)}</span>
-              </>
+              result.paidSum > 0 || result.disputed === 0 ? (
+                <>
+                  оплачено <span className="font-mono text-fg-2 nums">{formatMoneyCompact(result.paidSum)}</span>
+                  {result.disputed > 0 ? (
+                    <>
+                      {" "}
+                      · возвраты и споры <span className="font-mono text-fg-2 nums">{formatMoneyCompact(result.disputedSum)}</span>
+                    </>
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  возвращено и оспорено <span className="font-mono text-fg-2 nums">{formatMoneyCompact(result.disputedSum)}</span>
+                </>
+              )
             }
           />
         </Card>
@@ -135,7 +148,7 @@ export default async function OrdersPage(props: PageProps<"/dashboard/orders">) 
 
 function OrdersEmpty({ query }: { query: OrdersQuery }) {
   const filtered = hasOrderFilters(query);
-  const cleared = ordersHref(query, { q: "", status: "all", method: "all", server: "all", page: 1, id: undefined });
+  const cleared = ordersHref(query, { ...CLEARED_ORDER_FILTERS, page: 1, id: undefined });
   const wider = ordersHref(query, { days: "90", page: 1, id: undefined });
   const linkCls =
     "inline-flex h-8 items-center gap-1.5 rounded-md border border-line bg-surface-2 px-3 text-[13px] font-medium text-fg shadow-raise transition-colors hover:border-line-strong hover:bg-surface-3";
@@ -144,6 +157,8 @@ function OrdersEmpty({ query }: { query: OrdersQuery }) {
     const parts = [
       query.q ? `по запросу «${query.q}»` : null,
       query.status !== "all" ? `со статусом «${orderStatusMeta[query.status].label}»` : null,
+      query.creator ? `с кодом блогера ${query.creator}` : null,
+      query.promo ? `с промокодом ${query.promo}` : null,
     ].filter(Boolean);
     return (
       <EmptyState

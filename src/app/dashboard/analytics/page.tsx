@@ -4,7 +4,7 @@ import { CalendarRange } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { formatDateShort, formatMoney, formatPercent } from "@/lib/format";
+import { formatDateShort, formatMoney, formatPercent, pluralize } from "@/lib/format";
 import { mskDayStart } from "@/lib/mock";
 import { PanelHeader } from "@/components/dashboard/overview/bits";
 import { buildAnalytics, parsePeriod } from "@/components/dashboard/analytics/data";
@@ -76,7 +76,7 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/dashbo
         <Card className="flex min-w-0 flex-col overflow-hidden xl:col-span-7">
           <PanelHeader
             title="Когда покупают"
-            meta={<span className="truncate text-[11px]">по часам МСК · {a.heatmap.span} дней</span>}
+            meta={<span className="truncate text-[11px]">по часам МСК · {pluralize(a.heatmap.span, ["день", "дня", "дней"])}</span>}
           />
           <div className="px-4 pt-4 pb-3 sm:px-5">
             <HeatmapPanel grid={a.heatmap.grid} />
@@ -102,7 +102,7 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/dashbo
           </div>
         </Card>
         <div className="min-w-0 xl:col-span-5 [&>*]:h-full">
-          <FunnelCard funnel={a.funnel} />
+          <FunnelCard funnel={a.funnel} period={a.period} />
         </div>
       </div>
 

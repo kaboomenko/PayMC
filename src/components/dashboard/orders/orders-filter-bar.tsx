@@ -11,6 +11,7 @@ import { Kbd } from "@/components/ui/kbd";
 import { Segmented } from "@/components/ui/segmented";
 import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
+  CLEARED_ORDER_FILTERS,
   ORDER_PERIODS,
   ORDER_PERIOD_LABELS,
   ORDER_STATUSES,
@@ -183,6 +184,13 @@ export function OrdersFilterBar({ query, servers }: { query: OrdersQuery; server
         </Select>
       </div>
 
+      {optimistic.creator || optimistic.promo ? (
+        <div className="flex flex-wrap items-center gap-1.5">
+          {optimistic.creator ? <CodeChip label="Код блогера" code={optimistic.creator} onRemove={() => apply({ creator: undefined })} /> : null}
+          {optimistic.promo ? <CodeChip label="Промокод" code={optimistic.promo} onRemove={() => apply({ promo: undefined })} /> : null}
+        </div>
+      ) : null}
+
       <div className="flex items-center justify-between gap-2">
         <Segmented<OrderPeriod>
           value={optimistic.days}
@@ -196,7 +204,7 @@ export function OrdersFilterBar({ query, servers }: { query: OrdersQuery; server
             onClick={() => {
               setText("");
               setPushed("");
-              apply({ q: "", status: "all", method: "all", server: "all" });
+              apply(CLEARED_ORDER_FILTERS);
             }}
             className="inline-flex h-8 items-center gap-1 rounded-md px-2 text-[12.5px] text-fg-3 transition-colors hover:bg-white/[0.05] hover:text-fg"
           >
@@ -205,6 +213,24 @@ export function OrdersFilterBar({ query, servers }: { query: OrdersQuery; server
         ) : null}
       </div>
     </div>
+  );
+}
+
+/** Exact-code filter that arrives from a link (creators, promo codes) — removable in one click. */
+function CodeChip({ label, code, onRemove }: { label: string; code: string; onRemove: () => void }) {
+  return (
+    <span className="inline-flex h-8 items-center gap-1.5 rounded-md border border-azure-500/40 bg-azure-500/[0.06] pr-1 pl-2.5 text-[12.5px] whitespace-nowrap">
+      <span className="text-fg-3">{label}</span>
+      <span className="font-mono text-fg">{code}</span>
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label={`Убрать фильтр: ${label.toLowerCase()} ${code}`}
+        className="flex size-6 items-center justify-center rounded-sm text-fg-3 transition-colors hover:bg-white/[0.06] hover:text-fg focus-visible:text-fg"
+      >
+        <X className="size-3.5" />
+      </button>
+    </span>
   );
 }
 

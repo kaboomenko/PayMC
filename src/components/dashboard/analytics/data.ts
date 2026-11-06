@@ -16,11 +16,12 @@ import {
   isPaid,
   mskDayStart,
   pct,
+  windowStart,
 } from "@/lib/mock";
 import { COUNTRIES, PAYMENT_METHODS } from "@/lib/payments";
 import type { CountryCode, DailyPoint, Order, PaymentMethod } from "@/lib/mock/types";
 import { morningShare } from "@/components/dashboard/overview/data";
-import { formatNumber, formatPercent } from "@/lib/format";
+import { formatMoney, formatNumber, formatPercent, pluralize } from "@/lib/format";
 
 export type AnalyticsPeriod = 7 | 30 | 90;
 
@@ -52,25 +53,48 @@ export interface StripKpi {
   sub: string;
 }
 
+/**
+ * Online is a daily peak: today's half day (peak so far) would drag any average
+ * down, so online and ₽ per online player are compared over full days only —
+ * the last `period` finished days against the `period` days before them.
+ */
+function onlineWindows(period: AnalyticsPeriod) {
+  const full = DAILY.slice(-(period + 1), -1);
+  const fullPrev = DAILY.slice(-(2 * period + 1), -(period + 1));
+  const online = avg(full.map((d) => d.peakOnline));
+  const onlinePrev = avg(fullPrev.map((d) => d.peakOnline));
+  const rpo = online ? sum(full.map((d) => d.revenue)) / online : 0;
+  const rpoPrev = onlinePrev ? sum(fullPrev.map((d) => d.revenue)) / onlinePrev : 0;
+  return { online, onlinePrev, rpo, rpoPrev };
+}
+
 function kpiStrip(period: AnalyticsPeriod, days: DailyPoint[], prev: DailyPoint[]) {
   const k = getKpis(period);
   const refunds = sum(days.map((d) => d.refunds));
   const refundsPrev = sum(prev.map((d) => d.refunds));
   const ordersPrev = sum(prev.map((d) => d.orders));
   const refundsRatePrev = ordersPrev ? (refundsPrev / (ordersPrev + refundsPrev)) * 100 : 0;
-  const online = avg(days.map((d) => d.peakOnline));
-  const onlinePrev = avg(prev.map((d) => d.peakOnline));
+  const on = onlineWindows(period);
   const items: StripKpi[] = [
-    { id: "revenue", label: "Выручка", value: k.revenue, format: "money", delta: pct(k.revenue, k.revenuePrev), unit: "pct", hint: "Оплачено игроками, без возвратов", sub: `${formatNumber(k.orders)} заказов` },
+    {
+      id: "revenue",
+      label: "Выручка",
+      value: k.revenue,
+      format: "money",
+      delta: pct(k.revenue, k.revenuePrev),
+      unit: "pct",
+      hint: "Оплачено игроками, без возвратов. Сегодня — по 12:00",
+      sub: pluralize(k.orders, ["заказ", "заказа", "заказов"]),
+    },
     {
       id: "rpo",
       label: "₽ на игрока онлайн",
-      value: k.revenuePerOnline,
+      value: Math.round(on.rpo),
       format: "money",
-      delta: pct(k.revenuePerOnline, k.revenuePerOnlinePrev),
+      delta: pct(on.rpo, on.rpoPrev),
       unit: "pct",
-      hint: "Выручка / средний пиковый онлайн за период",
-      sub: `средний пик онлайна ${formatNumber(online)}`,
+      hint: `Выручка / средний пиковый онлайн за ${pluralize(period, ["полный день", "полных дня", "полных дней"])}, без сегодняшнего`,
+      sub: `${formatNumber(on.online)} — средний пик`,
     },
     {
       id: "conversion",
@@ -80,9 +104,9 @@ function kpiStrip(period: AnalyticsPeriod, days: DailyPoint[], prev: DailyPoint[
       delta: k.conversion - k.conversionPrev,
       unit: "pp",
       hint: "Покупатели / активные игроки",
-      sub: `${formatNumber(k.buyers)} покупателей`,
+      sub: pluralize(k.buyers, ["покупатель", "покупателя", "покупателей"]),
     },
-    { id: "avg", label: "Средний чек", value: k.avgCheck, format: "money", delta: pct(k.avgCheck, k.avgCheckPrev), unit: "pct", hint: "Выручка / заказы", sub: `было ${formatNumber(k.avgCheckPrev)} ₽` },
+    { id: "avg", label: "Средний чек", value: k.avgCheck, format: "money", delta: pct(k.avgCheck, k.avgCheckPrev), unit: "pct", hint: "Выручка / заказы", sub: `было ${formatMoney(k.avgCheckPrev)}` },
     {
       id: "refunds",
       label: "Доля возвратов",
@@ -92,10 +116,10 @@ function kpiStrip(period: AnalyticsPeriod, days: DailyPoint[], prev: DailyPoint[
       unit: "pp",
       invert: true,
       hint: "Возвраты и чарджбэки / все заказы",
-      sub: `${formatNumber(refunds)} за период`,
+      sub: `${pluralize(refunds, ["возврат", "возврата", "возвратов"])} за период`,
     },
   ];
-  return { items, k, online, onlinePrev };
+  return { items, k, ...on };
 }
 
 /* ───────────── Revenue × online ───────────── */
@@ -134,10 +158,11 @@ function eventsFor(days: DailyPoint[]): ChartEvent[] {
   });
 }
 
-function onlineInsight(rev: number, rpo: number, online: number) {
+/** Both changes are over full days (see onlineWindows), so together they make up the revenue change. */
+function onlineInsight(rpo: number, online: number) {
   const f = (v: number) => `${v >= 0 ? "+" : "−"}${formatPercent(Math.abs(v))}`;
   if (rpo > 1 && online > 1)
-    return { tone: "ok" as const, text: `Выручка ${f(rev)}: онлайн ${f(online)}, а выручка на игрока онлайн ${f(rpo)}. Растёт не только онлайн — игроки платят чаще.` };
+    return { tone: "ok" as const, text: `По полным дням онлайн ${f(online)}, а выручка на игрока онлайн ${f(rpo)}: растёт не только онлайн — игроки платят чаще.` };
   if (rpo > 1)
     return { tone: "ok" as const, text: `Онлайн ${f(online)}, но выручка на игрока онлайн ${f(rpo)}: игроки платят чаще, рост не держится на притоке новых.` };
   if (online > 1)
@@ -153,10 +178,11 @@ const pad = (n: number) => String(n).padStart(2, "0");
 
 function heatmapFor(period: AnalyticsPeriod) {
   const span = Math.max(30, period);
+  const from = windowStart(span);
   const grid = Array.from({ length: 7 }, () => Array.from({ length: 24 }, () => 0));
   for (const o of ORDERS) {
     const t = ts(o.createdAt);
-    if (NOW_MS - t > span * DAY || !isPaid(o)) continue;
+    if (t < from || !isPaid(o)) continue;
     const p = mskParts(t);
     grid[p.dow][p.hour] += o.amount;
   }
@@ -197,21 +223,45 @@ const FUNNEL_TIPS: Record<string, { text: (lost: number, conv: number) => string
     cta: "Запустить A/B-тест",
   },
   paid: {
-    text: (l) => `${formatNumber(l)} игроков бросили оплату. Напоминание «Вернуть в корзину» в чате возвращает часть из них.`,
+    text: (l) => `${pluralize(l, ["игрок бросил", "игрока бросили", "игроков бросили"])} оплату. Напоминание «Вернуть в корзину» в чате возвращает часть из них.`,
     href: "/dashboard/campaigns",
     cta: "Настроить кампанию",
   },
   delivered: {
     text: (l) => `${formatNumber(l)} оплаченных заказов не выданы — проверьте серверы и команды.`,
-    href: "/dashboard/orders?status=issues",
+    href: "/dashboard/orders?view=issues",
     cta: "Открыть сбои",
   },
 };
 
-function funnel() {
-  const steps = FUNNEL.map((s, i) => {
-    const prev = FUNNEL[i - 1];
-    return { ...s, conv: prev ? (s.value / prev.value) * 100 : 100, ofTotal: (s.value / FUNNEL[0].value) * 100, lost: prev ? prev.value - s.value : 0 };
+/**
+ * Storefront funnel for the period: «Оплатили» and «Получили в игре» are the
+ * paid orders of the same calendar window as the KPI strip; the upper steps
+ * keep the storefront ratios of the 30-day FUNNEL (visits per paid order etc.).
+ */
+function funnelSteps(paid: Order[]) {
+  const base = FUNNEL.find((f) => f.id === "paid")?.value || 1;
+  return FUNNEL.map((s) => ({
+    ...s,
+    value:
+      s.id === "paid"
+        ? paid.length
+        : s.id === "delivered"
+          ? paid.filter((o) => o.status === "delivered").length
+          : Math.round((s.value / base) * paid.length),
+  }));
+}
+
+function funnel(paid: Order[]) {
+  const raw = funnelSteps(paid);
+  const steps = raw.map((s, i) => {
+    const prev = raw[i - 1];
+    return {
+      ...s,
+      conv: prev?.value ? (s.value / prev.value) * 100 : 100,
+      ofTotal: raw[0].value ? (s.value / raw[0].value) * 100 : 0,
+      lost: prev ? prev.value - s.value : 0,
+    };
   });
   const worst = steps.slice(1).reduce((w, s) => (s.conv < w.conv ? s : w), steps[1]);
   const tip = FUNNEL_TIPS[worst.id];
@@ -267,8 +317,9 @@ function forecast() {
 
 /* ───────────── Splits ───────────── */
 
+/** Paid orders of the calendar window (same days as the KPI strip: DAILY.slice(-days)). */
 const paidIn = (days: number) => {
-  const from = NOW_MS - days * DAY;
+  const from = windowStart(days);
   return ORDERS.filter((o) => isPaid(o) && ts(o.createdAt) >= from);
 };
 
@@ -322,7 +373,7 @@ function splits(period: AnalyticsPeriod) {
   const categories = [...cat.entries()]
     .map(([label, v]) => ({ label, amount: v.amount, share: v.amount / catTotal, lineShare: v.lines / (lines || 1) }))
     .sort((a, b) => b.amount - a.amount);
-  return { methods, countries, servers, categories, orders: orders.length };
+  return { methods, countries, servers, categories, orders: orders.length, paid: orders };
 }
 
 /* ───────────── Cohorts ───────────── */
@@ -373,14 +424,14 @@ function cohorts() {
 
 /* ───────────── Insights ───────────── */
 
-function insights(s: ReturnType<typeof splits>) {
+function insights(s: Omit<ReturnType<typeof splits>, "paid">, f: ReturnType<typeof funnel>) {
   const cases = s.categories.find((c) => c.label === "Кейсы");
   const nonRu = s.countries.filter((c) => c.key !== "RU");
   const kz = s.countries.find((c) => c.key === "KZ");
   const anarchy = s.servers.find((x) => x.id === "srv-anarchy");
   const anarchyFailed = ORDERS.filter((o) => o.serverId === "srv-anarchy" && (o.status === "failed" || o.status === "retrying")).length;
-  const checkout = FUNNEL.find((f) => f.id === "checkout")?.value ?? 0;
-  const paid = FUNNEL.find((f) => f.id === "paid")?.value ?? 0;
+  const checkout = f.steps.find((x) => x.id === "checkout")?.value ?? 0;
+  const paid = f.steps.find((x) => x.id === "paid")?.value ?? 0;
   const cart = CAMPAIGNS.find((c) => c.type === "abandoned_cart");
   return {
     cases: cases ? { lineShare: cases.lineShare * 100, revenueShare: cases.share * 100 } : null,
@@ -396,22 +447,25 @@ export function buildAnalytics(period: AnalyticsPeriod) {
   const days = DAILY.slice(-period);
   const prev = DAILY.slice(-2 * period, -period);
   const strip = kpiStrip(period, days, prev);
-  const sp = splits(period);
+  const { paid, ...sp } = splits(period);
+  const fun = funnel(paid);
+  const last = days.length - 1;
   return {
     period,
-    range: { from: days[0].date, to: days[days.length - 1].date, prevFrom: prev[0]?.date ?? days[0].date, prevTo: prev[prev.length - 1]?.date ?? days[0].date },
+    range: { from: days[0].date, to: days[last].date, prevFrom: prev[0]?.date ?? days[0].date, prevTo: prev[prev.length - 1]?.date ?? days[0].date },
     strip: strip.items,
     combo: {
-      data: days.map((d) => ({ date: d.date, revenue: d.revenue, online: d.peakOnline })),
+      // today's peak online is only «so far»: no point on the line, the value stays in the tooltip
+      data: days.map((d, i) => ({ date: d.date, revenue: d.revenue, online: i === last ? null : d.peakOnline, onlineSoFar: i === last ? d.peakOnline : null })),
       events: eventsFor(days),
-      insight: onlineInsight(pct(strip.k.revenue, strip.k.revenuePrev), pct(strip.k.revenuePerOnline, strip.k.revenuePerOnlinePrev), pct(strip.online, strip.onlinePrev)),
+      insight: onlineInsight(pct(strip.rpo, strip.rpoPrev), pct(strip.online, strip.onlinePrev)),
     },
     heatmap: heatmapFor(period),
-    funnel: funnel(),
+    funnel: fun,
     forecast: forecast(),
     splits: sp,
     cohorts: cohorts(),
-    insights: insights(sp),
+    insights: insights(sp, fun),
     csv: days.map((d) => ({ date: d.date, revenue: d.revenue, orders: d.orders, buyers: d.buyers, newBuyers: d.newBuyers, peakOnline: d.peakOnline, uniquePlayers: d.uniquePlayers, refunds: d.refunds })),
   };
 }

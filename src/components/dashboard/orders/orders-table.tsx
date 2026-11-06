@@ -253,7 +253,7 @@ export function OrdersTable({
                         </span>
                       </TD>
                       <TD className="whitespace-nowrap">
-                        <DeliveryCell status={statusOf(r)} deliveryMs={r.deliveryMs} manual={Boolean(overrides[r.id])} serverOffline={serverById.get(r.serverId)?.status === "offline"} />
+                        <DeliveryCell status={statusOf(r)} deliveryMs={r.deliveryMs} manual={Boolean(overrides[r.id])} serverOffline={serverById.get(r.serverId)?.status === "offline"} retry={r.retry} />
                       </TD>
                       <TD className="text-right whitespace-nowrap">
                         <Tooltip content={formatExact(r.createdAt)} side="left">
@@ -288,7 +288,7 @@ export function OrdersTable({
                     <span className="shrink-0 font-mono text-[10.5px] text-fg-4 nums">{r.id}</span>
                   </span>
                   <span className="mt-1.5 flex items-center justify-between gap-3">
-                    <DeliveryCell status={statusOf(r)} deliveryMs={r.deliveryMs} manual={Boolean(overrides[r.id])} serverOffline={serverById.get(r.serverId)?.status === "offline"} compact />
+                    <DeliveryCell status={statusOf(r)} deliveryMs={r.deliveryMs} manual={Boolean(overrides[r.id])} serverOffline={serverById.get(r.serverId)?.status === "offline"} retry={r.retry} compact />
                     <span className="shrink-0 text-[11.5px] whitespace-nowrap text-fg-4 nums">{formatRelative(r.createdAt, NOW_MS)}</span>
                   </span>
                 </button>
@@ -384,12 +384,14 @@ function DeliveryCell({
   manual,
   compact,
   serverOffline,
+  retry,
 }: {
   status: OrderStatus;
   deliveryMs?: number;
   manual?: boolean;
   compact?: boolean;
   serverOffline?: boolean;
+  retry?: OrderRow["retry"];
 }) {
   const meta = orderStatusMeta[status];
   let note: string | null = null;
@@ -398,8 +400,8 @@ function DeliveryCell({
     note = deliveryMs > 60_000 ? `${compact ? "" : "при входе · "}${formatDeliveryTime(deliveryMs)}` : formatDeliveryTime(deliveryMs);
   else if (status === "awaiting_player") note = "ждёт входа";
   else if (status === "retrying" && serverOffline) note = compact ? "очередь" : "ждёт сервер";
-  else if (status === "retrying") note = compact ? "3/5" : "попытка 3/5";
-  else if (status === "failed") note = compact ? "5/5" : "5/5 попыток";
+  else if (status === "retrying" && retry) note = compact ? `${retry.done}/${retry.max}` : `${retry.done} из ${retry.max}`;
+  else if (status === "failed") note = compact ? "5/5" : "попытки закончились";
   return (
     <Tooltip content={meta.hint}>
       <span className="inline-flex items-center gap-2 whitespace-nowrap">

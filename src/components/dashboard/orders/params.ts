@@ -50,6 +50,10 @@ export interface OrdersQuery {
   view: OrderView;
   page: number;
   id?: string;
+  /** exact creator code, ?creator=FROST — links from the creators page */
+  creator?: string;
+  /** exact promo code, ?promo=WINTER25 — links from the promo page */
+  promo?: string;
 }
 
 export const DEFAULT_ORDERS_QUERY: OrdersQuery = {
@@ -65,6 +69,12 @@ export const DEFAULT_ORDERS_QUERY: OrdersQuery = {
 type RawParams = Record<string, string | string[] | undefined>;
 
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
+
+/** Promo and creator codes: latin letters, digits, «_» and «-», compared exactly (upper case). */
+function parseCode(v: string | string[] | undefined) {
+  const code = first(v)?.trim().toUpperCase();
+  return code && /^[A-Z0-9_-]{2,32}$/.test(code) ? code : undefined;
+}
 
 export function parseOrdersQuery(raw: RawParams, methods: readonly string[], servers: readonly string[]): OrdersQuery {
   const status = first(raw.status);
@@ -83,6 +93,8 @@ export function parseOrdersQuery(raw: RawParams, methods: readonly string[], ser
     view: view && (ORDER_VIEWS as readonly string[]).includes(view) ? (view as OrderView) : "all",
     page: Number.isFinite(page) && page > 0 ? page : 1,
     id: id ? id.toUpperCase() : undefined,
+    creator: parseCode(raw.creator),
+    promo: parseCode(raw.promo),
   };
 }
 
@@ -95,6 +107,8 @@ export function ordersHref(query: OrdersQuery, patch: Partial<OrdersQuery> = {})
   if (next.status !== "all") sp.set("status", next.status);
   if (next.method !== "all") sp.set("method", next.method);
   if (next.server !== "all") sp.set("server", next.server);
+  if (next.creator) sp.set("creator", next.creator);
+  if (next.promo) sp.set("promo", next.promo);
   if (next.days !== DEFAULT_ORDERS_QUERY.days) sp.set("days", next.days);
   if (next.page > 1) sp.set("page", String(next.page));
   if (next.id) sp.set("id", next.id);
@@ -104,5 +118,8 @@ export function ordersHref(query: OrdersQuery, patch: Partial<OrdersQuery> = {})
 
 /** True when any narrowing filter (not view/page/id) is set */
 export function hasOrderFilters(q: OrdersQuery) {
-  return Boolean(q.q.trim()) || q.status !== "all" || q.method !== "all" || q.server !== "all";
+  return Boolean(q.q.trim()) || q.status !== "all" || q.method !== "all" || q.server !== "all" || Boolean(q.creator) || Boolean(q.promo);
 }
+
+/** Patch that clears every narrowing filter (keeps view and period). */
+export const CLEARED_ORDER_FILTERS: Partial<OrdersQuery> = { q: "", status: "all", method: "all", server: "all", creator: undefined, promo: undefined };

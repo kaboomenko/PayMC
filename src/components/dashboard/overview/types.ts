@@ -3,7 +3,7 @@
  * consumed by small client components — never the raw ORDERS/PLAYERS arrays.
  */
 import type { Tone } from "@/lib/mock/meta";
-import type { OrderStatus, ServerStatus } from "@/lib/mock/types";
+import type { OrderStatus, PaymentMethod, ServerStatus } from "@/lib/mock/types";
 
 export type OverviewPeriod = "7" | "30";
 
@@ -115,7 +115,7 @@ export interface GoalData {
 }
 
 export interface MethodSlice {
-  key: string;
+  key: PaymentMethod;
   label: string;
   amount: number;
   count: number;

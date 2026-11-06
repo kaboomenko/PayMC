@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
 import { SearchX, Users } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card } from "@/components/ui/card";
-import { Delta } from "@/components/ui/delta";
 import { EmptyState } from "@/components/ui/empty-state";
 import { BUYERS_ONLINE, DAY, NOW_MS, ONLINE_NOW, PLAYERS, getKpis, pct } from "@/lib/mock";
-import { formatMoney, formatNumber, pluralize } from "@/lib/format";
+import { formatDate, formatMoney, formatNumber, pluralize } from "@/lib/format";
+import { Stat, StatStrip } from "@/components/dashboard/overview/stat-strip";
 import { ListPagination } from "@/components/dashboard/orders/list-pagination";
 import { ListPendingBar, NavLink, UrlNavProvider } from "@/components/dashboard/orders/url-nav";
-import { queryPlayers } from "@/components/dashboard/players/data";
+import { ORDER_LOG_START, queryPlayers } from "@/components/dashboard/players/data";
 import { parsePlayersQuery, playersHref, type PlayersQuery } from "@/components/dashboard/players/params";
 import { PlayerSegmentTabs, PlayersToolbar } from "@/components/dashboard/players/players-toolbar";
 import { PlayersTable } from "@/components/dashboard/players/players-table";
@@ -38,7 +37,7 @@ export default async function PlayersPage(props: PageProps<"/dashboard/players">
     <UrlNavProvider>
       <PageHeader title="Игроки" description="Кто платит, кто уходит и кому нужен лимит трат. Профиль игрока — с историей покупок и риском." />
 
-      <div className="mb-6 grid grid-cols-2 overflow-hidden rounded-xl border border-line bg-surface shadow-raise lg:grid-cols-4">
+      <StatStrip cols="grid-cols-2 lg:grid-cols-4" className="mb-6">
         <Stat label="Игроков в базе" value={formatNumber(PLAYERS.length)} sub={`+${pluralize(stats.fresh, ["новичок", "новичка", "новичков"])} за 14 дней`} />
         <Stat
           label="Онлайн сейчас"
@@ -53,17 +52,14 @@ export default async function PlayersPage(props: PageProps<"/dashboard/players">
           }
           sub={`из них покупателей — ${formatNumber(BUYERS_ONLINE)}`}
         />
+        <Stat label="Покупателей за 30 дней" value={formatNumber(kpis.buyers)} delta={{ value: pct(kpis.buyers, kpis.buyersPrev) }} sub="к прошлым 30 дням" />
         <Stat
-          label="Покупателей за 30 дней"
-          value={formatNumber(kpis.buyers)}
-          sub={
-            <span className="inline-flex items-center gap-1.5">
-              <Delta value={pct(kpis.buyers, kpis.buyersPrev)} /> к прошлым 30 дням
-            </span>
-          }
+          label="Средний LTV покупателя"
+          hint={`Сумма оплат без возвратов по журналу заказов — он ведётся с ${formatDate(ORDER_LOG_START, { year: false })}`}
+          value={formatMoney(stats.avgLtv)}
+          sub={`медиана ${formatMoney(stats.median)} · ${pluralize(stats.buyers, ["платил", "платили", "платили"])}`}
         />
-        <Stat label="Средний LTV покупателя" value={formatMoney(stats.avgLtv)} sub={`медиана ${formatMoney(stats.median)} · ${formatNumber(stats.buyers)} платили`} />
-      </div>
+      </StatStrip>
 
       <div className="space-y-3">
         <PlayerSegmentTabs query={paged} counts={result.counts} />
@@ -84,16 +80,6 @@ export default async function PlayersPage(props: PageProps<"/dashboard/players">
         </Card>
       </div>
     </UrlNavProvider>
-  );
-}
-
-function Stat({ label, value, sub }: { label: string; value: ReactNode; sub: ReactNode }) {
-  return (
-    <div className="border-line-soft p-4 not-last:border-r max-lg:nth-[2]:border-r-0 max-lg:nth-[-n+2]:border-b sm:p-5">
-      <p className="label-mono text-fg-4">{label}</p>
-      <p className="mt-2 font-mono text-[22px] leading-none font-semibold tracking-[-0.02em] text-fg nums sm:text-[26px]">{value}</p>
-      <p className="mt-2 text-[12px] text-fg-3">{sub}</p>
-    </div>
   );
 }
 

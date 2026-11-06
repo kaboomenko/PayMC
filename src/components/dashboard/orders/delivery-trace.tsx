@@ -20,6 +20,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatTime } from "@/lib/format";
+import { NOW_MS } from "@/lib/mock/now";
 import type { TraceStep, TraceStepKind } from "@/lib/mock/types";
 import { CopyButton } from "@/components/ui/copy-button";
 import { formatClock, formatDelta } from "./format";
@@ -128,7 +130,8 @@ function StepItem({ step, last }: { step: TraceStep; last: boolean }) {
             <p className={cn("text-[13px] leading-5 font-medium", TITLE[step.status])}>{step.title}</p>
             {step.detail ? <p className="mt-0.5 text-[12px] leading-snug text-fg-3">{step.detail}</p> : null}
           </div>
-          <TimeCol at={step.at} deltaMs={step.deltaMs} tone={pending ? "text-ice-300" : undefined} />
+          {/* a scheduled retry has no real delta — it has not happened yet */}
+          <TimeCol at={step.at} deltaMs={pending && step.kind === "retry" ? undefined : step.deltaMs} tone={pending ? "text-ice-300" : undefined} />
         </div>
         {step.command ? <ConsoleLine command={step.command} output={step.output} status={step.status} /> : null}
       </div>
@@ -162,25 +165,47 @@ export function ConsoleLine({ command, output, status }: { command: string; outp
   );
 }
 
+/** Same back-off as the delivery agent: 30 с → 1 мин → 2 мин → 5 мин, then every 5 мин. */
+const RETRY_GAPS_MS = [30_000, 60_000, 120_000, 300_000, 300_000];
+
+const OUTCOME: Record<TraceStep["status"], { label: string; cls: string }> = {
+  ok: { label: "ок", cls: "text-ok" },
+  warn: { label: "нет ответа", cls: "text-warn" },
+  error: { label: "ошибка", cls: "text-bad" },
+  pending: { label: "ждём", cls: "text-ice-300" },
+};
+
+/** «46 с» · «4 мин» — the wait until the next attempt, rounded like the agent reports it */
+function formatWait(ms: number) {
+  return ms < 90_000 ? `${Math.max(1, Math.round(ms / 1000))} с` : `${Math.round(ms / 60_000)} мин`;
+}
+
 function RetriesItem({ steps, last }: { steps: TraceStep[]; last: boolean }) {
-  const final = steps[steps.length - 1];
-  const failed = steps.every((s) => s.status === "error");
-  const status: TraceStep["status"] = failed ? "error" : final.status;
-  const total = steps.length;
-  const out = steps.find((s) => s.output)?.output;
+  // the scheduled attempt is not an attempt yet — it goes to the footer, not to the table
+  const attempts = steps.filter((s) => s.status !== "pending");
+  const next = steps.find((s) => s.status === "pending");
+  const lastAttempt = attempts[attempts.length - 1] ?? steps[steps.length - 1];
+  const done = attempts.length;
+  const max = Math.max(done, Number(steps.map((s) => s.title.match(/из (\d+)/)?.[1]).find(Boolean) ?? done));
+  const exhausted = !next && done >= max;
+  const status: TraceStep["status"] = exhausted && attempts.every((s) => s.status === "error") ? "error" : next ? "warn" : lastAttempt.status;
+  const outStep = [...attempts].reverse().find((s) => s.output);
+  // next attempt = last attempt + the next interval of the schedule (never in the past)
+  const nextAt = next ? Math.max(new Date(lastAttempt.at).getTime() + (RETRY_GAPS_MS[done] ?? 300_000), NOW_MS + 5_000) : null;
   return (
     <li className="relative grid grid-cols-[22px_minmax(0,1fr)] gap-x-3 pb-4 last:pb-0">
       <Rail last={last} />
-      <Node status={status} icon={RotateCw} />
+      <Node status={status} icon={RotateCw} pulse={Boolean(next)} />
       <div className="min-w-0">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className={cn("text-[13px] leading-5 font-medium", TITLE[status])}>
-              Автоповторы · {total} из {total}
+              Автоповторы · <span className="font-mono nums">{done}</span> из <span className="font-mono nums">{max}</span>
+              {exhausted ? " — попытки закончились" : null}
             </p>
-            <p className="mt-0.5 text-[12px] leading-snug text-fg-3">{final.detail}</p>
+            <p className="mt-0.5 text-[12px] leading-snug text-fg-3">{exhausted ? "Нужно действие владельца" : (next?.detail ?? lastAttempt.detail)}</p>
           </div>
-          <TimeCol at={final.at} tone={status === "error" ? "text-bad/80" : undefined} />
+          <TimeCol at={lastAttempt.at} tone={status === "error" ? "text-bad/80" : undefined} />
         </div>
         <div className="mt-2 overflow-hidden rounded-md border border-line-soft">
           <table className="w-full text-[11.5px]">
@@ -193,24 +218,38 @@ function RetriesItem({ steps, last }: { steps: TraceStep[]; last: boolean }) {
               </tr>
             </thead>
             <tbody>
-              {steps.map((s, i) => (
+              {attempts.map((s, i) => (
                 <tr key={s.id} className="border-t border-line-soft">
                   <td className="h-7 px-2.5 font-mono text-fg-2 nums">
-                    {i + 1}/{total}
+                    {i + 1}/{max}
                   </td>
                   <td className="h-7 px-2.5 font-mono text-fg-3 nums">{formatClock(s.at)}</td>
                   <td className="h-7 px-2.5 text-right font-mono text-fg-4 nums">{s.deltaMs ? formatDelta(s.deltaMs) : "сразу"}</td>
-                  <td className={cn("h-7 px-2.5 text-right font-mono", s.status === "error" ? "text-bad" : s.status === "pending" ? "text-ice-300" : "text-ok")}>
-                    {s.status === "error" ? "ошибка" : s.status === "pending" ? "ждём" : "ок"}
-                  </td>
+                  <td className={cn("h-7 px-2.5 text-right font-mono whitespace-nowrap", OUTCOME[s.status].cls)}>{OUTCOME[s.status].label}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {out ? (
-            <p className="flex items-start gap-1 border-t border-line-soft bg-[#06080c] px-2.5 py-1.5 font-mono text-[11px] text-bad/90">
+          {outStep?.output ? (
+            <p
+              className={cn(
+                "flex items-start gap-1 border-t border-line-soft bg-[#06080c] px-2.5 py-1.5 font-mono text-[11px]",
+                outStep.status === "error" ? "text-bad/90" : "text-warn/90",
+              )}
+            >
               <CornerDownRight className="mt-[3px] size-3 shrink-0 text-fg-4" />
-              {out}
+              {outStep.output}
+            </p>
+          ) : null}
+          {next && nextAt !== null ? (
+            <p className="flex items-center gap-1.5 border-t border-line-soft bg-ice-400/[0.04] px-2.5 py-1.5 text-[11.5px] text-ice-200">
+              <Clock3 className="size-3 shrink-0 text-ice-300" />
+              <span>
+                Следующая попытка через <span className="font-mono nums">{formatWait(nextAt - NOW_MS)}</span>
+                <span className="text-fg-3"> · ≈</span>
+                <span className="font-mono text-fg-2 nums">{formatTime(Math.round(nextAt / 60_000) * 60_000)}</span>
+                {done + 1 <= max ? <span className="text-fg-3"> · {done + 1}-я из {max}</span> : null}
+              </span>
             </p>
           ) : null}
         </div>

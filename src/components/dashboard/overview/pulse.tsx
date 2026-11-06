@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { formatDate, formatDateShort, formatMoney, formatPercent, formatWeekday, pluralize } from "@/lib/format";
 import { Change, axisMoney } from "./bits";
+import { STAT_LABEL, STAT_VALUE } from "./stat-strip";
 import { usePeriod } from "./period-context";
 import type { OverviewPulseData } from "./types";
 
@@ -22,9 +23,9 @@ export function KpiTiles({ data }: { data: OverviewPulseData }) {
           key={k.id}
           className="group relative flex flex-col overflow-hidden rounded-xl border border-line bg-surface p-3.5 shadow-raise transition-colors hover:border-line-strong sm:p-4"
         >
-          <p className="line-clamp-2 min-h-[2.6em] text-[12.5px] leading-snug font-medium text-fg-2 sm:min-h-0 sm:text-[13px]">{k.label}</p>
+          <p className={cn(STAT_LABEL, "line-clamp-2 min-h-[2.6em] sm:min-h-0")}>{k.label}</p>
           <div className="mt-2 flex flex-col items-start gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-2">
-            <p className="font-mono text-[19px] leading-none font-semibold tracking-[-0.03em] text-fg nums sm:text-[26px]">{k.value}</p>
+            <p className={STAT_VALUE}>{k.value}</p>
             <Change value={k.delta} unit={k.deltaUnit} />
           </div>
           <p className="mt-1.5 truncate font-mono text-[10.5px] text-fg-4 nums sm:text-[11px]">
@@ -88,7 +89,7 @@ export function RevenueCard({ data }: { data: OverviewPulseData }) {
     <Card className="flex min-w-0 flex-col overflow-hidden">
       <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 px-4 pt-4 sm:px-5">
         <div className="min-w-0">
-          <p className="label-mono text-fg-3">Выручка по дням · {b.days} дней</p>
+          <p className="label-mono text-fg-3">Выручка по дням · {pluralize(b.days, ["день", "дня", "дней"])}</p>
           <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
             <span className="font-mono text-[26px] leading-none font-semibold tracking-[-0.03em] text-fg nums sm:text-[30px]">
               {formatMoney(b.total)}

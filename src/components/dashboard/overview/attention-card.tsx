@@ -47,7 +47,7 @@ export function AttentionCard({ data, now }: { data: AttentionData; now: number 
         }
         actions={
           <Link
-            href="/dashboard/orders?status=issues"
+            href="/dashboard/orders?view=issues"
             className="inline-flex items-center gap-1 rounded-sm text-xs text-fg-3 transition-colors hover:text-fg"
           >
             Все сбои <ArrowRight className="size-3.5" />
@@ -131,7 +131,7 @@ export function AttentionCard({ data, now }: { data: AttentionData; now: number 
 
       {data.awaiting ? (
         <Link
-          href="/dashboard/orders?status=awaiting_player"
+          href="/dashboard/orders?view=awaiting"
           className="mt-auto flex items-start gap-2.5 border-t border-line bg-ice-400/[0.03] px-4 py-3 text-xs leading-snug text-fg-3 transition-colors hover:text-fg-2 sm:px-5"
         >
           <Clock3 className="mt-px size-3.5 shrink-0 text-ice-300" />
