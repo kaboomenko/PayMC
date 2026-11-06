@@ -23,7 +23,7 @@ export interface KpiTile {
 
 export interface RevenuePoint {
   date: string;
-  cur: number;
+  cur: number | null;
   prev: number | null;
   [key: string]: string | number | null;
 }

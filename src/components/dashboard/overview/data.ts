@@ -81,7 +81,10 @@ function periodBundle(days: 7 | 30): PeriodBundle {
   const prevDayStart = ts(prev[todayIdx].date);
   const prevPartial = revenueBetween(prevDayStart, prevDayStart + (NOW_MS - mskDayStart(0)));
 
-  const series = cur.map((d, i) => ({ date: d.date, cur: d.revenue, prev: i === todayIdx ? prevPartial : (prev[i]?.revenue ?? null) }));
+  // today is only half over: leave it out of the line (it reads as a crash) — the
+  // «Сегодня к 12:00» stat under the chart compares it fairly with prevPartial
+  void prevPartial;
+  const series = cur.map((d, i) => ({ date: d.date, cur: i === todayIdx ? null : d.revenue, prev: i === todayIdx ? null : (prev[i]?.revenue ?? null) }));
   const fullCur = cur.slice(0, -1);
   const best = fullCur.reduce((b, d) => (d.revenue > b.revenue ? d : b), fullCur[0]);
 
