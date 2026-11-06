@@ -10,9 +10,21 @@ import { ProductArt } from "./product-art";
 import { BADGE_META, durationLabel, type ProductBadge } from "./product-meta";
 import { uniqueTerms, type RuleHit, type RulesVerdict } from "./rules-check";
 
-export function PreviewCard({ title, aside, children, className }: { title: string; aside?: React.ReactNode; children: React.ReactNode; className?: string }) {
+export function PreviewCard({
+  id,
+  title,
+  aside,
+  children,
+  className,
+}: {
+  id?: string;
+  title: string;
+  aside?: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <section className={cn("rounded-xl border border-line bg-surface shadow-raise", className)}>
+    <section id={id} className={cn("scroll-mt-20 rounded-xl border border-line bg-surface shadow-raise", className)}>
       <div className="flex items-center justify-between gap-3 border-b border-line-soft px-4 py-2.5">
         <h2 className="label-mono text-[10.5px] text-fg-3">{title}</h2>
         {aside}
@@ -92,7 +104,7 @@ export function StorefrontPreview({
                 <span className="text-fg-3">
                   Собрано <span className="font-mono text-fg nums">{formatMoney(pool.raised)}</span> из {formatMoney(pool.target)}
                 </span>
-                <span className="font-mono text-ice-300 nums">{Math.min(100, Math.round((pool.raised / Math.max(1, pool.target)) * 100))}%</span>
+                <span className="font-mono text-ice-300 nums">{formatPercent(Math.min(100, Math.round((pool.raised / Math.max(1, pool.target)) * 100)), { digits: 0 })}</span>
               </div>
               <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
                 <div className="h-full rounded-full bg-ice-400" style={{ width: `${Math.min(100, (pool.raised / Math.max(1, pool.target)) * 100)}%` }} />
@@ -137,21 +149,32 @@ export function ChatPreview({
   price,
   message,
   now,
+  pool,
 }: {
   prefix: string;
   player: string;
   productName: string;
   durationDays: number | null | undefined;
+  /** for a pool — the contribution */
   price: number;
   message: string;
   now: number;
+  /** a pool: progress after this contribution */
+  pool?: { raised: number; target: number };
 }) {
-  const until =
-    durationDays === null ? "навсегда" : durationDays === undefined ? "" : `до ${formatDate(now + durationDays * DAY, { year: false })}`;
-  const name = productName.trim() || "товар";
+  const until = pool
+    ? "после сбора суммы"
+    : durationDays === null
+      ? "навсегда"
+      : durationDays === undefined
+        ? ""
+        : `до ${formatDate(now + durationDays * DAY, { year: false })}`;
+  const name = productName.trim() || (pool ? "складчина" : "товар");
   const personal = message
     .replaceAll("{player}", player)
     .replaceAll("{product}", name)
+    .replaceAll("{raised}", formatMoney(pool?.raised ?? 0))
+    .replaceAll("{target}", formatMoney(pool?.target ?? 0))
     .replaceAll("{expires}", until || "сразу");
   const broadcast = price >= 250;
   return (
@@ -162,7 +185,10 @@ export function ChatPreview({
           <p className="text-fg-4">&lt;Steve_Pro&gt; го на арену</p>
           {broadcast ? (
             <p className="break-words">
-              <span className="text-ice-300">{prefix}</span> <span className="text-fg-2">{player} поддержал сервер и получил {name} — спасибо!</span>
+              <span className="text-ice-300">{prefix}</span>{" "}
+              <span className="text-fg-2">
+                {pool ? `${player} внёс ${formatMoney(price)} в складчину «${name}» — спасибо!` : `${player} поддержал сервер и получил ${name} — спасибо!`}
+              </span>
             </p>
           ) : null}
           <p className="break-words">
@@ -218,7 +244,7 @@ export function RulesCheck({
   }
 
   return (
-    <PreviewCard title={`Правила ${gameName}`} aside={<span className="font-mono text-[10.5px] text-fg-4">проверка на лету</span>}>
+    <PreviewCard id="rules-check" title={`Правила ${gameName}`} aside={<span className="font-mono text-[10.5px] text-fg-4">проверка на лету</span>}>
       <div className="relative px-4 py-3.5">
         <span aria-hidden className={cn("absolute top-4 bottom-4 left-0 w-[2px] rounded-r-full", v.bar)} />
         <p className={cn("flex items-center gap-2 text-[13.5px] font-semibold", v.tone)} aria-live="polite">
@@ -271,5 +297,27 @@ export function RulesCheck({
         ) : null}
       </div>
     </PreviewCard>
+  );
+}
+
+/**
+ * One-line verdict right under the perks editor — explains the red perk borders where they appear.
+ * The full breakdown stays in the RulesCheck card.
+ */
+export function RulesInline({ verdict, gameName, className }: { verdict: RulesVerdict; gameName: string; className?: string }) {
+  if (verdict.level !== "risk" && verdict.level !== "warn") return null;
+  const v = VERDICT[verdict.level];
+  const Icon = v.icon;
+  const terms = uniqueTerms(verdict.level === "risk" ? verdict.advantage : verdict.grey);
+  return (
+    <p className={cn("mt-2.5 flex items-start gap-1.5 text-xs leading-relaxed", className)} aria-live="polite">
+      <Icon className={cn("mt-px size-3.5 shrink-0", v.tone)} />
+      <span className="min-w-0 text-fg-3">
+        <span className={cn("font-medium", v.tone)}>{v.title}:</span> {terms.join(", ")}.{" "}
+        <a href="#rules-check" className="whitespace-nowrap text-fg-2 underline decoration-line-strong underline-offset-4 hover:text-fg hover:decoration-fg-3">
+          Разбор по правилам {gameName}
+        </a>
+      </span>
+    </p>
   );
 }

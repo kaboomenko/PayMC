@@ -61,6 +61,8 @@ export interface EditorPool {
 
 export interface EditorProduct {
   id: string | null;
+  /** set for an unsaved duplicate — the product it was copied from */
+  copyOf?: { id: string; name: string };
   name: string;
   kind: ProductKind;
   description: string;

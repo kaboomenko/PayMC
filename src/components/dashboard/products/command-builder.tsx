@@ -4,7 +4,7 @@ import * as React from "react";
 import { Reorder, useDragControls } from "motion/react";
 import { BookOpen, CircleAlert, GripVertical, Play, Plus, RotateCcw, SquareTerminal, Trash2, TriangleAlert, Wand2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { COMMAND_LIBRARY, VARIABLES, unknownVariables, type CommandTemplate } from "@/lib/command-library";
+import { COMMAND_LIBRARY, VARIABLES, templatesFor, unknownVariables, type CommandTemplate } from "@/lib/command-library";
 import type { DeliveryCommand, GameId } from "@/lib/mock/types";
 import { serverStatusMeta } from "@/lib/mock/meta";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import { StatusDot } from "@/components/ui/status-dot";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CommandLibraryDialog } from "./command-library-dialog";
 import { DeliveryConsole } from "./delivery-console";
-import { buildDryRun, commandIssues, expandTemplate, type DryRunResult } from "./dry-run";
+import { buildDryRun, commandHead, commandIssues, expandTemplate, type DryRunResult } from "./dry-run";
 import type { EditorServer } from "./types";
 
 const STATUS_TONE = { online: "ok", degraded: "warn", offline: "bad" } as const;
@@ -28,6 +28,7 @@ export function CommandBuilder({
   productServerIds,
   durationDays,
   newId,
+  isPool = false,
 }: {
   commands: DeliveryCommand[];
   onChange: (c: DeliveryCommand[]) => void;
@@ -37,9 +38,14 @@ export function CommandBuilder({
   productServerIds: string[];
   durationDays: number | null | undefined;
   newId: () => string;
+  /** a pool runs its commands once, when the target is reached */
+  isPool?: boolean;
 }) {
   const [libraryOpen, setLibraryOpen] = React.useState(false);
   const vars = VARIABLES.filter((v) => !v.games || v.games.includes(game));
+  // pools need a server-wide reward (a booster), not a personal rank
+  const library = templatesFor(game);
+  const example = (isPool ? library.find((t) => /складчин/i.test(t.description)) : undefined) ?? library[0];
 
   const patch = (id: string, p: Partial<DeliveryCommand>) => onChange(commands.map((c) => (c.id === id ? { ...c, ...p } : c)));
   const addBlank = () => onChange([...commands, { id: newId(), template: "", serverId: "all", requireOnline: false }]);
@@ -74,9 +80,12 @@ export function CommandBuilder({
           <div className="relative flex flex-col items-start gap-3 sm:flex-row sm:items-center">
             <SquareTerminal className="size-5 shrink-0 text-fg-3" />
             <div className="min-w-0 flex-1">
-              <p className="text-[13px] font-medium text-fg">Сервер выполнит эти команды после оплаты</p>
+              <p className="text-[13px] font-medium text-fg">
+                {isPool ? "Сервер выполнит эти команды один раз — когда сумма будет собрана" : "Сервер выполнит эти команды после оплаты"}
+              </p>
               <p className="mt-0.5 text-[12.5px] text-fg-3">
-                Возьмите готовую из библиотеки — например, «Группа на время» для LuckPerms, — или впишите свою. Порядок важен: выполняем сверху вниз.
+                {example ? `Возьмите готовую из библиотеки — например, «${example.title}» для ${example.plugin}, — или впишите свою.` : "Впишите команду, которую выполнит консоль сервера."}{" "}
+                {isPool ? "Награда общая: выдайте её всему серверу, а не одному игроку." : "Порядок важен: выполняем сверху вниз."}
               </p>
             </div>
           </div>
@@ -143,7 +152,9 @@ function CommandRow({
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
   const issues = commandIssues(cmd.template, game, durationDays, gameName);
   const hasError = issues.some((x) => x.level === "error");
-  const origin = cmd.templateId ? COMMAND_LIBRARY.find((t) => t.id === cmd.templateId) : undefined;
+  // the library label only describes the row while it is still that plugin command
+  const template = cmd.templateId ? COMMAND_LIBRARY.find((t) => t.id === cmd.templateId) : undefined;
+  const origin = template && commandHead(cmd.template) === commandHead(template.template) ? template : undefined;
   const unknown = unknownVariables(cmd.template, game);
   const inputId = `cmd-${cmd.id}`;
 
@@ -458,6 +469,7 @@ function DryRunPanel({
       <DeliveryConsole
         lines={result?.lines ?? []}
         runKey={runKey}
+        status={result?.status}
         onDone={() => setRunning(false)}
         title={server ? `Консоль · ${server.name}` : "Консоль"}
         idle={

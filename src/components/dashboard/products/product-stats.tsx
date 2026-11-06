@@ -13,13 +13,26 @@ import { PixelAvatar } from "@/components/ui/avatar";
 import { Table, TableWrap, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import type { ProductStatsData } from "./types";
 
-export function ProductStats({ stats, now, productName, isNew }: { stats: ProductStatsData | null; now: number; productName: string; isNew: boolean }) {
+export function ProductStats({
+  stats,
+  now,
+  productName,
+  isNew,
+  isPool = false,
+}: {
+  stats: ProductStatsData | null;
+  now: number;
+  productName: string;
+  isNew: boolean;
+  /** a pool sells contributions, not units */
+  isPool?: boolean;
+}) {
   if (!stats || (!stats.sales30d && !stats.recent.length)) {
     return (
       <Card>
         <EmptyState
           icon={<ChartNoAxesColumn />}
-          title={isNew ? "Статистика появится после первых продаж" : "Продаж пока не было"}
+          title={isNew ? (isPool ? "Статистика появится после первых взносов" : "Статистика появится после первых продаж") : isPool ? "Взносов пока не было" : "Продаж пока не было"}
           description="Здесь будут продажи по дням, выручка, конверсия карточки и последние заказы с трассой выдачи."
         />
       </Card>
@@ -31,8 +44,8 @@ export function ProductStats({ stats, now, productName, isNew }: { stats: Produc
     <div className="space-y-5">
       <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line lg:grid-cols-4">
         {[
-          { label: "Продаж · 30 дн", value: formatNumber(stats.sales30d) },
-          { label: "Выручка · 30 дн", value: formatMoney(stats.revenue30d) },
+          { label: isPool ? "Взносов · 30 дн" : "Продано, шт · 30 дн", value: formatNumber(stats.sales30d) },
+          { label: isPool ? "Собрано · 30 дн" : "Выручка · 30 дн", value: formatMoney(stats.revenue30d) },
           { label: "Просмотров карточки", value: formatNumber(stats.views30d) },
           { label: "Конверсия", value: formatPercent(conv) },
         ].map((s) => (
@@ -46,14 +59,14 @@ export function ProductStats({ stats, now, productName, isNew }: { stats: Produc
       <Card>
         <CardHeader>
           <div>
-            <CardTitle>Продажи по дням</CardTitle>
+            <CardTitle>{isPool ? "Взносы по дням" : "Продажи по дням"}</CardTitle>
             <CardDescription>
-              Последние 14 дней · лучший день — {best.label}, {pluralize(best.value, ["продажа", "продажи", "продаж"])}
+              Последние 14 дней · лучший день — {best.label}, {pluralize(best.value, isPool ? ["взнос", "взноса", "взносов"] : ["продажа", "продажи", "продаж"])}
             </CardDescription>
           </div>
         </CardHeader>
         <CardContent>
-          <BarTrend data={stats.trend} xKey="label" yKey="value" label="Продажи" height={200} highlightLast formatY={(v) => formatNumber(v)} />
+          <BarTrend data={stats.trend} xKey="label" yKey="value" label={isPool ? "Взносы" : "Продажи"} height={200} highlightLast formatY={(v) => formatNumber(v)} />
         </CardContent>
       </Card>
 

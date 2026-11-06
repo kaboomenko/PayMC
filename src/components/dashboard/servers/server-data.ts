@@ -66,7 +66,6 @@ function buildQueue(s: GameServer): QueueItem[] {
           command: expandTemplate(c.template.replace(" accumulate", ""), { player: o.playerName, days: p?.durationDays, amount: it.qty, custom: o.playerName.slice(0, 6) }),
           reason: s.status === "offline" ? ("server_offline" as const) : o.status === "awaiting_player" ? ("awaiting_player" as const) : ("retrying" as const),
           createdAt: o.createdAt,
-          attempt: o.status === "retrying" ? 1 : undefined,
         }));
     }),
   );

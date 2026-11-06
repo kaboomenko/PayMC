@@ -5,7 +5,16 @@ import { motion, useReducedMotion } from "motion/react";
 import { Check, CircleAlert, Clock3, CornerDownRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDuration } from "@/lib/format";
-import type { ConsoleLine, ConsoleTone } from "./dry-run";
+import type { ConsoleLine, ConsoleTone, DryRunResult } from "./dry-run";
+
+/** Header indicator per finished run: a run that executed nothing must not look green. */
+const RESULT: Record<DryRunResult["status"], { label: string; dot: string }> = {
+  ok: { label: "готово", dot: "bg-ok" },
+  deferred: { label: "ждёт входа", dot: "bg-ice-400" },
+  error: { label: "ошибка", dot: "bg-bad" },
+  offline: { label: "не выполнено", dot: "bg-warn" },
+  empty: { label: "не выполнено", dot: "bg-warn" },
+};
 
 const TONE: Record<ConsoleTone, string> = {
   fg: "text-fg-2",
@@ -27,9 +36,12 @@ export function DeliveryConsole({
   className,
   onDone,
   idle,
+  status,
 }: {
   lines: ConsoleLine[];
   runKey: number;
+  /** result of the run — drives the header indicator once all lines are shown */
+  status?: DryRunResult["status"];
   title?: React.ReactNode;
   className?: string;
   onDone?: () => void;
@@ -76,14 +88,15 @@ export function DeliveryConsole({
   }, [visible, reduce]);
 
   const running = runKey > 0 && visible < lines.length;
+  const result = runKey > 0 && !running ? RESULT[status ?? "ok"] : null;
 
   return (
     <div className={cn("overflow-hidden rounded-lg border border-line bg-[#06080c]", className)}>
       <div className="flex h-8 items-center justify-between border-b border-line-soft px-3">
         <span className="label-mono text-[10px] text-fg-4">{title}</span>
         <span className="flex items-center gap-1.5 font-mono text-[10.5px] text-fg-4">
-          <span className={cn("size-1.5 rounded-full", running ? "animate-pulse-dot bg-ice-400 text-ice-400" : runKey ? "bg-ok" : "bg-fg-4")} />
-          {running ? "выполняется" : runKey ? "готово" : "ожидание"}
+          <span className={cn("size-1.5 rounded-full", running ? "animate-pulse-dot bg-ice-400 text-ice-400" : (result?.dot ?? "bg-fg-4"))} />
+          {running ? "выполняется" : (result?.label ?? "ожидание")}
         </span>
       </div>
       <div

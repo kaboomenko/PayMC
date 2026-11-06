@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { ArrowUpCircle, CircleAlert, Clock3, CornerDownRight, ListChecks, Loader2, Play, PlugZap, Power, RotateCcw, ServerCrash, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatDuration, formatNumber, formatPercent, formatRelative, formatTime, pluralize } from "@/lib/format";
+import { formatDuration, formatNumber, formatPercent, formatRelative, formatTime, plural, pluralize } from "@/lib/format";
 import { connectionMeta, serverStatusMeta } from "@/lib/mock/meta";
 import type { GameId } from "@/lib/mock/types";
 import { GAMES } from "@/lib/games";
@@ -19,13 +19,14 @@ import { Sheet, SheetBody, SheetContent, SheetDescription, SheetHeader, SheetTit
 import { Sparkline } from "@/components/ui/sparkline";
 import { StatusDot } from "@/components/ui/status-dot";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/toaster";
 import { DeliveryConsole } from "@/components/dashboard/products/delivery-console";
 import { buildDryRun, simulateOutput, type DryRunResult } from "@/components/dashboard/products/dry-run";
 import { FixSteps } from "./fix-steps";
 import { UptimeStrip } from "./uptime-strip";
-import { LATEST_AGENT, type JournalItem, type QueueItem, type ServerView } from "./types";
+import { LATEST_AGENT, type JournalItem, type QueueItem, type ServerSettings, type ServerView } from "./types";
 
 const STATUS_TONE = { online: "ok", degraded: "warn", offline: "bad" } as const;
 const REASON = {
@@ -33,7 +34,28 @@ const REASON = {
   retrying: { label: "Повтор", tone: "warn" as const },
   awaiting_player: { label: "Ждёт входа", tone: "ice" as const },
 };
-const RETRY_STEPS = ["30 с", "1 мин", "2 мин", "5 мин"];
+/** Gaps between attempts: attempt 1 right after payment (5 s timeout), then 30 с → 1 → 2 → 5 мин, then every 5 мин. */
+const RETRY_STEPS = [
+  { label: "30 с", ms: 30_000 },
+  { label: "1 мин", ms: 60_000 },
+  { label: "2 мин", ms: 120_000 },
+  { label: "5 мин", ms: 300_000 },
+];
+const gapBefore = (attempt: number) => RETRY_STEPS[attempt - 2]?.ms ?? 300_000;
+
+/** Where a retrying command is in the chain right now — derived from its age, so it matches the settings. */
+function retryProgress(createdAt: string, now: number, max: number) {
+  const elapsed = now - new Date(createdAt).getTime();
+  let made = 1;
+  let at = 0;
+  while (made < max && at + gapBefore(made + 1) <= elapsed) {
+    at += gapBefore(made + 1);
+    made += 1;
+  }
+  return { made, exhausted: made >= max, nextInMs: made >= max ? 0 : at + gapBefore(made + 1) - elapsed };
+}
+
+const inShort = (ms: number) => (ms < 90_000 ? `${Math.max(5, Math.round(ms / 1000))}\u00a0с` : `${Math.round(ms / 60_000)}\u00a0мин`);
 
 export function ServerSheet({
   server,
@@ -42,6 +64,8 @@ export function ServerSheet({
   queue,
   onQueueChange,
   journal,
+  settings,
+  onSettingsChange,
   game,
   now,
   onDisconnect,
@@ -52,6 +76,8 @@ export function ServerSheet({
   queue: QueueItem[];
   onQueueChange: (q: QueueItem[]) => void;
   journal: JournalItem[];
+  settings: ServerSettings;
+  onSettingsChange: (patch: Partial<ServerSettings>) => void;
   game: GameId;
   now: number;
   onDisconnect: (s: ServerView) => void;
@@ -73,6 +99,8 @@ export function ServerSheet({
             queue={queue}
             onQueueChange={onQueueChange}
             journal={journal}
+            settings={settings}
+            onSettingsChange={onSettingsChange}
             game={game}
             now={now}
             onDisconnect={onDisconnect}
@@ -93,6 +121,8 @@ function SheetInner({
   queue,
   onQueueChange,
   journal,
+  settings,
+  onSettingsChange,
   game,
   now,
   onDisconnect,
@@ -101,14 +131,15 @@ function SheetInner({
   queue: QueueItem[];
   onQueueChange: (q: QueueItem[]) => void;
   journal: JournalItem[];
+  settings: ServerSettings;
+  onSettingsChange: (patch: Partial<ServerSettings>) => void;
   game: GameId;
   now: number;
   onDisconnect: (s: ServerView) => void;
 }) {
   const [tab, setTab] = React.useState(queue.length ? "queue" : "journal");
   const [busy, setBusy] = React.useState<Set<string>>(new Set());
-  const [offlineMode, setOfflineMode] = React.useState<"queue" | "on_join">("queue");
-  const [attempts, setAttempts] = React.useState("5");
+  const { offlineMode, attempts } = settings;
   const [confirmOff, setConfirmOff] = React.useState(false);
   const [test, setTest] = React.useState<{ result: DryRunResult; key: number } | null>(null);
   const [testRunning, setTestRunning] = React.useState(false);
@@ -139,7 +170,7 @@ function SheetInner({
   const cancel = (item: QueueItem) => {
     const idx = queue.findIndex((q) => q.id === item.id);
     onQueueChange(queue.filter((q) => q.id !== item.id));
-    toast(`Задание ${item.orderId} отменено`, {
+    toast(`Команда по заказу ${item.orderId} отменена`, {
       description: "Деньги не возвращаются сами — при необходимости оформите возврат в заказе",
       action: {
         label: "Вернуть",
@@ -194,7 +225,9 @@ function SheetInner({
               <ServerCrash className="size-4 text-bad" /> Нет связи с агентом {s.offlineMinutes} мин — с {s.offlineSince}
             </p>
             <p className="mt-1 text-[12.5px] text-fg-3">
-              {queue.length ? `${pluralize(queue.length, ["команда ждёт", "команды ждут", "команд ждут"])} в очереди и выполнятся сами после подключения.` : "Очередь пуста."}{" "}
+              {queue.length
+                ? `${pluralize(queue.length, ["команда ждёт", "команды ждут", "команд ждут"])} в очереди и ${plural(queue.length, ["выполнится сама", "выполнятся сами", "выполнятся сами"])} после подключения.`
+                : "Очередь пуста."}{" "}
               Мы написали вам в Telegram.
             </p>
             <details className="group mt-3">
@@ -281,7 +314,7 @@ function SheetInner({
             {queue.length ? (
               <>
                 <div className="mb-2.5 flex items-center justify-between gap-3">
-                  <p className="text-xs text-fg-3">Выполняются по порядку. Сервер сам разберёт очередь после подключения.</p>
+                  <p className="text-xs text-fg-3">{queueIntro(s.status, queue)}</p>
                   {s.status !== "offline" && queue.some((q) => q.reason === "retrying") ? (
                     <Button variant="secondary" size="xs" onClick={() => queue.filter((q) => q.reason === "retrying").forEach(execute)}>
                       <Play /> Повторить все
@@ -292,6 +325,20 @@ function SheetInner({
                   {queue.map((q, i) => {
                     const r = REASON[q.reason];
                     const isBusy = busy.has(q.id);
+                    const retry = q.reason === "retrying" ? retryProgress(q.createdAt, now, attempts) : null;
+                    // nothing to run «now»: the player is offline or the agent is unreachable
+                    const blocked =
+                      q.reason === "awaiting_player"
+                        ? `${q.playerName} не в сети — команда требует игрока онлайн и выполнится при входе. Срочно — отмените и выдайте вручную.`
+                        : q.reason === "server_offline"
+                          ? `«${s.name}» не на связи — выполним сами, когда агент подключится.`
+                          : null;
+                    const runButton = (
+                      <Button variant="secondary" size="xs" onClick={() => execute(q)} disabled={isBusy || !!blocked}>
+                        {isBusy ? <Loader2 className="animate-spin" /> : <Play />}
+                        {isBusy ? "Выполняем…" : retry?.exhausted ? "Повторить вручную" : "Выполнить сейчас"}
+                      </Button>
+                    );
                     return (
                       <li key={q.id} className="rounded-lg border border-line bg-surface-2/50 p-3">
                         <div className="flex items-start gap-3">
@@ -316,16 +363,28 @@ function SheetInner({
                               <span className="text-[11px] text-fg-4">
                                 <Clock3 className="mr-1 inline size-3 -translate-y-px" />
                                 {formatRelative(q.createdAt, now)}
-                                {q.attempt ? ` · попытка ${q.attempt} из ${attempts}` : ""}
+                                {retry ? (
+                                  retry.exhausted ? (
+                                    <span className="text-warn"> · {pluralize(attempts, ["попытка", "попытки", "попыток"])} без ответа — алерт в Telegram</span>
+                                  ) : (
+                                    ` · попытка ${retry.made} из ${attempts}, следующая через ${inShort(retry.nextInMs)}`
+                                  )
+                                ) : null}
                               </span>
                               <span className="ml-auto flex gap-1">
                                 <Button variant="ghost" size="xs" onClick={() => cancel(q)} disabled={isBusy}>
                                   <X /> Отменить
                                 </Button>
-                                <Button variant="secondary" size="xs" onClick={() => execute(q)} disabled={isBusy}>
-                                  {isBusy ? <Loader2 className="animate-spin" /> : <Play />}
-                                  {isBusy ? "Выполняем…" : "Выполнить сейчас"}
-                                </Button>
+                                {blocked ? (
+                                  <Tooltip content={blocked} side="top" align="end">
+                                    {/* disabled buttons swallow hover — the wrapper keeps the hint reachable by mouse and keyboard */}
+                                    <span tabIndex={0} className="rounded-md outline-none focus-visible:ring-2 focus-visible:ring-azure-400/60">
+                                      {runButton}
+                                    </span>
+                                  </Tooltip>
+                                ) : (
+                                  runButton
+                                )}
                               </span>
                             </div>
                           </div>
@@ -339,7 +398,7 @@ function SheetInner({
               <EmptyState
                 icon={<ListChecks />}
                 title="Очередь пуста"
-                description="Все команды выполнены. Если сервер перезагрузится или игрок выйдет до выдачи, задания подождут здесь."
+                description="Все команды выполнены. Если сервер перезагрузится или игрок выйдет до выдачи, команды подождут здесь."
                 className="py-10"
               />
             )}
@@ -349,7 +408,7 @@ function SheetInner({
             {journal.length ? (
               <div className="overflow-hidden rounded-lg border border-line bg-[#06080c]">
                 <div className="flex h-8 items-center justify-between border-b border-line-soft px-3">
-                  <span className="label-mono text-[10px] text-fg-4">Последние {journal.length} команд</span>
+                  <span className="label-mono text-[10px] text-fg-4">{pluralize(journal.length, ["команда", "команды", "команд"])} · новые сверху</span>
                   <span className="font-mono text-[10.5px] text-fg-4">МСК</span>
                 </div>
                 <ul className="divide-y divide-line-soft">
@@ -395,7 +454,8 @@ function SheetInner({
                     role="radio"
                     aria-checked={offlineMode === o.v}
                     onClick={() => {
-                      setOfflineMode(o.v);
+                      if (offlineMode === o.v) return;
+                      onSettingsChange({ offlineMode: o.v });
                       toast.success("Настройка сохранена", { description: `${s.name}: ${o.t.toLowerCase()}` });
                     }}
                     className={cn(
@@ -419,9 +479,9 @@ function SheetInner({
               title="Повторы, если сервер не ответил"
               aside={
                 <Select
-                  value={attempts}
+                  value={String(attempts)}
                   onValueChange={(v) => {
-                    setAttempts(v);
+                    onSettingsChange({ attempts: Number(v) });
                     toast.success("Настройка сохранена", { description: `${pluralize(Number(v), ["попытка", "попытки", "попыток"])}, затем уведомление в Telegram` });
                   }}
                 >
@@ -440,18 +500,18 @@ function SheetInner({
             >
               <div className="flex flex-wrap items-center gap-1.5 font-mono text-[11.5px]">
                 <span className="rounded-sm border border-line bg-surface-2 px-1.5 py-0.5 text-fg-2">таймаут 5 с</span>
-                {RETRY_STEPS.slice(0, Math.min(4, Number(attempts) - 1)).map((t, i) => (
-                  <React.Fragment key={t}>
+                {RETRY_STEPS.slice(0, Math.min(4, attempts - 1)).map((t, i) => (
+                  <React.Fragment key={t.label}>
                     <span className="text-fg-4">→</span>
                     <span className="rounded-sm border border-line bg-surface-2 px-1.5 py-0.5 text-fg-2">
-                      {i + 2}: через {t}
+                      {i + 2}: через {t.label}
                     </span>
                   </React.Fragment>
                 ))}
-                {Number(attempts) > 5 ? (
+                {attempts > 5 ? (
                   <>
                     <span className="text-fg-4">→</span>
-                    <span className="rounded-sm border border-line bg-surface-2 px-1.5 py-0.5 text-fg-2">ещё {Number(attempts) - 5} × 5 мин</span>
+                    <span className="rounded-sm border border-line bg-surface-2 px-1.5 py-0.5 text-fg-2">ещё {attempts - 5} × 5 мин</span>
                   </>
                 ) : null}
                 <span className="text-fg-4">→</span>
@@ -474,6 +534,7 @@ function SheetInner({
               <DeliveryConsole
                 lines={test?.result.lines ?? []}
                 runKey={test?.key ?? 0}
+                status={test?.result.status}
                 onDone={() => setTestRunning(false)}
                 title={`Консоль · ${s.name}`}
                 idle={<span className="font-sans text-[12.5px] text-fg-3">Проверим путь «PayMC → агент → консоль» и время ответа.</span>}
@@ -501,7 +562,7 @@ function SheetInner({
             <DialogTitle>Отключить «{s.name}»?</DialogTitle>
             <DialogDescription>
               Агент потеряет доступ, а покупки для этого сервера перестанут выдаваться.
-              {queue.length ? ` ${pluralize(queue.length, ["команда", "команды", "команд"])} из очереди не выполнятся.` : ""}
+              {queue.length ? ` ${pluralize(queue.length, ["команда", "команды", "команд"])} из очереди ${plural(queue.length, ["не выполнится", "не выполнятся", "не выполнятся"])}.` : ""}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -523,6 +584,15 @@ function SheetInner({
       </Dialog>
     </>
   );
+}
+
+function queueIntro(status: ServerView["status"], queue: QueueItem[]) {
+  if (status === "offline") return "Выполнятся по порядку сами, когда агент вернётся на связь.";
+  const retrying = queue.some((q) => q.reason === "retrying");
+  const awaiting = queue.some((q) => q.reason === "awaiting_player");
+  if (retrying && awaiting) return "Ждут входа игроков или следующего повтора.";
+  if (retrying) return "Сервер не ответил вовремя — повторим по расписанию из «Настроек».";
+  return "Ждут входа игроков: эти команды выполняются, только когда игрок онлайн.";
 }
 
 function Health({ label, value, valueClass, children }: { label: string; value: string; valueClass?: string; children: React.ReactNode }) {

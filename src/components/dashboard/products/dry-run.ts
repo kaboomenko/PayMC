@@ -110,6 +110,11 @@ export function simulateOutput(command: string, player: string): { text: string;
 
 const knownVarsFor = (game: GameId) => VARIABLES.filter((v) => !v.games || v.games.includes(game)).map((v) => v.key);
 
+/** First word of a console command, normalised the way the server reads it: no leading slash, no «minecraft:» namespace. */
+export function commandHead(tpl: string) {
+  return (tpl.trim().replace(/^\/+/, "").split(/\s+/)[0] ?? "").toLowerCase().replace(/^minecraft:/, "");
+}
+
 export interface CommandIssue {
   code: "empty" | "unknown_var" | "brace" | "days_forever" | "days_once" | "slash" | "danger";
   level: "error" | "warn";
@@ -137,7 +142,9 @@ export function commandIssues(tpl: string, game: GameId, durationDays: number | 
   if (durationDays === undefined && t.includes("{days}"))
     out.push({ code: "days_once", level: "warn", text: "У товара нет срока — {days} подставится как 30. Укажите срок в «Цена и срок»" });
   if (t.startsWith("/")) out.push({ code: "slash", level: "warn", text: "Слэш в начале не нужен: консоль сервера выполняет команды без него" });
-  const danger = COMMAND_LIBRARY.find((x) => x.danger && t.split(/\s+/)[0] === x.template.split(/\s+/)[0]);
+  // «/op {player}» and «minecraft:op {player}» are the same command for the console — compare normalised heads
+  const head = commandHead(t);
+  const danger = COMMAND_LIBRARY.find((x) => x.danger && commandHead(x.template) === head);
   if (danger?.danger) out.push({ code: "danger", level: "error", text: danger.danger });
   return out;
 }
@@ -161,16 +168,20 @@ export function buildDryRun(input: {
   const slug = server.id.replace(/^srv-/, "");
 
   push({ kind: "prompt", text: `paymc dry-run --server ${slug} --player ${player}`, wait: 0 });
+  // commands bound to another server never reach this one
+  const targeted = input.commands.filter((c) => c.serverId === "all" || c.serverId === server.id).length;
   if (server.status === "offline") {
     push({ kind: "note", text: `Агент «${server.name}» не на связи${server.offlineSince ? ` с ${server.offlineSince}` : ""}`, tone: "bad", wait: 650 });
-    push({
-      kind: "note",
-      text: `В боевом режиме ${pluralize(input.commands.length, ["команда встанет", "команды встанут", "команд встанут"])} в очередь и выполнятся сами после подключения`,
-      tone: "muted",
-      wait: 260,
-    });
+    if (targeted) {
+      push({
+        kind: "note",
+        text: `В боевом режиме ${pluralize(targeted, ["команда встанет", "команды встанут", "команд встанут"])} в очередь и ${plural(targeted, ["выполнится сама", "выполнятся сами", "выполнятся сами"])} после подключения`,
+        tone: "muted",
+        wait: 260,
+      });
+    }
     push({ kind: "summary", text: "Сейчас не выполнится: сервер не на связи", tone: "warn", wait: 380 });
-    return { lines, status: "offline", totalMs: 0, executed: 0, deferred: input.commands.length, failed: 0 };
+    return { lines, status: "offline", totalMs: 0, executed: 0, deferred: targeted, failed: 0 };
   }
   push({
     kind: "note",
@@ -232,11 +243,23 @@ export function buildDryRun(input: {
     });
     return { lines, status: "error", totalMs: total, executed, deferred, failed };
   }
+  if (!executed && !deferred) {
+    // every command is bound to other servers: nothing would run here — not a success
+    push({
+      kind: "summary",
+      text: `На «${server.name}» ничего не выполнится: ${input.commands.length > 1 ? "все команды настроены" : "команда настроена"} для других серверов`,
+      tone: "warn",
+      wait: 380,
+    });
+    return { lines, status: "empty", totalMs: 0, executed, deferred, failed };
+  }
   if (deferred) {
     push({
       kind: "summary",
-      text: `Сработает: ${pluralize(executed, ["команда", "команды", "команд"])} сразу, ${deferred} — при входе игрока`,
-      tone: "ok",
+      text: executed
+        ? `Сработает: ${pluralize(executed, ["команда", "команды", "команд"])} сразу, ${deferred} — при входе игрока`
+        : `Сработает при входе игрока: ${pluralize(deferred, ["команда", "команды", "команд"])}`,
+      tone: executed ? "ok" : "ice",
       wait: 380,
     });
     return { lines, status: "deferred", totalMs: total, executed, deferred, failed };

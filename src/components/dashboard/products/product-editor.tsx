@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Field, Input, Textarea } from "@/components/ui/input";
 import { Kbd } from "@/components/ui/kbd";
 import { Progress } from "@/components/ui/progress";
@@ -23,13 +24,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/toaster";
 import { CommandBuilder } from "./command-builder";
 import { commandIssues } from "./dry-run";
-import { ChatPreview, PreviewCard, RulesCheck, StorefrontPreview } from "./editor-preview";
+import { ChatPreview, PreviewCard, RulesCheck, RulesInline, StorefrontPreview } from "./editor-preview";
 import { PerksEditor, type Perk } from "./perks-editor";
 import { ProductArt, ART_TINTS } from "./product-art";
 import { BADGE_META, KIND_ORDER, STATUS_META, glyphFromName, type ProductBadge, type ProductStatus } from "./product-meta";
 import { ProductStats } from "./product-stats";
 import { checkRules } from "./rules-check";
 import type { EditorContext, EditorProduct, EditorServer, ProductStatsData } from "./types";
+import { useLeaveGuard } from "./use-leave-guard";
 
 type DurationMode = "once" | "7" | "30" | "90" | "forever" | "custom";
 
@@ -55,7 +57,8 @@ interface FormState {
 }
 
 const STATUS_TONE = { online: "ok", degraded: "warn", offline: "bad" } as const;
-const DEFAULT_MESSAGE = "Спасибо за покупку! {product} — {expires}.";
+/** A pool contribution is not a purchase: thank for the contribution and show the progress instead of a term. */
+const defaultMessage = (kind: ProductKind) => (kind === "pool" ? "Спасибо за взнос! Собрано {raised} из {target}." : "Спасибо за покупку! {product} — {expires}.");
 
 function toForm(p: EditorProduct, defaultDeadline: string): FormState {
   const d = p.durationDays;
@@ -77,7 +80,7 @@ function toForm(p: EditorProduct, defaultDeadline: string): FormState {
     badge: p.badge ?? "none",
     tint: p.tint,
     glyph: p.glyph,
-    chatMessage: DEFAULT_MESSAGE,
+    chatMessage: defaultMessage(p.kind),
     pool: p.pool
       ? {
           target: String(p.pool.target),
@@ -177,13 +180,14 @@ export function ProductEditor({
       Object.entries(errors).some(([k, v]) => v && k !== "name" && k !== "price" && k !== "noCommands");
     if (blocking) {
       toast.error("Не сохранили — есть ошибки", { description: "Поля с ошибками подсвечены красным" });
-      return;
+      return false;
     }
     setInitial(form);
     setShowErrors(false);
     toast.success(isNew ? "Товар создан" : "Товар сохранён", {
       description: form.status === "active" ? "Изменения уже на витрине и в командах выдачи" : "Игроки не видят товар, пока он не активен",
     });
+    return true;
   };
 
   const cancel = () => {
@@ -208,15 +212,42 @@ export function ProductEditor({
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // warn before leaving with unsaved changes
-  React.useEffect(() => {
-    if (!dirty) return;
-    const onBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-    };
-    window.addEventListener("beforeunload", onBeforeUnload);
-    return () => window.removeEventListener("beforeunload", onBeforeUnload);
-  }, [dirty]);
+  // unsaved changes: ask before any in-app navigation, Back/Forward or closing the tab
+  const [leave, setLeave] = React.useState<{ proceed: () => void } | null>(null);
+  useLeaveGuard(dirty, (proceed) => setLeave({ proceed }));
+  const leaveWith = (saveFirst: boolean) => {
+    const next = leave;
+    setLeave(null);
+    if (!next || (saveFirst && !save())) return;
+    next.proceed();
+  };
+
+  const rulesCheck = (
+    <RulesCheck
+      verdict={verdict}
+      gameName={ctx.gameName}
+      rules={ctx.gameRules}
+      perks={form.perks.map((p) => p.text)}
+      onRemovePerk={(i) => {
+        const removed = form.perks[i];
+        set(
+          "perks",
+          form.perks.filter((_, j) => j !== i),
+        );
+        toast(`Перк «${removed.text}» убран`, {
+          action: {
+            label: "Вернуть",
+            onClick: () =>
+              setForm((f) => {
+                const perks = [...f.perks];
+                perks.splice(i, 0, removed);
+                return { ...f, perks };
+              }),
+          },
+        });
+      }}
+    />
+  );
 
   const fee = price > 0 ? price * ctx.feeRate : 0;
   const allServersOn = servers.length > 0 && servers.every((s) => form.serverIds.includes(s.id));
@@ -241,7 +272,19 @@ export function ProductEditor({
                   {STATUS_META[form.status].label}
                 </Badge>
                 <span>{productKindMeta[form.kind].label}</span>
-                {product.id ? <span className="font-mono text-[11px] text-fg-4">{product.id}</span> : <span className="text-fg-4">ещё не сохранён</span>}
+                {product.id ? (
+                  <span className="font-mono text-[11px] text-fg-4">{product.id}</span>
+                ) : product.copyOf ? (
+                  <span className="text-fg-4">
+                    копия{" "}
+                    <Link href={`/dashboard/products/${product.copyOf.id}`} className="text-fg-3 underline decoration-line-strong underline-offset-4 hover:text-fg-2">
+                      «{product.copyOf.name}»
+                    </Link>{" "}
+                    · ещё не сохранена
+                  </span>
+                ) : (
+                  <span className="text-fg-4">ещё не сохранён</span>
+                )}
               </p>
             </div>
           </div>
@@ -295,7 +338,17 @@ export function ProductEditor({
                     />
                   </Field>
                   <Field label="Категория" htmlFor="p-kind">
-                    <Select value={form.kind} onValueChange={(v) => set("kind", v as ProductKind)}>
+                    <Select
+                      value={form.kind}
+                      onValueChange={(v) =>
+                        setForm((f) => ({
+                          ...f,
+                          kind: v as ProductKind,
+                          // an untouched default message follows the category (purchase ↔ pool contribution)
+                          chatMessage: f.chatMessage === defaultMessage(f.kind) ? defaultMessage(v as ProductKind) : f.chatMessage,
+                        }))
+                      }
+                    >
                       <SelectTrigger id="p-kind">
                         <SelectValue />
                       </SelectTrigger>
@@ -321,6 +374,8 @@ export function ProductEditor({
                 <div className="mt-4">
                   <p className="mb-1.5 text-[13px] font-medium text-fg-2">Перки на карточке</p>
                   <PerksEditor perks={form.perks} onChange={(perks) => set("perks", perks)} flagged={flaggedPerks} newId={newId} />
+                  {/* on wide screens the full check sits first in the sticky aside, next to this field */}
+                  <RulesInline verdict={verdict} gameName={ctx.gameName} className="xl:hidden" />
                 </div>
               </Section>
 
@@ -461,7 +516,7 @@ export function ProductEditor({
 
               <Section
                 title="Выдача"
-                description="Сервер выполнит эти команды в консоли сразу после оплаты"
+                description={isPool ? "Выполним один раз, когда сумма будет собрана — не после каждого взноса" : "Сервер выполнит эти команды в консоли сразу после оплаты"}
                 aside={errors.commands ? <Badge tone="bad">{pluralize(commandErrors, ["ошибка", "ошибки", "ошибок"])}</Badge> : form.commands.length ? <Badge tone="neutral">{pluralize(form.commands.length, ["команда", "команды", "команд"])}</Badge> : null}
               >
                 {errors.noCommands ? (
@@ -478,6 +533,7 @@ export function ProductEditor({
                   productServerIds={form.serverIds}
                   durationDays={durationDays}
                   newId={newId}
+                  isPool={isPool}
                 />
               </Section>
 
@@ -599,7 +655,13 @@ export function ProductEditor({
             </div>
 
             {/* ── right: live previews ── */}
-            <aside className="min-w-0 space-y-4 xl:sticky xl:top-[72px]" aria-label="Предпросмотр">
+            {/* the aside is taller than the viewport: it scrolls on its own, and the rules check comes first —
+                it reacts to the description and perks the owner is editing on the left */}
+            <aside
+              className="min-w-0 space-y-4 [scrollbar-color:var(--color-line-strong)_transparent] [scrollbar-width:thin] xl:sticky xl:top-[72px] xl:-mx-1 xl:max-h-[calc(100dvh-88px)] xl:overflow-y-auto xl:px-1 xl:pb-1"
+              aria-label="Предпросмотр"
+            >
+              {rulesCheck}
               <StorefrontPreview
                 name={form.name}
                 category={category}
@@ -620,44 +682,44 @@ export function ProductEditor({
                   player="kotik228"
                   productName={form.name}
                   durationDays={durationDays}
-                  price={isPool ? poolMin : price}
+                  price={isPool ? (poolMin > 0 ? poolMin : 0) : price}
                   message={form.chatMessage}
                   now={ctx.now}
+                  pool={isPool ? { raised: (product.pool?.raised ?? 0) + (poolMin > 0 ? poolMin : 0), target: poolTarget > 0 ? poolTarget : 0 } : undefined}
                 />
-                <MessageField value={form.chatMessage} onChange={(v) => set("chatMessage", v)} />
+                <MessageField value={form.chatMessage} onChange={(v) => set("chatMessage", v)} isPool={isPool} />
               </div>
-              <RulesCheck
-                verdict={verdict}
-                gameName={ctx.gameName}
-                rules={ctx.gameRules}
-                perks={form.perks.map((p) => p.text)}
-                onRemovePerk={(i) => {
-                  const removed = form.perks[i];
-                  set(
-                    "perks",
-                    form.perks.filter((_, j) => j !== i),
-                  );
-                  toast(`Перк «${removed.text}» убран`, {
-                    action: {
-                      label: "Вернуть",
-                      onClick: () =>
-                        setForm((f) => {
-                          const perks = [...f.perks];
-                          perks.splice(i, 0, removed);
-                          return { ...f, perks };
-                        }),
-                    },
-                  });
-                }}
-              />
             </aside>
           </div>
         </TabsContent>
 
         <TabsContent value="stats" className="pt-5">
-          <ProductStats stats={stats} now={ctx.now} productName={product.name} isNew={isNew} />
+          <ProductStats stats={stats} now={ctx.now} productName={product.name} isNew={isNew} isPool={product.kind === "pool"} />
         </TabsContent>
       </Tabs>
+
+      <Dialog open={!!leave} onOpenChange={(o) => !o && setLeave(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Уйти без сохранения?</DialogTitle>
+            <DialogDescription>
+              Изменения в «{form.name.trim() || (isNew ? "Новый товар" : "Без названия")}» не сохранены. Если уйти, они пропадут — на витрине и в командах выдачи останется
+              {isNew ? " всё как было: товар не создан." : " прежняя версия."}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" size="sm" onClick={() => setLeave(null)}>
+              Остаться
+            </Button>
+            <Button variant="danger-ghost" size="sm" onClick={() => leaveWith(false)}>
+              Уйти
+            </Button>
+            <Button variant="primary" size="sm" onClick={() => leaveWith(true)}>
+              {isNew ? "Создать и уйти" : "Сохранить и уйти"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* sticky save bar */}
       <AnimatePresence>
@@ -727,13 +789,19 @@ function Section({
   );
 }
 
-function MessageField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function MessageField({ value, onChange, isPool }: { value: string; onChange: (v: string) => void; isPool: boolean }) {
+  const vars = isPool ? ["{player}", "{product}", "{raised}", "{target}"] : ["{player}", "{product}", "{expires}"];
   return (
     <PreviewCard title="Текст сообщения" className="mt-2 rounded-t-md">
       <div className="p-3">
         <Input aria-label="Текст сообщения игроку" value={value} maxLength={120} onChange={(e) => onChange(e.target.value)} className="[&_input]:h-8 [&_input]:text-[13px]" />
         <p className="mt-1.5 font-mono text-[10.5px] text-fg-4">
-          <span className="text-ice-300">{"{player}"}</span> <span className="text-ice-300">{"{product}"}</span> <span className="text-ice-300">{"{expires}"}</span> — подставим сами
+          {vars.map((v) => (
+            <React.Fragment key={v}>
+              <span className="text-ice-300">{v}</span>{" "}
+            </React.Fragment>
+          ))}
+          — подставим сами
         </p>
       </div>
     </PreviewCard>

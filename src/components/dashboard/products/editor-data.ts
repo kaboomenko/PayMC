@@ -73,6 +73,20 @@ export function toEditorProduct(p: Product): EditorProduct {
   };
 }
 
+/** Unsaved draft copy for «Дублировать»: same commands, servers and perks; no badge, no sales, a fresh pool. */
+export function copyOfProduct(p: Product): EditorProduct {
+  const base = toEditorProduct(p);
+  return {
+    ...base,
+    id: null,
+    copyOf: { id: p.id, name: p.name },
+    name: `${p.name} (копия)`.slice(0, 48),
+    status: "draft",
+    badge: undefined,
+    pool: base.pool ? { ...base.pool, raised: 0, contributors: 0, deadline: mskDateInput(NOW_MS + 7 * DAY) } : undefined,
+  };
+}
+
 export function blankProduct(kind: ProductKind, serverIds: string[]): EditorProduct {
   const oneOff = kind === "currency" || kind === "case" || kind === "unban" || kind === "kit" || kind === "pool";
   return {

@@ -3,7 +3,7 @@
 import * as React from "react";
 import { ChevronDown, ChevronRight, Plus, ServerCrash, ServerOff } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatDuration, formatNumber, formatPercent, formatRelative, pluralize } from "@/lib/format";
+import { formatDuration, formatNumber, formatPercent, formatRelative, plural, pluralize } from "@/lib/format";
 import { connectionMeta, serverStatusMeta } from "@/lib/mock/meta";
 import type { ConnectionKind, GameId } from "@/lib/mock/types";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -19,7 +19,7 @@ import { ConnectWizard } from "./connect-wizard";
 import { FixSteps } from "./fix-steps";
 import { ServerSheet } from "./server-sheet";
 import { UptimeStrip } from "./uptime-strip";
-import { LATEST_AGENT, type Incident, type JournalItem, type QueueItem, type ServerView } from "./types";
+import { DEFAULT_SERVER_SETTINGS, LATEST_AGENT, type Incident, type JournalItem, type QueueItem, type ServerSettings, type ServerView } from "./types";
 
 const STATUS_TONE = { online: "ok", degraded: "warn", offline: "bad" } as const;
 
@@ -60,6 +60,7 @@ export function ServersView({
   const [sheetOpen, setSheetOpen] = React.useState(selectedId !== null);
   const [connectOpen, setConnectOpen] = React.useState(initialConnect);
   const [fixOpen, setFixOpen] = React.useState(false);
+  const [settings, setSettings] = React.useState<Record<string, ServerSettings>>({});
   const seq = React.useRef(0);
 
   const selected = servers.find((s) => s.id === selectedId) ?? null;
@@ -129,9 +130,14 @@ export function ServersView({
   };
 
   const onlineNow = servers.reduce((a, s) => a + s.online, 0);
-  const healthy = servers.filter((s) => s.status === "online").length;
   const queued = servers.reduce((a, s) => a + (queues[s.id]?.length ?? 0), 0);
+  // «на связи» = the agent answers (a slow server is still connected and delivering)
   const live = servers.filter((s) => s.status !== "offline");
+  const slow = servers.filter((s) => s.status === "degraded").length;
+  const down = servers.length - live.length;
+  const linkHint = [slow ? `${slow} ${plural(slow, ["медленно отвечает", "медленно отвечают", "медленно отвечают"])}` : "", down ? `${down} без связи` : ""]
+    .filter(Boolean)
+    .join(" · ");
   const avgLatency = live.length ? Math.round(live.reduce((a, s) => a + s.latencyMs, 0) / live.length) : 0;
   const incidentServer = incident ? servers.find((s) => s.id === incident.serverId) : undefined;
   const incidentQueue = incident ? (queues[incident.serverId]?.length ?? 0) : 0;
@@ -151,7 +157,7 @@ export function ServersView({
       <div className="space-y-5">
         <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line lg:grid-cols-4">
           <Stat label="Игроков онлайн" value={formatNumber(onlineNow)} hint={`на ${pluralize(live.length, ["сервере", "серверах", "серверах"])}`} />
-          <Stat label="На связи" value={`${healthy} из ${servers.length}`} hint={servers.length - healthy ? `${servers.length - healthy} требуют внимания` : "всё в порядке"} tone={servers.length - healthy ? "warn" : undefined} />
+          <Stat label="На связи" value={`${live.length} из ${servers.length}`} hint={linkHint || "всё в порядке"} tone={linkHint ? "warn" : undefined} />
           <Stat label="Команд в очереди" value={formatNumber(queued)} hint="выполнятся сами" tone={queued ? "warn" : undefined} />
           <Stat label="Средняя задержка" value={formatDuration(avgLatency)} hint="от оплаты до агента" />
         </dl>
@@ -170,7 +176,7 @@ export function ServersView({
                 </p>
                 <p className="mt-1 text-[12.5px] leading-relaxed text-fg-3">
                   {incidentQueue
-                    ? `${pluralize(incidentQueue, ["задание", "задания", "заданий"])} в очереди — выдадим сами, как только агент подключится. Игроки не потеряют покупки.`
+                    ? `${pluralize(incidentQueue, ["команда", "команды", "команд"])} в очереди — выполним сами, как только агент подключится. Игроки не потеряют покупки.`
                     : "Очередь пуста."}{" "}
                   Уведомили вас в Telegram в {incident.since}.
                 </p>
@@ -222,7 +228,7 @@ export function ServersView({
           )}
         </div>
         <p className="text-xs text-fg-4">
-          Агент держит постоянное соединение с PayMC: если сервер перезагружается, задания ждут в очереди, а не теряются. Последняя версия — {LATEST_AGENT}.
+          Агент держит постоянное соединение с PayMC: если сервер перезагружается, команды ждут в очереди, а не теряются. Последняя версия — {LATEST_AGENT}.
         </p>
       </div>
 
@@ -233,6 +239,10 @@ export function ServersView({
         queue={selected ? (queues[selected.id] ?? []) : []}
         onQueueChange={(q) => selected && setQueues((prev) => ({ ...prev, [selected.id]: q }))}
         journal={selected ? (journals[selected.id] ?? []) : []}
+        settings={(selected && settings[selected.id]) || DEFAULT_SERVER_SETTINGS}
+        onSettingsChange={(patch) =>
+          selected && setSettings((prev) => ({ ...prev, [selected.id]: { ...(prev[selected.id] ?? DEFAULT_SERVER_SETTINGS), ...patch } }))
+        }
         game={game}
         now={now}
         onDisconnect={onDisconnect}
@@ -246,9 +256,10 @@ function Stat({ label, value, hint, tone }: { label: string; value: string; hint
   return (
     <div className="bg-surface px-4 py-3">
       <dt className="label-mono text-[10px] text-fg-4">{label}</dt>
-      <dd className="mt-1 flex items-baseline gap-2">
-        <span className="font-mono text-[19px] font-medium tracking-[-0.02em] text-fg nums">{value}</span>
-        {hint ? <span className={cn("hidden truncate text-[11.5px] sm:inline", tone === "warn" ? "text-warn" : "text-fg-4")}>{hint}</span> : null}
+      {/* the value never breaks; a long hint drops under it instead of squeezing it */}
+      <dd className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        <span className="font-mono text-[19px] font-medium tracking-[-0.02em] whitespace-nowrap text-fg nums">{value}</span>
+        {hint ? <span className={cn("hidden text-[11.5px] leading-snug sm:inline", tone === "warn" ? "text-warn" : "text-fg-4")}>{hint}</span> : null}
       </dd>
     </div>
   );

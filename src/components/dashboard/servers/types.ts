@@ -23,7 +23,6 @@ export interface QueueItem {
   command: string;
   reason: "server_offline" | "retrying" | "awaiting_player";
   createdAt: string;
-  attempt?: number;
 }
 
 export interface JournalItem {
@@ -45,5 +44,14 @@ export interface Incident {
   queued: number;
   orders: number;
 }
+
+/** Per-server delivery settings («Настройки» tab). Lives in ServersView so it survives closing the sheet. */
+export interface ServerSettings {
+  offlineMode: "queue" | "on_join";
+  /** total attempts, the first one included */
+  attempts: number;
+}
+
+export const DEFAULT_SERVER_SETTINGS: ServerSettings = { offlineMode: "queue", attempts: 5 };
 
 export const LATEST_AGENT = "2.4.1";

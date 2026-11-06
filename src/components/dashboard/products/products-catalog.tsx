@@ -19,7 +19,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatDateShort, formatMoney, formatNumber, formatPercent, formatRelative, pluralize } from "@/lib/format";
+import { formatDateShort, formatMoney, formatNumber, formatPercent, formatRelative, plural, pluralize } from "@/lib/format";
 import { eulaMeta, productKindMeta } from "@/lib/mock/meta";
 import type { ProductKind } from "@/lib/mock/types";
 import { Badge } from "@/components/ui/badge";
@@ -77,7 +77,6 @@ export function ProductsCatalog({
   const [filters, setFilters] = React.useState(initialFilters);
   const [view, setView] = React.useState<View>("table");
   const [confirm, setConfirm] = React.useState<CatalogProduct | null>(null);
-  const copySeq = React.useRef(0);
 
   // URL sync happens in the event handler, never inside a state updater (Next's history patch updates the router)
   const update = (patch: Partial<CatalogFilters>) => {
@@ -138,32 +137,6 @@ export function ProductsCatalog({
     });
   };
 
-  const duplicate = (p: CatalogProduct) => {
-    copySeq.current += 1;
-    const copy: CatalogProduct = {
-      ...p,
-      id: `${p.id}-copy-${copySeq.current}`,
-      name: `${p.name} (копия)`,
-      status: "draft",
-      badge: undefined,
-      views30d: 0,
-      sales30d: 0,
-      revenue30d: 0,
-      salesTrend: p.salesTrend.map(() => 0),
-      pool: p.pool ? { ...p.pool, raised: 0, contributors: 0 } : undefined,
-    };
-    setItems((prev) => {
-      const i = prev.findIndex((x) => x.id === p.id);
-      const next = [...prev];
-      next.splice(i + 1, 0, copy);
-      return next;
-    });
-    toast(`Черновик «${copy.name}» создан`, {
-      description: "Команды выдачи и серверы скопированы. Товар не виден игрокам",
-      action: { label: "Отменить", onClick: () => setItems((prev) => prev.filter((x) => x.id !== copy.id)) },
-    });
-  };
-
   const remove = (p: CatalogProduct) => {
     const idx = items.findIndex((x) => x.id === p.id);
     setItems((prev) => prev.filter((x) => x.id !== p.id));
@@ -184,7 +157,6 @@ export function ProductsCatalog({
 
   const actions: RowActions = {
     toggle,
-    duplicate,
     hide: (p) => toggle(p, p.status !== "active"),
     askDelete: setConfirm,
   };
@@ -197,7 +169,7 @@ export function ProductsCatalog({
       {/* totals */}
       <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line lg:grid-cols-4">
         <Stat label="Выручка · 30 дн" value={formatMoney(totals.revenue)} />
-        <Stat label="Продаж · 30 дн" value={formatNumber(totals.sales)} />
+        <Stat label="Продано, шт · 30 дн" value={formatNumber(totals.sales)} />
         <Stat label="Конверсия витрины" value={formatPercent(totals.conv)} hint="Покупки / просмотры карточек" />
         <Stat label="В магазине" value={`${totals.active} из ${items.length}`} hint={`${statusCount("draft")} черн. · ${statusCount("hidden")} скрыт.`} />
       </dl>
@@ -406,7 +378,6 @@ export function ProductsCatalog({
 
 interface RowActions {
   toggle: (p: CatalogProduct, on: boolean) => void;
-  duplicate: (p: CatalogProduct) => void;
   hide: (p: CatalogProduct) => void;
   askDelete: (p: CatalogProduct) => void;
 }
@@ -537,7 +508,7 @@ function PoolCell({ pool, now }: { pool: NonNullable<CatalogProduct["pool"]>; no
             <span className="font-mono text-fg nums">{formatMoney(pool.raised)}</span>
             <span className="text-fg-4"> из {formatMoney(pool.target)}</span>
           </span>
-          <span className="font-mono text-ice-300 nums">{pct}%</span>
+          <span className="font-mono text-ice-300 nums">{formatPercent(pct, { digits: 0 })}</span>
         </div>
         <Progress value={pool.raised} max={pool.target} tone="ice" size="sm" />
       </div>
@@ -566,8 +537,11 @@ function RowMenu({ p, actions }: { p: CatalogProduct; actions: RowActions }) {
             <Pencil /> Редактировать
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => actions.duplicate(p)}>
-          <Copy /> Дублировать
+        {/* opens the editor with an unsaved draft copy — commands and servers included */}
+        <DropdownMenuItem asChild>
+          <Link href={`/dashboard/products/new?from=${p.id}`}>
+            <Copy /> Дублировать
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => actions.hide(p)}>
           {p.status === "active" ? (
@@ -643,7 +617,7 @@ function CatalogTable({ rows, now, actions }: { rows: CatalogProduct[]; now: num
                       </div>
                     </TD>
                     <TD className="text-right font-mono text-fg nums">{p.revenue30d ? formatMoney(p.revenue30d) : <span className="text-fg-4">—</span>}</TD>
-                    <TD className="text-right font-mono nums">{conv === null ? <span className="text-fg-4">—</span> : formatPercent(conv)}</TD>
+                    <TD className="text-right font-mono nums">{conv === null ? <span className="text-fg-4">—</span> : formatPercent(conv, { fixed: true })}</TD>
                   </>
                 )}
                 <TD className="text-center">
@@ -687,7 +661,7 @@ function CatalogList({ rows, now, actions }: { rows: CatalogProduct[]; now: numb
                 <span className="font-mono text-fg nums">{formatMoney(p.price)}</span>
                 <span className="text-fg-4">·</span>
                 <span className="text-fg-3">
-                  <span className="font-mono text-fg-2 nums">{formatNumber(p.sales30d)}</span> продаж
+                  <span className="font-mono text-fg-2 nums">{formatNumber(p.sales30d)}</span> {plural(p.sales30d, ["продажа", "продажи", "продаж"])}
                 </span>
                 <Sparkline data={p.salesTrend} width={56} height={16} tone={p.sales30d ? "azure" : "muted"} className="ml-auto" />
                 <EulaDot p={p} />
@@ -739,10 +713,10 @@ function CatalogCards({ rows, now, actions }: { rows: CatalogProduct[]; now: num
                 <div className="flex items-end justify-between gap-3">
                   <div className="text-xs leading-snug">
                     <p className="text-fg-3">
-                      <span className="font-mono text-fg nums">{formatNumber(p.sales30d)}</span> продаж ·{" "}
+                      <span className="font-mono text-fg nums">{formatNumber(p.sales30d)}</span> {plural(p.sales30d, ["продажа", "продажи", "продаж"])} ·{" "}
                       <span className="font-mono text-fg-2 nums">{p.revenue30d ? formatMoney(p.revenue30d) : "—"}</span>
                     </p>
-                    <p className="text-fg-4">конверсия {conv === null ? "—" : formatPercent(conv)}</p>
+                    <p className="text-fg-4">конверсия {conv === null ? "—" : formatPercent(conv, { fixed: true })}</p>
                   </div>
                   <Sparkline data={p.salesTrend} width={72} height={22} tone={p.sales30d ? "azure" : "muted"} />
                 </div>
