@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Download, Link2, MoreHorizontal, Pause, Play, Search, Shuffle, Trash2, TicketPercent } from "lucide-react";
 import { cn, createRng } from "@/lib/utils";
-import { formatDate, formatDateShort, formatMoney, formatNumber, formatRelative, pluralize } from "@/lib/format";
+import { formatDate, formatDateShort, formatMoney, formatNumber, formatPercent, formatRelative, plural, pluralize } from "@/lib/format";
 import { DAY, NOW_MS, msk } from "@/lib/mock/now";
 import type { PromoCode } from "@/lib/mock/types";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Table, TableWrap, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { toast } from "@/components/ui/toaster";
+import { KpiStrip, Unit } from "./kpi-strip";
 import { useHotkey, useQueryState } from "./use-query-state";
 
 export interface PromoProduct {
@@ -65,9 +66,70 @@ function expiryFrom(preset: ExpiryPreset): string | undefined {
   return new Date(NOW_MS + Number(preset) * DAY).toISOString();
 }
 
-const discountLabel = (p: Pick<PromoCode, "kind" | "value">) => (p.kind === "percent" ? `−${p.value} %` : `−${formatMoney(p.value)}`);
+const discountLabel = (p: Pick<PromoCode, "kind" | "value">) => (p.kind === "percent" ? `−${formatPercent(p.value, { digits: 0 })}` : `−${formatMoney(p.value)}`);
 
-export function PromoManager({ codes, products }: { codes: PromoRow[]; products: PromoProduct[] }) {
+/** Figures over the whole history (they don't change when a code is paused or added). */
+export interface PromoKpiBase {
+  revenue: number;
+  /** share of 90-day revenue, % */
+  share: number;
+  uses: number;
+  topCode: string;
+  topUses: number;
+  avgDiscount: number;
+  /** paused codes a calendar event will switch on */
+  scheduled: { code: string; at: string }[];
+}
+
+function PromoKpis({ rows, kpi }: { rows: PromoRow[]; kpi: PromoKpiBase }) {
+  const active = rows.filter((r) => r.status === "active").length;
+  const paused = rows.filter((r) => r.status === "paused").length;
+  const expired = rows.filter((r) => r.status === "expired").length;
+  const next = kpi.scheduled.find((s) => rows.some((r) => r.code === s.code && r.status === "paused"));
+  const rest = [paused ? `${paused} на паузе` : null, expired ? `${expired} ${plural(expired, ["истёк", "истекли", "истекли"])}` : null].filter(Boolean);
+  return (
+    <KpiStrip
+      items={[
+        {
+          label: "Выручка с промокодами",
+          value: (
+            <>
+              {formatNumber(kpi.revenue)}
+              <Unit>₽</Unit>
+            </>
+          ),
+          sub: `${formatPercent(kpi.share)} выручки за 90 дней`,
+        },
+        { label: "Использований", value: formatNumber(kpi.uses), sub: `больше всего — ${kpi.topCode}, ${formatNumber(kpi.topUses)}` },
+        {
+          label: "Активных кодов",
+          value: (
+            <>
+              {active}
+              <Unit>из {rows.length}</Unit>
+            </>
+          ),
+          sub: next ? `${next.code} включится ${formatDate(next.at, { year: false })}` : rest.length ? rest.join(" · ") : "все работают",
+        },
+        { label: "Средняя скидка", value: formatPercent(kpi.avgDiscount), sub: "взвешено по использованиям" },
+      ]}
+    />
+  );
+}
+
+/** One-time codes are derived from the prefix, so the same CSV can be rebuilt at any time. */
+function downloadBatchCsv(prefix: string, n: number, pct: number, expiresAt?: string) {
+  const lines = ["code,discount_pct,uses_left,expires_at", ...batchCodes(prefix, n).map((c) => `${c},${pct},1,${expiresAt ?? ""}`)];
+  const blob = new Blob([`﻿${lines.join("\n")}`], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${prefix.toLowerCase()}-${n}-codes.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export function PromoManager({ codes, products, kpi }: { codes: PromoRow[]; products: PromoProduct[]; kpi: PromoKpiBase }) {
   const [rows, setRows] = React.useState<PromoRow[]>(codes);
   const [filter, setFilter] = React.useState<Filter>("all");
   const [query, setQuery] = React.useState("");
@@ -112,8 +174,18 @@ export function PromoManager({ codes, products }: { codes: PromoRow[]; products:
     return { short: names.length === 1 ? names[0] : pluralize(names.length, ["товар", "товара", "товаров"]), full: names.join(", ") };
   };
 
+  const redownload = (r: PromoRow) => {
+    if (!r.batch) return;
+    downloadBatchCsv(r.code, r.batch, r.value, r.expiresAt);
+    toast.success(`CSV с ${pluralize(r.batch, ["кодом", "кодами", "кодами"])} скачан ещё раз`, {
+      description: "Те же коды, что и в первый раз: каждый по-прежнему срабатывает один раз.",
+    });
+  };
+
   return (
     <>
+      <PromoKpis rows={rows} kpi={kpi} />
+
       <div className="mt-8 mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Segmented<Filter>
           value={filter}
@@ -185,7 +257,7 @@ export function PromoManager({ codes, products }: { codes: PromoRow[]; products:
                               {r.code}
                               {r.batch ? <span className="text-fg-4">-•••••</span> : null}
                             </span>
-                            <CopyButton value={r.code} label={`Скопировать ${r.code}`} className="opacity-60 hover:opacity-100" />
+                            <CodeAction r={r} onRedownload={() => redownload(r)} className="opacity-60 hover:opacity-100" />
                           </div>
                           <CodeFlags r={r} />
                         </TD>
@@ -212,7 +284,7 @@ export function PromoManager({ codes, products }: { codes: PromoRow[]; products:
                           </Badge>
                         </TD>
                         <TD>
-                          <RowMenu r={r} onToggle={() => toggle(r)} onDelete={() => remove(r)} />
+                          <RowMenu r={r} onToggle={() => toggle(r)} onDelete={() => remove(r)} onRedownload={() => redownload(r)} />
                         </TD>
                       </TR>
                     );
@@ -231,11 +303,11 @@ export function PromoManager({ codes, products }: { codes: PromoRow[]; products:
                         {r.code}
                         {r.batch ? <span className="text-fg-4">-•••••</span> : null}
                       </span>
-                      <CopyButton value={r.code} label={`Скопировать ${r.code}`} />
+                      <CodeAction r={r} onRedownload={() => redownload(r)} />
                     </div>
                     <div className="flex shrink-0 items-center gap-1">
                       <Badge tone={STATUS[r.status].tone}>{STATUS[r.status].label}</Badge>
-                      <RowMenu r={r} onToggle={() => toggle(r)} onDelete={() => remove(r)} />
+                      <RowMenu r={r} onToggle={() => toggle(r)} onDelete={() => remove(r)} onRedownload={() => redownload(r)} />
                     </div>
                   </div>
                   <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
@@ -282,6 +354,7 @@ export function PromoManager({ codes, products }: { codes: PromoRow[]; products:
       <BatchDialog
         open={batchParam === "1"}
         onOpenChange={(o) => setBatchParam(o ? "1" : null)}
+        existing={rows.map((r) => r.code)}
         onDone={(row) => {
           setRows((list) => [row, ...list]);
           setFilter("all");
@@ -336,7 +409,22 @@ function ExpiryCell({ r }: { r: PromoRow }) {
   );
 }
 
-function RowMenu({ r, onToggle, onDelete }: { r: PromoRow; onToggle: () => void; onDelete: () => void }) {
+/**
+ * Copy for a normal code; a batch has no single code to copy (the prefix alone doesn't work),
+ * so it offers the CSV again instead.
+ */
+function CodeAction({ r, onRedownload, className }: { r: PromoRow; onRedownload: () => void; className?: string }) {
+  if (!r.batch) return <CopyButton value={r.code} label={`Скопировать ${r.code}`} className={className} />;
+  return (
+    <Tooltip content="Скачать CSV ещё раз">
+      <Button variant="ghost" size="icon-xs" onClick={onRedownload} aria-label={`Скачать CSV с кодами ${r.code} ещё раз`} className={className}>
+        <Download />
+      </Button>
+    </Tooltip>
+  );
+}
+
+function RowMenu({ r, onToggle, onDelete, onRedownload }: { r: PromoRow; onToggle: () => void; onDelete: () => void; onRedownload: () => void }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -345,14 +433,20 @@ function RowMenu({ r, onToggle, onDelete }: { r: PromoRow; onToggle: () => void;
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem
-          onSelect={() => {
-            void navigator.clipboard?.writeText(`https://shop.arcticmc.ru/?promo=${r.code}`).catch(() => undefined);
-            toast("Ссылка скопирована", { description: `shop.arcticmc.ru/?promo=${r.code} — код подставится в корзину сам` });
-          }}
-        >
-          <Link2 /> Ссылка с кодом
-        </DropdownMenuItem>
+        {r.batch ? (
+          <DropdownMenuItem onSelect={onRedownload}>
+            <Download /> Скачать CSV ещё раз
+          </DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem
+            onSelect={() => {
+              void navigator.clipboard?.writeText(`https://shop.arcticmc.ru/?promo=${r.code}`).catch(() => undefined);
+              toast("Ссылка скопирована", { description: `shop.arcticmc.ru/?promo=${r.code} — код подставится в корзину сам` });
+            }}
+          >
+            <Link2 /> Ссылка с кодом
+          </DropdownMenuItem>
+        )}
         {r.status !== "expired" ? (
           <DropdownMenuItem onSelect={onToggle}>
             {r.status === "active" ? (
@@ -438,8 +532,22 @@ function CreatePromoForm({
         ? "Такой код уже есть"
         : null;
   const valueErr = !Number.isFinite(num) || num <= 0 ? "Укажите размер скидки" : kind === "percent" && num > 90 ? "Не больше 90 %" : null;
+  // a fixed discount must leave something to pay: below the minimum order, or below the cheapest item in scope
+  const min = Number(minAmount) || 0;
+  const inScope = scopeMode === "list" ? products.filter((p) => scope.includes(p.id)) : products;
+  const cheapest = inScope.reduce<PromoProduct | undefined>((m, p) => (!m || p.price < m.price ? p : m), undefined);
+  const fixedErr =
+    kind !== "fixed" || !num
+      ? null
+      : min > 0
+        ? num >= min
+          ? `Скидка не меньше минимальной суммы заказа — ${formatMoney(min)}`
+          : null
+        : cheapest && num >= cheapest.price
+          ? `Скидка ${num > cheapest.price ? "больше" : "равна"} цены: ${cheapest.name} — ${formatMoney(cheapest.price)}${scopeMode === "all" ? ". Задайте мин. сумму заказа" : ""}`
+          : null;
   const scopeErr = scopeMode === "list" && scope.length === 0 ? "Отметьте хотя бы один товар" : null;
-  const valid = !codeErr && !valueErr && !scopeErr;
+  const valid = !codeErr && !valueErr && !fixedErr && !scopeErr;
 
   const sample = products.find((p) => scope.includes(p.id)) ?? products.find((p) => p.id === "p-frost") ?? products[0];
   const samplePrice = sample ? (kind === "percent" ? Math.round(sample.price * (1 - (num || 0) / 100)) : Math.max(1, sample.price - (num || 0))) : 0;
@@ -503,14 +611,14 @@ function CreatePromoForm({
               ]}
             />
           </div>
-          <Field label="Размер" htmlFor="promo-value" error={touched ? valueErr ?? undefined : undefined}>
+          <Field label="Размер" htmlFor="promo-value" error={(touched ? valueErr : null) ?? fixedErr ?? undefined}>
             <Input
               id="promo-value"
               inputMode="numeric"
               value={value}
               onChange={(e) => setValue(e.target.value.replace(/[^\d]/g, ""))}
               trailing={<span className="pr-1 font-mono text-xs">{kind === "percent" ? "%" : "₽"}</span>}
-              aria-invalid={touched && !!valueErr ? true : undefined}
+              aria-invalid={(touched && !!valueErr) || !!fixedErr ? true : undefined}
             />
           </Field>
           <Field label="Лимит использований" htmlFor="promo-limit" hint="Пусто — без лимита">
@@ -585,7 +693,7 @@ function CreatePromoForm({
           {touched && scopeErr ? <p className="text-xs text-bad">{scopeErr}</p> : null}
         </div>
 
-        {sample && num > 0 && !valueErr ? (
+        {sample && num > 0 && !valueErr && !fixedErr ? (
           <div className="flex items-center justify-between gap-3 rounded-md border border-line-soft bg-[#06080c] px-3 py-2.5 font-mono text-[12px]">
             <span className="text-fg-3">
               Корзина: <span className="text-fg-2">{sample.name}</span>
@@ -620,24 +728,44 @@ function batchCodes(prefix: string, count: number) {
   return Array.from({ length: count }, () => `${prefix}-${Array.from({ length: 5 }, () => ALPHABET[Math.floor(rng() * ALPHABET.length)]).join("")}`);
 }
 
-function BatchDialog({ open, onOpenChange, onDone }: { open: boolean; onOpenChange: (o: boolean) => void; onDone: (row: PromoRow) => void }) {
+function BatchDialog({
+  open,
+  onOpenChange,
+  existing,
+  onDone,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  existing: string[];
+  onDone: (row: PromoRow) => void;
+}) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">{open ? <BatchForm onDone={onDone} onCancel={() => onOpenChange(false)} /> : null}</DialogContent>
+      <DialogContent className="max-w-lg">{open ? <BatchForm existing={existing} onDone={onDone} onCancel={() => onOpenChange(false)} /> : null}</DialogContent>
     </Dialog>
   );
 }
 
-function BatchForm({ onDone, onCancel }: { onDone: (row: PromoRow) => void; onCancel: () => void }) {
+function BatchForm({ existing, onDone, onCancel }: { existing: string[]; onDone: (row: PromoRow) => void; onCancel: () => void }) {
+  // a free prefix by default: STREAM, then STREAM2, STREAM3…
+  const [prefix, setPrefix] = React.useState(() => {
+    let p = "STREAM";
+    for (let i = 2; existing.includes(p); i++) p = `STREAM${i}`;
+    return p;
+  });
   const [count, setCount] = React.useState("50");
-  const [prefix, setPrefix] = React.useState("STREAM");
   const [discount, setDiscount] = React.useState("20");
   const [expiry, setExpiry] = React.useState<ExpiryPreset>("7");
 
   const n = Number(count);
   const pct = Number(discount);
   const countErr = !n || n < 1 ? "Хотя бы один код" : n > 2000 ? "До 2 000 кодов за раз" : null;
-  const prefixErr = !/^[A-Z0-9]{2,10}$/.test(prefix) ? "2–10 символов, латиница и цифры" : null;
+  // codes are derived from the prefix, so a reused prefix would hand out the same codes again
+  const prefixErr = !/^[A-Z0-9]{2,10}$/.test(prefix)
+    ? "2–10 символов, латиница и цифры"
+    : existing.includes(prefix)
+      ? "Префикс уже занят — коды совпали бы с прошлой пачкой"
+      : null;
   const pctErr = !pct || pct > 90 ? "От 1 до 90 %" : null;
   const valid = !countErr && !prefixErr && !pctErr;
   const preview = valid ? batchCodes(prefix, Math.min(n, 6)) : [];
@@ -645,14 +773,7 @@ function BatchForm({ onDone, onCancel }: { onDone: (row: PromoRow) => void; onCa
   const download = () => {
     if (!valid) return;
     const exp = expiryFrom(expiry);
-    const lines = ["code,discount_pct,uses_left,expires_at", ...batchCodes(prefix, n).map((c) => `${c},${pct},1,${exp ?? ""}`)];
-    const blob = new Blob([`﻿${lines.join("\n")}`], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${prefix.toLowerCase()}-${n}-codes.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadBatchCsv(prefix, n, pct, exp);
     toast.success(`CSV с ${pluralize(n, ["кодом", "кодами", "кодами"])} готов`, {
       description: "Каждый код срабатывает один раз. Раздайте в чате стрима или в розыгрыше.",
     });

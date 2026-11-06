@@ -4,7 +4,7 @@ import * as React from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { AlertTriangle, ArrowLeft, ArrowRight, Check, CircleAlert, Info, Moon, Rocket, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatMoney, formatNumber, formatPercent } from "@/lib/format";
+import { formatMoney, formatNumber, formatPercent, plural, pluralize } from "@/lib/format";
 import { campaignTypeMeta, channelMeta, segmentMeta } from "@/lib/mock/meta";
 import type { CampaignChannel, CampaignType, PlayerSegment } from "@/lib/mock/types";
 import { Sheet, SheetBody, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -17,6 +17,7 @@ import { Kbd } from "@/components/ui/kbd";
 import {
   CHAR_LIMITS,
   FREQ_OPTIONS,
+  GLOBAL_CAP_DAYS,
   IN_GAME,
   OFF_GAME,
   SUBTITLE_LIMIT,
@@ -26,6 +27,7 @@ import {
   TTL_OPTIONS,
   draftFromTemplate,
   freqLabel,
+  swapDelay,
   ttlLabel,
   type CampaignDraft,
   type SegmentKey,
@@ -40,6 +42,25 @@ export interface BuilderProduct {
 export interface BuilderServer {
   id: string;
   name: string;
+}
+/** 30-day results of the project's own campaign of a type — the base for the step-4 estimate */
+export interface OwnCampaignStats {
+  name: string;
+  reached: number;
+  converted: number;
+  revenue: number;
+  discountPct: number;
+}
+
+const SHOWS: [string, string, string] = ["показ", "показа", "показов"];
+const BUYS: [string, string, string] = ["покупка", "покупки", "покупок"];
+
+/** «−10 % на товар из корзины, 24 часа» / «Подарок: Snow, 7 дней» — what the offer really is. */
+export function offerLabel(d: Pick<CampaignDraft, "discountPct" | "productId" | "ttlHours">, productName?: string) {
+  const target = d.productId === "cart" ? "на товар из корзины" : d.productId === "rank" ? "на текущую привилегию" : `на ${productName ?? "товар"}`;
+  if (d.discountPct > 0) return `−${formatPercent(d.discountPct, { digits: 0 })} ${target}, ${ttlLabel(d.ttlHours)}`;
+  if (d.productId.startsWith("p-")) return `Подарок: ${productName ?? "товар"}, ${ttlLabel(d.ttlHours)}`;
+  return "Без оффера";
 }
 
 const STEPS = [
@@ -63,6 +84,7 @@ export function CampaignBuilder({
   segmentCounts,
   products,
   servers,
+  ownStats,
   onSave,
 }: {
   open: boolean;
@@ -72,6 +94,7 @@ export function CampaignBuilder({
   segmentCounts: Record<SegmentKey, number>;
   products: BuilderProduct[];
   servers: BuilderServer[];
+  ownStats: Partial<Record<CampaignType, OwnCampaignStats>>;
   onSave: (draft: CampaignDraft, intent: "launch" | "draft") => void;
 }) {
   return (
@@ -92,6 +115,7 @@ export function CampaignBuilder({
             segmentCounts={segmentCounts}
             products={products}
             servers={servers}
+            ownStats={ownStats}
             onSave={onSave}
           />
         ) : null}
@@ -111,6 +135,7 @@ function BuilderBody({
   segmentCounts,
   products,
   servers,
+  ownStats,
   onSave,
 }: {
   initial: CampaignDraft;
@@ -118,6 +143,7 @@ function BuilderBody({
   segmentCounts: Record<SegmentKey, number>;
   products: BuilderProduct[];
   servers: BuilderServer[];
+  ownStats: Partial<Record<CampaignType, OwnCampaignStats>>;
   onSave: (draft: CampaignDraft, intent: "launch" | "draft") => void;
 }) {
   const reduce = useReducedMotion();
@@ -178,9 +204,15 @@ function BuilderBody({
   };
 
   const segCount = segmentCounts[d.segment] ?? 0;
-  const reach = Math.round(segCount * tpl.reach30);
-  const purchases = tpl.conversion ? Math.round((reach * tpl.conversion) / 100) : 0;
-  const revenue = Math.round(purchases * sampleProduct.price * (1 - d.discountPct / 100));
+  // the project's own campaign of this type predicts best; scale it to the chosen audience
+  const own = ownStats[d.type];
+  const ownBase = segmentCounts[tpl.segment] || 1;
+  const reach = own ? Math.round((own.reached * segCount) / ownBase) : Math.round(segCount * tpl.reach30);
+  const purchases = tpl.conversion ? Math.round(reach * (own?.reached ? own.converted / own.reached : tpl.conversion / 100)) : 0;
+  // own campaign: its average check before the discount; otherwise the sample product
+  const listPrice = own?.converted ? own.revenue / own.converted / (1 - own.discountPct / 100) : sampleProduct.price;
+  const revenue = Math.round(purchases * listPrice * (1 - d.discountPct / 100));
+  const isSample = !product;
   const offGame = d.channels.filter((c): c is "telegram" | "vk" | "discord" => OFF_GAME.includes(c));
 
   return (
@@ -315,7 +347,19 @@ function BuilderBody({
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-2 text-[14px] leading-8 text-fg">
                       <Zap className="size-4 text-azure-300" />
                       {sentenceBefore ? <span>{sentenceBefore}</span> : null}
-                      <Select value={d.delay} onValueChange={(v) => update({ delay: v })}>
+                      <Select
+                        value={d.delay}
+                        onValueChange={(v) =>
+                          // texts that quote the delay («через 3 дня», «первые 6 часов») follow it
+                          setD((prev) => ({
+                            ...prev,
+                            delay: v,
+                            message: swapDelay(prev.message, prev.delay, v),
+                            title: swapDelay(prev.title, prev.delay, v),
+                            subtitle: swapDelay(prev.subtitle, prev.delay, v),
+                          }))
+                        }
+                      >
                         <SelectTrigger size="sm" aria-label={tpl.delayLabel} className="h-7 w-auto gap-1.5 border-azure-400/40 bg-azure-500/10 px-2 font-mono text-azure-200">
                           <SelectValue />
                         </SelectTrigger>
@@ -334,7 +378,7 @@ function BuilderBody({
                 </section>
 
                 <section className="grid gap-4 sm:grid-cols-2">
-                  <Field label="Аудитория" htmlFor="cmp-seg" hint={d.segment === "all" ? "Все, кто заходил за 90 дней" : segmentMeta[d.segment as PlayerSegment].description}>
+                  <Field label="Аудитория" htmlFor="cmp-seg" hint={d.segment === "all" ? "Все, кто заходил за 30 дней — как на «Обзоре»" : segmentMeta[d.segment as PlayerSegment].description}>
                     <Select value={d.segment} onValueChange={(v) => update({ segment: v as SegmentKey })}>
                       <SelectTrigger id="cmp-seg">
                         <SelectValue />
@@ -351,7 +395,7 @@ function BuilderBody({
                       </SelectContent>
                     </Select>
                   </Field>
-                  <Field label="Частота" htmlFor="cmp-freq" hint="Один игрок не получит больше одного сообщения за период">
+                  <Field label="Частота" htmlFor="cmp-freq" hint={`Поверх общего лимита: не больше одного сообщения в ${GLOBAL_CAP_DAYS} дня по всем кампаниям`}>
                     <Select value={String(d.freqDays)} onValueChange={(v) => update({ freqDays: Number(v) })}>
                       <SelectTrigger id="cmp-freq">
                         <SelectValue />
@@ -412,7 +456,7 @@ function BuilderBody({
 
                 <p className="flex items-center gap-2 rounded-md bg-white/[0.03] px-3 py-2 text-[12.5px] text-fg-2">
                   <span className="font-mono text-fg nums">≈ {formatNumber(segCount)}</span>
-                  {segCount === 1 ? "игрок подходит" : "игроков подходят"} под аудиторию сейчас
+                  {plural(segCount, ["игрок подходит", "игрока подходят", "игроков подходят"])} под аудиторию сейчас
                 </p>
               </div>
             ) : null}
@@ -566,9 +610,14 @@ function BuilderBody({
                   </div>
                   {d.discountPct > 0 ? (
                     <p className="mt-3 font-mono text-[12px] text-fg-3">
+                      {isSample ? "Например, " : ""}
                       {sampleProduct.name}: <span className="text-fg-4 line-through">{formatMoney(sampleProduct.price)}</span>{" "}
                       <span className="text-fg">{formatMoney(Math.round(sampleProduct.price * (1 - d.discountPct / 100)))}</span> · персональная цена сгорит через{" "}
                       {ttlLabel(d.ttlHours)}
+                    </p>
+                  ) : product ? (
+                    <p className="mt-3 font-mono text-[12px] text-fg-3">
+                      <span className="text-fg">{product.name}</span> в подарок при входе · оффер действует {ttlLabel(d.ttlHours)}
                     </p>
                   ) : null}
                 </section>
@@ -609,25 +658,24 @@ function BuilderBody({
 
                 <dl className="grid gap-x-6 gap-y-2.5 rounded-lg border border-line bg-surface-2/60 p-4 text-[13px] sm:grid-cols-2">
                   <Summary k="Триггер" v={tpl.sentence(d.delay)} />
-                  <Summary k="Аудитория" v={`${segmentLabel(d.segment)} · ≈ ${formatNumber(segCount)}`} />
+                  <Summary k="Аудитория" v={`${segmentLabel(d.segment)} · ≈ ${pluralize(segCount, ["игрок", "игрока", "игроков"])}`} />
                   <Summary k="Каналы" v={d.channels.map((c) => channelMeta[c].label).join(", ") || "—"} />
-                  <Summary
-                    k="Оффер"
-                    v={d.discountPct ? `−${formatPercent(d.discountPct, { digits: 0 })} на ${vars.product}, ${ttlLabel(d.ttlHours)}` : "Без скидки"}
-                  />
+                  <Summary k="Оффер" v={offerLabel(d, product?.name)} />
                   <Summary k="Частота" v={`Не чаще ${freqLabel(d.freqDays)}${d.quietHours ? " · тихие часы 23–09" : ""}`} />
                   <Summary k="Серверы" v={servers.filter((s) => d.servers.includes(s.id)).map((s) => s.name).join(", ")} />
                 </dl>
 
                 <div className="flex flex-col gap-1 rounded-lg border border-azure-400/25 bg-azure-500/[0.06] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-[13px] text-fg-2">Оценка на 30 дней по похожим кампаниям</p>
+                  <p className="text-[13px] text-fg-2">
+                    Оценка на 30 дней {own ? <>— по вашей кампании «{own.name}»</> : "— по похожим серверам PayMC"}
+                  </p>
                   <p className="font-mono text-[13px] text-fg nums">
                     {tpl.conversion ? (
                       <>
-                        ≈ {formatNumber(reach)} показов → {formatNumber(purchases)} покупок → {formatMoney(revenue)}
+                        ≈ {pluralize(reach, SHOWS)} → {pluralize(purchases, BUYS)} → {formatMoney(revenue)}
                       </>
                     ) : (
-                      <>≈ {formatNumber(reach)} показов · без оффера</>
+                      <>≈ {pluralize(reach, SHOWS)} · без оффера</>
                     )}
                   </p>
                 </div>

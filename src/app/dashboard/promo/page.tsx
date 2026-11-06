@@ -3,11 +3,9 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Layers, Plus } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { KpiStrip, Unit } from "@/components/dashboard/growth/kpi-strip";
 import { QueryButton } from "@/components/dashboard/growth/query-button";
 import { PromoManager, type PromoRow } from "@/components/dashboard/growth/promo-manager";
-import { formatNumber, formatPercent } from "@/lib/format";
-import { PRODUCTS, PROMO_CODES, getKpis } from "@/lib/mock";
+import { CALENDAR, NOW_MS, PRODUCTS, PROMO_CODES, getKpis } from "@/lib/mock";
 
 export const metadata: Metadata = { title: "Промокоды" };
 
@@ -16,11 +14,15 @@ export default async function PromoPage({ searchParams }: PageProps<"/dashboard/
 
   const revenue = PROMO_CODES.reduce((a, p) => a + p.revenue, 0);
   const uses = PROMO_CODES.reduce((a, p) => a + p.uses, 0);
-  const active = PROMO_CODES.filter((p) => p.status === "active").length;
   const percentUses = PROMO_CODES.filter((p) => p.kind === "percent");
   const avgDiscount = percentUses.reduce((a, p) => a + p.value * p.uses, 0) / (percentUses.reduce((a, p) => a + p.uses, 0) || 1);
   const share = (revenue / (getKpis(90).revenue || 1)) * 100;
   const top = [...PROMO_CODES].sort((a, b) => b.revenue - a.revenue)[0];
+  // paused codes a calendar event switches on («Промокод BLACKFRIDAY включится сам»)
+  const scheduled = PROMO_CODES.filter((p) => p.status === "paused").flatMap((p) => {
+    const ev = CALENDAR.find((e) => e.note?.includes(p.code) && new Date(e.start).getTime() > NOW_MS);
+    return ev ? [{ code: p.code, at: ev.start }] : [];
+  });
 
   const rows: PromoRow[] = PROMO_CODES.map((p) => ({ ...p }));
   const products = PRODUCTS.filter((p) => p.status === "active" && p.kind !== "pool").map((p) => ({
@@ -47,35 +49,12 @@ export default async function PromoPage({ searchParams }: PageProps<"/dashboard/
         }
       />
 
-      <KpiStrip
-        items={[
-          {
-            label: "Выручка с промокодами",
-            value: (
-              <>
-                {formatNumber(revenue)}
-                <Unit>₽</Unit>
-              </>
-            ),
-            sub: `${formatPercent(share)} выручки за 90 дней`,
-          },
-          { label: "Использований", value: formatNumber(uses), sub: `больше всего — ${top.code}, ${formatNumber(top.uses)}` },
-          {
-            label: "Активных кодов",
-            value: (
-              <>
-                {active}
-                <Unit>из {PROMO_CODES.length}</Unit>
-              </>
-            ),
-            sub: "BLACKFRIDAY включится 27 ноября",
-          },
-          { label: "Средняя скидка", value: formatPercent(avgDiscount), sub: "взвешено по использованиям" },
-        ]}
-      />
-
       <Suspense>
-        <PromoManager codes={rows} products={products} />
+        <PromoManager
+          codes={rows}
+          products={products}
+          kpi={{ revenue, share, uses, topCode: top.code, topUses: top.uses, avgDiscount, scheduled }}
+        />
       </Suspense>
 
       <div className="mt-4 grid gap-3 text-[12.5px] text-fg-3 sm:grid-cols-3">

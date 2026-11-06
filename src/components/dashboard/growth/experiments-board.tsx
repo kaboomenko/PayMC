@@ -3,8 +3,8 @@
 import * as React from "react";
 import { Check, CirclePlay, FlaskConical, Lightbulb, Square, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatDateShort, formatMoney, formatNumber, formatPercent, pluralize } from "@/lib/format";
-import { NOW_MS } from "@/lib/mock/now";
+import { formatDateShort, formatMoney, formatNumber, formatPercent, plural, pluralize } from "@/lib/format";
+import { NOW, NOW_MS } from "@/lib/mock/now";
 import type { Experiment } from "@/lib/mock/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,8 @@ import { Field, Input, Label, Textarea } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/toaster";
+import { KpiStrip, Unit } from "./kpi-strip";
+import { SAMPLE_PER_VARIANT, plannedDays } from "./experiment-plan";
 import { useHotkey, useQueryState } from "./use-query-state";
 import { VariantChart } from "./variant-chart";
 
@@ -29,15 +31,25 @@ export interface VariantView {
   aov: number;
 }
 
+export type TestKind = "price" | "order" | "badge" | "description";
+
 export interface ExperimentView extends Omit<Experiment, "variants" | "status"> {
   status: Experiment["status"] | "stopped";
   variants: VariantView[];
+  kind?: TestKind;
   chart?: { day: number; a: number; b: number }[];
   learnings?: string;
   dayOf?: number;
   totalDays?: number;
-  daysTo95?: number;
+  /** days until «B лучше A» reaches 95 % at the current pace; null — B isn't ahead */
+  daysTo95?: number | null;
+  /** traffic the test gets (running) or would get (draft) per day */
   visitorsPerDay?: number;
+  /** product the test runs on and its 30-day revenue — sizes «Если применить B» */
+  productName?: string;
+  revenue30?: number;
+  /** B was applied from this page */
+  applied?: boolean;
 }
 
 export interface ExpProduct {
@@ -47,19 +59,23 @@ export interface ExpProduct {
   viewsPerDay: number;
 }
 
-const METRIC: Record<Experiment["metric"], { label: string; short: string }> = {
-  conversion: { label: "Конверсия в покупку", short: "Конверсия" },
-  revenue_per_visitor: { label: "Выручка на посетителя", short: "₽ на посетителя" },
-  avg_check: { label: "Средний чек", short: "Средний чек" },
+const METRIC: Record<Experiment["metric"], { label: string; short: string; by: string }> = {
+  conversion: { label: "Конверсия в покупку", short: "Конверсия", by: "по конверсии" },
+  revenue_per_visitor: { label: "Выручка на посетителя", short: "₽ на посетителя", by: "по выручке на посетителя" },
+  avg_check: { label: "Средний чек", short: "Средний чек", by: "по среднему чеку" },
 };
 
+const DAYS: [string, string, string] = ["день", "дня", "дней"];
 const rub2 = (v: number) => `${formatNumber(v, 2)} ₽`;
 const delta = (b: number, a: number) => (a ? ((b - a) / a) * 100 : 0);
+const shortName = (e: ExperimentView) => e.name.split(":")[0];
+const variantValue = (v: VariantView) => v.name.replace(/^[AB] · /, "");
 
 export function ExperimentsBoard({ experiments, products, storefrontPerDay }: { experiments: ExperimentView[]; products: ExpProduct[]; storefrontPerDay: number }) {
   const [list, setList] = React.useState(experiments);
   const [newParam, setNewParam] = useQueryState("new");
   const [applying, setApplying] = React.useState<ExperimentView | null>(null);
+  const seq = React.useRef(0);
   useHotkey("n", () => setNewParam("1"));
 
   const patch = (id: string, p: Partial<ExperimentView>) => setList((l) => l.map((e) => (e.id === id ? { ...e, ...p } : e)));
@@ -68,8 +84,32 @@ export function ExperimentsBoard({ experiments, products, storefrontPerDay }: { 
   const completed = list.filter((e) => e.status === "completed");
   const drafts = list.filter((e) => e.status === "draft");
 
+  const applyB = (e: ExperimentView) => {
+    const b = e.variants[1];
+    const p = Math.round((e.probabilityToBeat ?? 0) * 100);
+    patch(e.id, {
+      status: "completed",
+      winnerId: b?.id,
+      applied: true,
+      endsAt: NOW.toISOString(),
+      learnings:
+        p < 95
+          ? `Применён вариант B до порога 95 % — следите за метрикой «${METRIC[e.metric].short.toLowerCase()}» ещё неделю и откатите в истории товара, если она просядет.`
+          : "Применён вариант B после порога 95 %.",
+    });
+    setApplying(null);
+    toast.success("Вариант B применён", {
+      description:
+        e.kind === "price" && e.productName && b
+          ? `${e.productName} теперь стоит ${variantValue(b)} для всех игроков`
+          : `Все игроки теперь видят вариант B${b ? ` — ${variantValue(b)}` : ""}`,
+    });
+  };
+
   return (
     <>
+      <ExperimentKpis list={list} />
+
       <div className="mt-6 space-y-4">
         {running.map((e) => (
           <RunningCard
@@ -96,9 +136,10 @@ export function ExperimentsBoard({ experiments, products, storefrontPerDay }: { 
               key={e.id}
               e={e}
               onLaunch={() => {
-                patch(e.id, { status: "running", dayOf: 0, totalDays: 14, startedAt: new Date(NOW_MS).toISOString() });
+                const days = plannedDays(e.visitorsPerDay ?? 0, e.variants[1]?.traffic ?? 50);
+                patch(e.id, { status: "running", dayOf: 0, totalDays: days, startedAt: new Date(NOW_MS).toISOString() });
                 toast.success("Эксперимент запущен", {
-                  description: `${e.name} · ${e.variants.map((v) => v.traffic).join("/")} · не меньше 14 дней`,
+                  description: `${e.name} · ${e.variants.map((v) => v.traffic).join("/")} · не меньше ${pluralize(days, DAYS)}`,
                 });
               }}
             />
@@ -116,25 +157,19 @@ export function ExperimentsBoard({ experiments, products, storefrontPerDay }: { 
                   {applying.variants[1]?.description}. Эксперимент завершится, все игроки увидят вариант B.
                 </DialogDescription>
               </DialogHeader>
-              <DialogBody>
-                <p className="rounded-md border border-warn/25 bg-warn-soft px-3 py-2 text-[12.5px] text-warn">
-                  Вероятность победы — {formatPercent((applying.probabilityToBeat ?? 0) * 100, { digits: 0 })}, ниже порога 95 %. Решение можно откатить в
-                  истории товара.
-                </p>
-              </DialogBody>
+              {(applying.probabilityToBeat ?? 0) < 0.95 ? (
+                <DialogBody>
+                  <p className="rounded-md border border-warn/25 bg-warn-soft px-3 py-2 text-[12.5px] text-warn">
+                    Вероятность победы — {formatPercent((applying.probabilityToBeat ?? 0) * 100, { digits: 0 })}, ниже порога 95 %. Решение можно откатить в
+                    истории товара.
+                  </p>
+                </DialogBody>
+              ) : null}
               <DialogFooter>
                 <Button variant="ghost" size="sm" onClick={() => setApplying(null)}>
                   Подождать
                 </Button>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => {
-                    patch(applying.id, { status: "completed", winnerId: applying.variants[1]?.id, learnings: "Применён вариант B до достижения порога 95 % — следите за выручкой на посетителя ещё неделю." });
-                    setApplying(null);
-                    toast.success("Вариант B применён", { description: "Frost теперь стоит 349 ₽ для всех игроков" });
-                  }}
-                >
+                <Button variant="primary" size="sm" onClick={() => applyB(applying)}>
                   <Check /> Применить
                 </Button>
               </DialogFooter>
@@ -149,13 +184,77 @@ export function ExperimentsBoard({ experiments, products, storefrontPerDay }: { 
         products={products}
         storefrontPerDay={storefrontPerDay}
         onCreate={(e, launch) => {
-          setList((l) => [...l, e]);
+          seq.current += 1;
+          setList((l) => [...l, { ...e, id: `${e.id}-${seq.current}` }]);
           setNewParam(null);
-          toast.success(launch ? "Эксперимент запущен" : "Черновик эксперимента сохранён", { description: e.name });
+          toast.success(launch ? "Эксперимент запущен" : "Черновик эксперимента сохранён", {
+            description: launch && e.totalDays ? `${e.name} · не меньше ${pluralize(e.totalDays, DAYS)}` : e.name,
+          });
         }}
       />
     </>
   );
+}
+
+/* ───────────── KPIs (follow the list below) ───────────── */
+
+function ExperimentKpis({ list }: { list: ExperimentView[] }) {
+  const running = list.filter((e) => e.status === "running");
+  const stopped = list.find((e) => e.status === "stopped");
+  const applied = list.find((e) => e.applied);
+  // the test the money figures talk about: the one collecting data, else the one just applied
+  const live = list.find((e) => (e.status === "running" || e.status === "stopped") && (e.variants[0]?.visitors ?? 0) > 0);
+  const focus = live ?? applied;
+  const lift = focus ? delta(focus.variants[1].rpv, focus.variants[0].rpv) : 0;
+  const monthly = focus?.revenue30 ? Math.round((focus.revenue30 * lift) / 100) : 0;
+  const isApplied = !live && !!applied;
+  const tested = list.filter((e) => e.status !== "draft").reduce((a, e) => a + e.variants.reduce((s, v) => s + v.visitors, 0), 0);
+  const done = list.filter((e) => e.status === "completed").length;
+  const drafts = list.filter((e) => e.status === "draft").length;
+
+  return (
+    <KpiStrip
+      items={[
+        {
+          label: "Идёт сейчас",
+          value: running.length,
+          sub: running[0]
+            ? `${shortName(running[0])} · ${dayLabel(running[0])}`
+            : stopped
+              ? `${shortName(stopped)} — остановлен`
+              : applied
+                ? `${shortName(applied)} — B применён`
+                : "запустите тест из черновика",
+        },
+        {
+          label: "Лучший вариант",
+          value: focus ? formatPercent(lift, { signed: true }) : "—",
+          sub: focus ? (isApplied ? "₽ на посетителя у B · применён" : "₽ на посетителя у B против A") : "данных пока нет",
+        },
+        {
+          label: isApplied ? "Эффект от B" : "Если применить B",
+          value: (
+            <>
+              {monthly > 0 ? "+" : ""}
+              {formatNumber(monthly)}
+              <Unit>₽/мес</Unit>
+            </>
+          ),
+          sub: focus?.productName ? `${isApplied ? "ожидаем " : ""}по продажам ${focus.productName} за 30 дней` : "по продажам за 30 дней",
+        },
+        {
+          label: "Игроков в тестах",
+          value: formatNumber(tested),
+          sub: `${done} ${plural(done, ["завершён", "завершены", "завершены"])} · ${drafts} ${plural(drafts, ["черновик", "черновика", "черновиков"])}`,
+        },
+      ]}
+    />
+  );
+}
+
+function dayLabel(e: ExperimentView) {
+  if (!e.dayOf) return `запущен сегодня · план ${pluralize(e.totalDays ?? 0, DAYS)}`;
+  return `день ${e.dayOf} из ${e.totalDays}`;
 }
 
 /* ───────────── Running ───────────── */
@@ -165,6 +264,7 @@ function RunningCard({ e, onStop, onResume, onApply }: { e: ExperimentView; onSt
   const p = Math.round((e.probabilityToBeat ?? 0) * 100);
   const stopped = e.status === "stopped";
   const hasData = a.visitors > 0;
+  const toGo = e.daysTo95;
   return (
     <section className="overflow-hidden rounded-xl border border-line bg-surface shadow-raise">
       <header className="flex flex-col gap-3 border-b border-line px-4 py-4 sm:px-5 md:flex-row md:items-start md:justify-between">
@@ -174,7 +274,7 @@ function RunningCard({ e, onStop, onResume, onApply }: { e: ExperimentView; onSt
               <Badge tone="neutral">Остановлен</Badge>
             ) : (
               <Badge tone="azure" dot>
-                Идёт · день {e.dayOf} из {e.totalDays}
+                Идёт · {dayLabel(e)}
               </Badge>
             )}
             <span className="label-mono text-fg-4">цель: {METRIC[e.metric].label}</span>
@@ -213,7 +313,7 @@ function RunningCard({ e, onStop, onResume, onApply }: { e: ExperimentView; onSt
                 <span className="text-[18px] text-fg-3"> %</span>
               </p>
               <p className="pb-1 text-right text-xs text-fg-3">
-                ещё ≈{pluralize(e.daysTo95 ?? 0, ["день", "дня", "дней"])} до 95 %
+                {toGo === 0 ? "порог 95 % пройден" : toGo == null ? "B пока не впереди" : `ещё ≈ ${pluralize(toGo, DAYS)} до 95 %`}
                 <br />
                 <span className="text-fg-4">при ≈ {formatNumber(e.visitorsPerDay ?? 0)} посетителях в день</span>
               </p>
@@ -227,7 +327,7 @@ function RunningCard({ e, onStop, onResume, onApply }: { e: ExperimentView; onSt
               <span className="text-ok">порог 95 %</span>
             </div>
             <p className="mt-3 text-xs leading-relaxed text-fg-3">
-              Байесовская оценка по выручке на посетителя. Не останавливайте тест раньше порога: ранние «победы» часто исчезают к выходным.
+              Байесовская оценка {METRIC[e.metric].by}. Не останавливайте тест раньше порога: ранние «победы» часто исчезают к выходным.
             </p>
             {e.chart ? (
               <div className="mt-4">
@@ -308,14 +408,31 @@ function VariantColumn({ v, control, metric, leading }: { v: VariantView; contro
 
 /* ───────────── Completed & draft ───────────── */
 
+/** The verdict is read off the variants: what the winner did to money and to conversion. */
+function Verdict({ e }: { e: ExperimentView }) {
+  const winner = e.variants.find((v) => v.id === e.winnerId);
+  const loser = e.variants.find((v) => v.id !== e.winnerId);
+  if (!winner || !loser) return <p className="text-[12.5px] text-fg-3">Победитель не выбран — оба варианта показали одно и то же.</p>;
+  const p = Math.round((e.probabilityToBeat ?? 0) * 100);
+  const early = winner.id !== "a" && p < 95;
+  return (
+    <p className="text-[12.5px] leading-relaxed text-fg-3">
+      Победил <span className="text-fg">{winner.name}</span>: ₽ на посетителя{" "}
+      <span className="font-mono text-fg-2 nums">{formatPercent(delta(winner.rpv, loser.rpv), { signed: true })}</span> при конверсии{" "}
+      <span className="font-mono text-fg-2 nums">{formatPercent(delta(winner.conv, loser.conv), { signed: true })}</span>. Вероятность, что B лучше A{" "}
+      {METRIC[e.metric].by}, — <span className="font-mono text-fg-2 nums">{p} %</span>
+      {early ? ": применён до порога 95 %" : ""}.
+    </p>
+  );
+}
+
 function CompletedCard({ e }: { e: ExperimentView }) {
   const [a, b] = e.variants;
-  const winner = e.variants.find((v) => v.id === e.winnerId);
   return (
     <section className="flex flex-col rounded-xl border border-line bg-surface shadow-raise">
       <header className="px-4 pt-4 sm:px-5">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge tone="neutral">Завершён</Badge>
+          <Badge tone="neutral">{e.applied ? "Применён B" : "Завершён"}</Badge>
           <span className="font-mono text-[11px] text-fg-4">
             {e.startedAt ? formatDateShort(e.startedAt) : ""} – {e.endsAt ? formatDateShort(e.endsAt) : ""} · {METRIC[e.metric].short.toLowerCase()}
           </span>
@@ -347,10 +464,7 @@ function CompletedCard({ e }: { e: ExperimentView }) {
         ))}
       </div>
       <div className="flex flex-1 flex-col px-4 py-4 sm:px-5">
-        <p className="text-[12.5px] text-fg-3">
-          Победил <span className="text-fg">{winner?.name ?? "—"}</span> · B выигрывал по конверсии с вероятностью{" "}
-          {formatPercent((e.probabilityToBeat ?? 0) * 100, { digits: 0 })}, но проиграл по деньгам
-        </p>
+        <Verdict e={e} />
         {e.learnings ? (
           <div className="mt-3 flex gap-2.5 rounded-lg border border-line bg-surface-2/60 px-3.5 py-3">
             <Lightbulb className="mt-0.5 size-4 shrink-0 text-warn" />
@@ -366,8 +480,11 @@ function CompletedCard({ e }: { e: ExperimentView }) {
 }
 
 function DraftCard({ e, onLaunch }: { e: ExperimentView; onLaunch: () => void }) {
+  const perDay = e.visitorsPerDay ?? 0;
+  const split = e.variants[1]?.traffic ?? 50;
+  const days = plannedDays(perDay, split);
   return (
-    <section className="flex flex-col rounded-xl border border-dashed border-line-strong bg-surface/60">
+    <section className="flex flex-col rounded-xl border border-dashed border-line-strong bg-surface/60 lg:self-start">
       <header className="px-4 pt-4 sm:px-5">
         <div className="flex items-center gap-2">
           <Badge tone="outline">Черновик</Badge>
@@ -387,19 +504,31 @@ function DraftCard({ e, onLaunch }: { e: ExperimentView; onLaunch: () => void })
           </li>
         ))}
       </ul>
-      <div className="mt-auto flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-        <p className="text-xs text-fg-3">Минимум 14 дней · ≈ 4 600 посетителей на вариант</p>
-        <Button variant="primary" size="sm" onClick={onLaunch} className="self-start sm:self-auto">
-          <CirclePlay /> Запустить
+      <PlanNote perDay={perDay} split={split} days={days} where={e.kind === "order" ? "витрины" : "карточки"} className="mx-4 mt-3 sm:mx-5" />
+      <div className="flex justify-end px-4 py-4 sm:px-5">
+        <Button variant="primary" size="sm" onClick={onLaunch}>
+          <CirclePlay /> Запустить на {pluralize(days, DAYS)}
         </Button>
       </div>
     </section>
   );
 }
 
-/* ───────────── New experiment ───────────── */
+/** «≈ 210 посетителей карточки в день → минимум 44 дня» — shared by draft cards and the dialog. */
+function PlanNote({ perDay, split, days, where, className }: { perDay: number; split: number; days: number; where: string; className?: string }) {
+  return (
+    <div className={cn("flex items-start gap-2.5 rounded-lg border border-line bg-[#06080c] px-3.5 py-3", className)}>
+      <FlaskConical className="mt-0.5 size-4 shrink-0 text-ice-300" />
+      <p className="text-[12.5px] leading-relaxed text-fg-2">
+        <span className="font-mono text-fg nums">≈ {formatNumber(Math.round(perDay))}</span> {plural(Math.round(perDay), ["посетитель", "посетителя", "посетителей"])}{" "}
+        {where} в день → минимум <span className="font-mono text-fg nums">{days}</span> <span className="text-fg">{plural(days, DAYS)}</span>: столько нужно, чтобы набрать ≈{" "}
+        {formatNumber(SAMPLE_PER_VARIANT)} на вариант при сплите {100 - split}/{split}. Меньше 7 дней не ставим — нужно захватить выходные.
+      </p>
+    </div>
+  );
+}
 
-type TestKind = "price" | "order" | "badge" | "description";
+/* ───────────── New experiment ───────────── */
 
 const TEST_KINDS: { id: TestKind; label: string; hint: string; metric: Experiment["metric"] }[] = [
   { id: "price", label: "Цена", hint: "Две цены одного товара — кому какая, решает сплит", metric: "revenue_per_visitor" },
@@ -410,6 +539,20 @@ const TEST_KINDS: { id: TestKind; label: string; hint: string; metric: Experimen
 
 const ORDERS_B = ["Кейсы и наборы сверху", "Подписка Frost+ первой", "Сначала дешёвые товары"];
 const BADGES_B = ["Хит", "Новинка", "Скидка", "Мало осталось"];
+
+/** A starting hypothesis per test kind — the owner edits it, we only fill the blank. */
+function hypothesisFor(kind: TestKind, product: ExpProduct | undefined, priceB: number, orderB: string, badgeB: string) {
+  const name = product?.name ?? "товар";
+  if (kind === "price") {
+    if (!product || !priceB || priceB === product.price) return "";
+    return priceB > product.price
+      ? `${name} берут ради содержимого: цена ${formatMoney(priceB)} вместо ${formatMoney(product.price)} почти не снизит конверсию и даст больше выручки на посетителя.`
+      : `Цена ${formatMoney(priceB)} вместо ${formatMoney(product.price)} приведёт больше покупателей ${name} — выручка на посетителя вырастет за счёт конверсии.`;
+  }
+  if (kind === "order") return `Порядок «${orderB}» поможет игроку быстрее найти покупку — больше посетителей витрины заплатят.`;
+  if (kind === "badge") return `Бейдж «${badgeB}» привлечёт внимание к ${name} и сместит выбор на более дорогой товар — средний чек вырастет.`;
+  return `Новое описание ${name} понятнее объясняет, что входит, — больше посетителей карточки купят.`;
+}
 
 function NewExperimentDialog({
   open,
@@ -453,6 +596,8 @@ function NewExperimentForm({
   const [descB, setDescB] = React.useState("");
   const [split, setSplit] = React.useState(50);
   const [metric, setMetric] = React.useState<Experiment["metric"]>("revenue_per_visitor");
+  /** null — follow the template for the chosen kind; a string — the owner's own text */
+  const [ownHypothesis, setOwnHypothesis] = React.useState<string | null>(null);
 
   const pickKind = (k: TestKind) => {
     setKind(k);
@@ -460,13 +605,14 @@ function NewExperimentForm({
   };
 
   const priceNum = Number(price);
+  const hypothesis = ownHypothesis ?? hypothesisFor(kind, product, priceNum, orderB, badgeB);
   const priceErr = kind === "price" && (!priceNum || priceNum === product?.price) ? "Укажите цену, отличную от текущей" : null;
   const descErr = kind === "description" && descB.trim().length < 10 ? "Напишите новый текст — хотя бы одно предложение" : null;
-  const valid = !priceErr && !descErr && !!product;
+  const hypErr = hypothesis.trim().length < 10 ? "Чего ждёте и почему — одним предложением" : null;
+  const valid = !priceErr && !descErr && !hypErr && !!product;
 
   const perDay = kind === "order" ? storefrontPerDay : product?.viewsPerDay ?? 0;
-  const minShare = Math.min(split, 100 - split) / 100;
-  const days = Math.min(90, Math.max(7, Math.ceil(4600 / Math.max(1, perDay * minShare))));
+  const days = plannedDays(perDay, split);
 
   const bLabel =
     kind === "price"
@@ -489,12 +635,15 @@ function NewExperimentForm({
   const build = (launch: boolean): ExperimentView => ({
     id: `exp-new-${kind}-${productId}-${split}`,
     name,
-    hypothesis: "Новая гипотеза — допишите, чего ждёте и почему.",
+    kind,
+    hypothesis: hypothesis.trim(),
     status: launch ? "running" : "draft",
     metric,
     startedAt: launch ? new Date(NOW_MS).toISOString() : undefined,
     dayOf: launch ? 0 : undefined,
     totalDays: launch ? days : undefined,
+    visitorsPerDay: perDay,
+    productName: kind === "order" ? undefined : product?.name,
     variants: [
       { id: "a", name: `A · ${aLabel}`, description: "Как сейчас", traffic: 100 - split, visitors: 0, conversions: 0, revenue: 0, conv: 0, rpv: 0, aov: 0 },
       { id: "b", name: `B · ${bLabel}`, description: kind === "description" ? descB.trim() : "Новый вариант", traffic: split, visitors: 0, conversions: 0, revenue: 0, conv: 0, rpv: 0, aov: 0 },
@@ -608,6 +757,22 @@ function NewExperimentForm({
           </div>
         </div>
 
+        <Field
+          label="Гипотеза"
+          htmlFor="exp-hypothesis"
+          error={hypErr ?? undefined}
+          hint={ownHypothesis === null ? "Черновик по типу теста — перепишите своими словами" : undefined}
+        >
+          <Textarea
+            id="exp-hypothesis"
+            value={hypothesis}
+            onChange={(e) => setOwnHypothesis(e.target.value)}
+            rows={2}
+            className="min-h-16 text-[13px]"
+            aria-invalid={!!hypErr || undefined}
+          />
+        </Field>
+
         <div>
           <div className="mb-2 flex items-center justify-between">
             <Label htmlFor="exp-split">Трафик</Label>
@@ -633,13 +798,7 @@ function NewExperimentForm({
           </Select>
         </Field>
 
-        <div className="flex items-start gap-2.5 rounded-lg border border-line bg-[#06080c] px-3.5 py-3">
-          <FlaskConical className="mt-0.5 size-4 shrink-0 text-ice-300" />
-          <p className="text-[12.5px] leading-relaxed text-fg-2">
-            Минимум <span className="font-mono text-fg">{pluralize(days, ["день", "дня", "дней"])}</span> при ≈ {formatNumber(Math.round(perDay))} посетителях{" "}
-            {kind === "order" ? "витрины" : "карточки"} в день и сплите {100 - split}/{split}. Меньше 7 дней не ставим — нужно захватить выходные.
-          </p>
-        </div>
+        <PlanNote perDay={perDay} split={split} days={days} where={kind === "order" ? "витрины" : "карточки"} />
       </DialogBody>
       <DialogFooter>
         <Button variant="ghost" size="sm" onClick={onCancel}>

@@ -2,12 +2,9 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { UserPlus } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { Sparkline } from "@/components/ui/sparkline";
-import { KpiStrip, Unit } from "@/components/dashboard/growth/kpi-strip";
 import { QueryButton } from "@/components/dashboard/growth/query-button";
 import { CreatorsBoard, type CreatorRow } from "@/components/dashboard/growth/creators-board";
 import { createRng } from "@/lib/utils";
-import { formatNumber, formatPercent } from "@/lib/format";
 import { CREATORS, DAY, HOUR, NOW_MS, getOrders, isPaid, mskDayStart } from "@/lib/mock";
 
 export const metadata: Metadata = { title: "Партнёры" };
@@ -62,12 +59,7 @@ export default async function CreatorsPage({ searchParams }: PageProps<"/dashboa
     };
   }).sort((a, b) => (a.status === "invited" ? 1 : 0) - (b.status === "invited" ? 1 : 0) || b.revenue30 - a.revenue30);
 
-  const revenue30 = rows.reduce((a, r) => a + r.revenue30, 0);
-  const owed = rows.reduce((a, r) => a + r.owed, 0);
-  const avgShare = rows.reduce((a, r) => a + r.sharePct * r.revenue30, 0) / (revenue30 || 1);
   const daily = Array.from({ length: 30 }, (_, i) => rows.reduce((a, r) => a + r.trend[i], 0));
-  const owedTo = rows.filter((r) => r.owed > 0).length;
-  const shares = rows.filter((r) => r.status === "active").map((r) => r.sharePct);
 
   return (
     <>
@@ -83,40 +75,8 @@ export default async function CreatorsPage({ searchParams }: PageProps<"/dashboa
         }
       />
 
-      <KpiStrip
-        items={[
-          {
-            label: "Выручка через блогеров · 30 дн",
-            value: (
-              <>
-                {formatNumber(revenue30)}
-                <Unit>₽</Unit>
-              </>
-            ),
-            sub: `${rows.filter((r) => r.revenue30 > 0).length} блогеров приносят продажи`,
-            accent: <Sparkline data={daily} width={84} height={26} tone="azure" />,
-          },
-          { label: "Покупателей пришло", value: formatNumber(buyers30), sub: `${formatNumber(last30.length)} заказов с кодами за 30 дней` },
-          {
-            label: "К выплате блогерам",
-            value: (
-              <>
-                {formatNumber(owed)}
-                <Unit>₽</Unit>
-              </>
-            ),
-            sub: `${owedTo} блогерам · автовыплата раз в 14 дней`,
-          },
-          {
-            label: "Средняя доля",
-            value: formatPercent(avgShare),
-            sub: `от ${Math.min(...shares)} до ${Math.max(...shares)} % · взвешено по выручке`,
-          },
-        ]}
-      />
-
       <Suspense>
-        <CreatorsBoard creators={rows} />
+        <CreatorsBoard creators={rows} kpi={{ buyers30, orders30: last30.length, daily }} />
       </Suspense>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-3">

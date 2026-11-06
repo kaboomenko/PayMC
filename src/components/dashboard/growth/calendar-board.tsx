@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { CalendarPlus, ChevronLeft, ChevronRight, Link2, Megaphone, Percent, Plus, TimerReset } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { MONTHS_NOM, formatDate, formatDateShort, formatPercent, formatRelative, formatTime } from "@/lib/format";
+import { MONTHS_NOM, formatDate, formatDateShort, formatNumber, formatPercent, formatRelative, formatTime, plural } from "@/lib/format";
 import { DAY, HOUR, NOW, NOW_MS, msk } from "@/lib/mock/now";
 import { calendarKindMeta } from "@/lib/mock/meta";
 import type { CalendarEvent, CalendarEventKind } from "@/lib/mock/types";
@@ -18,12 +18,21 @@ import { Field, Input, Label } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/toaster";
-import { toneBar, toneDot } from "./tone";
+import { KpiStrip, Unit } from "./kpi-strip";
+import { demoBar, demoSwatch, kindBar, kindSwatch, toneDot } from "./tone";
 import { useHotkey, useQueryState } from "./use-query-state";
 
 export interface CalServer {
   id: string;
   name: string;
+}
+
+/** Figures computed on the server: the wipe countdown and the revenue forecast. */
+export interface CalendarKpiBase {
+  daysToWipe: number;
+  wipeNote: string;
+  forecastK: number;
+  promoShare: number;
 }
 
 type CalEvent = CalendarEvent & { demo?: boolean };
@@ -47,12 +56,22 @@ const WEEKDAYS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 const KINDS = Object.keys(calendarKindMeta) as CalendarEventKind[];
 
 export function eventRange(ev: CalendarEvent) {
+  const { date, time } = rangeParts(ev);
+  return time ? `${date}, ${time}` : date;
+}
+
+/** Date and (for one-day events) time range separately — the list puts them on two lines. */
+function rangeParts(ev: CalendarEvent): { date: string; time?: string } {
   const s = dayIdx(ev.start);
   const e = endIdx(ev);
   const fullDay = formatTime(ev.start) === "00:00" && formatTime(ev.end) === "23:59";
-  if (s === e) return fullDay ? formatDate(ev.start, { year: false }) : `${formatDate(ev.start, { year: false })}, ${formatTime(ev.start)}–${formatTime(ev.end)}`;
+  if (s === e) return { date: formatDate(ev.start, { year: false }), time: fullDay ? undefined : `${formatTime(ev.start)}–${formatTime(ev.end)}` };
   const sameMonth = new Date(s * DAY).getUTCMonth() === new Date(e * DAY).getUTCMonth();
-  return sameMonth ? `${dom(s)}–${formatDate(ev.end, { year: false })}` : `${formatDate(ev.start, { year: false })} – ${formatDate(ev.end, { year: false })}`;
+  return { date: sameMonth ? `${dom(s)}–${formatDate(ev.end, { year: false })}` : `${formatDate(ev.start, { year: false })} – ${formatDate(ev.end, { year: false })}` };
+}
+
+function Swatch({ ev, className }: { ev: CalEvent; className?: string }) {
+  return <span aria-hidden className={cn("h-2.5 w-3.5 shrink-0 rounded-[2px]", ev.demo ? demoSwatch : kindSwatch[ev.kind], className)} />;
 }
 
 interface Seg {
@@ -71,7 +90,8 @@ function layoutWeek(start: number, events: CalEvent[], maxLanes: number) {
     .sort((a, b) => a.s - b.s || b.e - b.s - (a.e - a.s));
   const laneEnds: number[] = [];
   const placed: Seg[] = [];
-  const hidden = Array.from({ length: 7 }, () => 0);
+  /** events that didn't fit, per weekday — reachable from the «+N» button */
+  const hidden: CalEvent[][] = Array.from({ length: 7 }, () => []);
   for (const x of items) {
     const from = Math.max(x.s, start) - start;
     const to = Math.min(x.e, start + 6) - start;
@@ -81,7 +101,7 @@ function layoutWeek(start: number, events: CalEvent[], maxLanes: number) {
       laneEnds.push(to);
     } else laneEnds[lane] = to;
     if (lane >= maxLanes) {
-      for (let d = from; d <= to; d++) hidden[d] += 1;
+      for (let d = from; d <= to; d++) hidden[d].push(x.ev);
       continue;
     }
     placed.push({ ev: x.ev, from, to, lane, contL: x.s < start, contR: x.e > start + 6 });
@@ -93,19 +113,25 @@ export function CalendarBoard({
   events: initialEvents,
   krakenWipes,
   servers,
+  serverNames,
   initialMonth,
+  kpi,
 }: {
   events: CalendarEvent[];
   krakenWipes: CalendarEvent[];
+  /** this project's servers — the only ones a new promo can target */
   servers: CalServer[];
+  /** id → name for every server a shown event mentions, Kraken example included */
+  serverNames: Record<string, string>;
   initialMonth: number;
+  kpi: CalendarKpiBase;
 }) {
   const [events, setEvents] = React.useState<CalEvent[]>(initialEvents);
   const [month, setMonth] = React.useState(initialMonth);
   const [view, setView] = React.useState<"month" | "list">("month");
   const [showRust, setShowRust] = React.useState(false);
   const [newParam, setNewParam] = useQueryState("new");
-  const serverName = React.useMemo(() => new Map(servers.map((s) => [s.id, s.name])), [servers]);
+  const serverName = React.useMemo(() => new Map(Object.entries(serverNames)), [serverNames]);
 
   useHotkey("n", () => setNewParam("1"));
 
@@ -130,13 +156,52 @@ export function CalendarBoard({
     .filter((e) => dayIdx(e.start) <= last && endIdx(e) >= first)
     .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
-  const upcoming = events
-    .filter((e) => new Date(e.end).getTime() >= NOW_MS)
-    .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
-    .slice(0, 5);
+  const ahead = events.filter((e) => new Date(e.end).getTime() >= NOW_MS).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+  const upcoming = ahead.slice(0, 5);
+  const autoCount = ahead.filter((e) => e.autoStart).length;
+  const next30 = ahead.filter((e) => {
+    const t = new Date(e.start).getTime();
+    return t >= NOW_MS && t < NOW_MS + 30 * DAY;
+  }).length;
 
   return (
     <>
+      <KpiStrip
+        items={[
+          { label: "Впереди", value: ahead.length, sub: `${next30} в ближайшие 30 дней` },
+          {
+            label: "Запустятся сами",
+            value: (
+              <>
+                {autoCount}
+                <Unit>из {ahead.length}</Unit>
+              </>
+            ),
+            sub: "скидки, промокоды и анонсы",
+          },
+          {
+            label: "До вайпа Анархии",
+            value: (
+              <>
+                {kpi.daysToWipe}
+                <Unit>{plural(kpi.daysToWipe, ["день", "дня", "дней"])}</Unit>
+              </>
+            ),
+            sub: kpi.wipeNote,
+          },
+          {
+            label: "Прогноз · 30 дней",
+            value: (
+              <>
+                {formatNumber(kpi.forecastK)}
+                <Unit>тыс ₽</Unit>
+              </>
+            ),
+            sub: `${formatPercent(kpi.promoShare, { digits: 0 })} — в дни Чёрной пятницы и вайпа`,
+          },
+        ]}
+      />
+
       <div className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
         <section className="min-w-0 overflow-hidden rounded-xl border border-line bg-surface shadow-raise">
           <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-3 py-3 sm:px-4">
@@ -203,33 +268,45 @@ export function CalendarBoard({
                   />
                 </li>
               ) : (
-                monthEvents.map((ev) => (
-                  <li key={ev.id} className="grid grid-cols-[auto_1fr] items-start gap-x-3 gap-y-1 px-4 py-3 sm:grid-cols-[132px_1fr_auto] sm:items-center">
-                    <span className="font-mono text-[12px] text-fg-3 nums">{eventRange(ev)}</span>
-                    <div className="min-w-0">
-                      <p className="flex items-center gap-2 text-[13.5px] text-fg">
-                        <span className={cn("size-2 shrink-0 rounded-full", toneDot[calendarKindMeta[ev.kind].tone])} />
-                        <span className="truncate">{ev.title}</span>
-                      </p>
-                      <p className="mt-0.5 truncate pl-4 text-xs text-fg-3">
-                        {calendarKindMeta[ev.kind].label}
-                        {ev.serverIds?.length ? ` · ${ev.serverIds.map((s) => serverName.get(s) ?? s).join(", ")}` : " · все серверы"}
-                        {ev.discountPct ? ` · −${ev.discountPct} %` : ""}
-                        {ev.expectedUplift ? ` · +${ev.expectedUplift} % к выручке` : ""}
-                      </p>
-                    </div>
-                    <div className="col-start-2 flex items-center gap-2 pl-4 sm:col-start-auto sm:pl-0">
-                      {ev.demo ? (
-                        <Badge tone="outline">Kraken Rust</Badge>
-                      ) : (
-                        <label className="flex items-center gap-2 text-xs text-fg-3">
-                          Автозапуск
-                          <Switch size="sm" checked={ev.autoStart} onCheckedChange={(v) => setAuto(ev.id, v)} aria-label={`Автозапуск: ${ev.title}`} />
-                        </label>
-                      )}
-                    </div>
-                  </li>
-                ))
+                monthEvents.map((ev) => {
+                  const range = rangeParts(ev);
+                  return (
+                    // phones: one column, the date is a small mono line above the title
+                    <li key={ev.id} className="grid grid-cols-1 gap-y-1 px-4 py-3 sm:grid-cols-[176px_minmax(0,1fr)_auto] sm:items-center sm:gap-x-3">
+                      <span className="font-mono text-[11.5px] leading-tight text-fg-3 nums sm:text-[12px]">
+                        {range.date}
+                        {range.time ? (
+                          <>
+                            <span className="sm:hidden">, </span>
+                            <span className="text-fg-4 sm:mt-0.5 sm:block">{range.time}</span>
+                          </>
+                        ) : null}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="flex items-center gap-2 text-[13.5px] text-fg">
+                          <Swatch ev={ev} />
+                          <span className="truncate">{ev.title}</span>
+                        </p>
+                        <p className="mt-0.5 truncate pl-[22px] text-xs text-fg-3">
+                          {calendarKindMeta[ev.kind].label}
+                          {ev.serverIds?.length ? ` · ${ev.serverIds.map((s) => serverName.get(s) ?? s).join(", ")}` : " · все серверы"}
+                          {ev.discountPct ? ` · −${formatPercent(ev.discountPct, { digits: 0 })}` : ""}
+                          {ev.expectedUplift ? ` · +${formatPercent(ev.expectedUplift, { digits: 0 })} к выручке` : ""}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 pl-[22px] sm:pl-0">
+                        {ev.demo ? (
+                          <Badge tone="outline">Kraken Rust</Badge>
+                        ) : (
+                          <label className="flex items-center gap-2 text-xs text-fg-3">
+                            Автозапуск
+                            <Switch size="sm" checked={ev.autoStart} onCheckedChange={(v) => setAuto(ev.id, v)} aria-label={`Автозапуск: ${ev.title}`} />
+                          </label>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })
               )}
             </ul>
           )}
@@ -237,13 +314,13 @@ export function CalendarBoard({
           <footer className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line-soft px-4 py-2.5">
             {KINDS.map((k) => (
               <span key={k} className="flex items-center gap-1.5 text-[11.5px] text-fg-3">
-                <span className={cn("size-2 rounded-[2px]", toneDot[calendarKindMeta[k].tone])} />
+                <span className={cn("h-2.5 w-3.5 rounded-[2px]", kindSwatch[k])} />
                 {calendarKindMeta[k].label}
               </span>
             ))}
             {showRust ? (
               <span className="flex items-center gap-1.5 text-[11.5px] text-fg-3">
-                <span className="h-2 w-3 rounded-[2px] border border-dashed border-ice-400/70" />
+                <span className={cn("h-2.5 w-3.5 rounded-[2px]", demoSwatch)} />
                 пример: Kraken Rust
               </span>
             ) : null}
@@ -259,20 +336,19 @@ export function CalendarBoard({
             <ul className="divide-y divide-line-soft">
               {upcoming.map((ev) => {
                 const live = new Date(ev.start).getTime() <= NOW_MS;
-                const tone = calendarKindMeta[ev.kind].tone;
                 return (
                   <li key={ev.id} className="px-4 py-3.5">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="flex items-center gap-1.5 text-[11.5px] text-fg-3">
-                          <span className={cn("size-1.5 rounded-full", toneDot[tone])} />
+                          <Swatch ev={ev} className="h-2 w-3" />
                           {calendarKindMeta[ev.kind].label} ·{" "}
                           {live ? <span className="text-ok">идёт сейчас</span> : formatRelative(ev.start, NOW_MS)}
                         </p>
                         <p className="mt-1 text-[13.5px] leading-snug font-medium text-fg">{ev.title}</p>
                         <p className="mt-0.5 font-mono text-[11.5px] text-fg-3">
                           {eventRange(ev)}
-                          {ev.discountPct ? <span className="text-ice-300"> · −{ev.discountPct} %</span> : null}
+                          {ev.discountPct ? <span className="text-ice-300"> · −{formatPercent(ev.discountPct, { digits: 0 })}</span> : null}
                         </p>
                       </div>
                       <Switch size="sm" checked={ev.autoStart} onCheckedChange={(v) => setAuto(ev.id, v)} aria-label={`Автозапуск: ${ev.title}`} className="mt-1" />
@@ -298,7 +374,7 @@ export function CalendarBoard({
       <NewEventDialog
         open={newParam === "1"}
         onOpenChange={(o) => setNewParam(o ? "1" : null)}
-        servers={servers.filter((s) => !s.id.startsWith("srv-kraken"))}
+        servers={servers}
         wipes={events.filter((e) => e.kind === "wipe" || e.kind === "season").filter((e) => new Date(e.start).getTime() > NOW_MS)}
         onCreate={(ev) => {
           setEvents((list) => [...list, ev]);
@@ -333,10 +409,12 @@ function WeekRow({
   onAuto: (id: string, v: boolean) => void;
 }) {
   const { placed, hidden, lanes } = layoutWeek(start, events, 3);
+  const overflow = hidden.some((h) => h.length > 0);
   return (
     <div
       className="relative grid grid-cols-7 border-b border-line-soft last:border-b-0"
-      style={{ gridTemplateRows: `28px repeat(${lanes}, 22px) minmax(8px, 1fr)`, minHeight: 96 }}
+      // a row of its own for «+N», under the bars — never drawn on top of an event
+      style={{ gridTemplateRows: `28px repeat(${lanes}, 22px) ${overflow ? "22px " : ""}minmax(8px, 1fr)`, minHeight: 96 }}
     >
       {Array.from({ length: 7 }, (_, i) => {
         const idx = start + i;
@@ -364,14 +442,74 @@ function WeekRow({
               </span>
               {today ? <span className="hidden text-[10.5px] text-azure-300 md:inline">сегодня</span> : null}
             </span>
-            {hidden[i] ? <span className="self-end font-mono text-[10.5px] text-fg-3">+{hidden[i]}</span> : null}
           </div>
         );
       })}
       {placed.map((s) => (
         <EventBar key={`${s.ev.id}-${start}`} seg={s} serverName={serverName} onAuto={onAuto} />
       ))}
+      {hidden.map((list, i) =>
+        list.length ? (
+          <MoreButton key={`more-${start + i}`} day={start + i} col={i} row={lanes + 2} events={list} serverName={serverName} onAuto={onAuto} />
+        ) : null,
+      )}
     </div>
+  );
+}
+
+/** «+N» for events that didn't fit the day — opens the list of what's hidden. */
+function MoreButton({
+  day,
+  col,
+  row,
+  events,
+  serverName,
+  onAuto,
+}: {
+  day: number;
+  col: number;
+  row: number;
+  events: CalEvent[];
+  serverName: Map<string, string>;
+  onAuto: (id: string, v: boolean) => void;
+}) {
+  const label = `Ещё ${events.length} ${plural(events.length, ["событие", "события", "событий"])} · ${formatDate(day * DAY, { year: false })}`;
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          style={{ gridColumn: col + 1, gridRow: row }}
+          aria-label={label}
+          className="relative z-10 mx-0.5 my-px justify-self-start rounded-[4px] px-1.5 font-mono text-[10.5px] text-fg-3 transition-colors hover:bg-white/[0.06] hover:text-fg data-[state=open]:bg-white/[0.06] data-[state=open]:text-fg"
+        >
+          +{events.length}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-72 p-2">
+        <p className="label-mono px-1.5 pt-1 pb-2 text-[10px] text-fg-4">{formatDate(day * DAY, { year: false })} · ещё</p>
+        <ul className="space-y-1">
+          {events.map((ev) => (
+            <li key={ev.id} className="rounded-md px-1.5 py-1.5 hover:bg-white/[0.03]">
+              <p className="flex items-center gap-2 text-[13px] text-fg">
+                <Swatch ev={ev} />
+                <span className="min-w-0 truncate">{ev.demo ? `Rust · ${ev.title}` : ev.title}</span>
+              </p>
+              <p className="mt-0.5 pl-[22px] font-mono text-[11px] text-fg-3">
+                {eventRange(ev)}
+                {ev.serverIds?.length ? ` · ${ev.serverIds.map((s) => serverName.get(s) ?? s).join(", ")}` : ""}
+              </p>
+              {!ev.demo ? (
+                <label className="mt-1 flex items-center justify-between gap-3 pl-[22px] text-[12px] text-fg-3">
+                  Автозапуск
+                  <Switch size="sm" checked={ev.autoStart} onCheckedChange={(v) => onAuto(ev.id, v)} aria-label={`Автозапуск: ${ev.title}`} />
+                </label>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -386,13 +524,15 @@ function EventBar({ seg, serverName, onAuto }: { seg: Seg; serverName: Map<strin
           style={{ gridColumn: `${seg.from + 1} / ${seg.to + 2}`, gridRow: seg.lane + 2 }}
           className={cn(
             "relative z-10 mx-0.5 my-px flex min-w-0 items-center gap-1 overflow-hidden rounded-[4px] px-1.5 text-left text-[10.5px] font-medium whitespace-nowrap transition-colors sm:text-[11px]",
-            ev.demo ? "border border-dashed border-ice-400/45 text-ice-300 hover:bg-ice-400/10" : cn("ring-1 ring-inset", toneBar[tone]),
+            ev.demo ? demoBar : kindBar[ev.kind],
             seg.contL && "ml-0 rounded-l-none",
             seg.contR && "mr-0 rounded-r-none",
           )}
           aria-label={`${ev.title}, ${eventRange(ev)}`}
         >
-          {ev.discountPct && !seg.contL && !ev.title.includes("%") ? <span className="font-mono opacity-80">−{ev.discountPct}%</span> : null}
+          {ev.discountPct && !seg.contL && !ev.title.includes("%") ? (
+            <span className="font-mono opacity-80">−{formatPercent(ev.discountPct, { digits: 0 })}</span>
+          ) : null}
           <span className="truncate">{ev.demo ? `Rust · ${ev.title}` : ev.title}</span>
         </button>
       </PopoverTrigger>
@@ -411,13 +551,13 @@ function EventBar({ seg, serverName, onAuto }: { seg: Seg; serverName: Map<strin
           {ev.discountPct ? (
             <div className="flex justify-between gap-3">
               <dt className="text-fg-3">Скидка</dt>
-              <dd className="font-mono text-ice-300">−{ev.discountPct} %</dd>
+              <dd className="font-mono text-ice-300">−{formatPercent(ev.discountPct, { digits: 0 })}</dd>
             </div>
           ) : null}
           {ev.expectedUplift ? (
             <div className="flex justify-between gap-3">
               <dt className="text-fg-3">Ожидаемо</dt>
-              <dd className="font-mono text-ok">+{ev.expectedUplift} % к выручке</dd>
+              <dd className="font-mono text-ok">+{formatPercent(ev.expectedUplift, { digits: 0 })} к выручке</dd>
             </div>
           ) : null}
         </dl>
@@ -530,9 +670,10 @@ function WipeTimeline({ on }: { on: Record<string, boolean> }) {
             <span className="absolute -top-4 left-0 font-mono text-[10px] whitespace-nowrap text-ice-200">анонс</span>
           </span>
         ) : null}
+        {/* the label hangs to the right of the marker, so it never runs into «анонс» on phones */}
         <span className="absolute top-2.5 h-5 w-[2px] -translate-x-1/2 bg-ice-300" style={{ left: at(0) }}>
-          <span className="absolute -top-4 left-1/2 -translate-x-1/2 font-mono text-[10px] whitespace-nowrap text-fg">
-            вайп{on.expire ? " · −привилегии" : ""}
+          <span className="absolute -top-4 left-0 font-mono text-[10px] whitespace-nowrap text-fg">
+            вайп{on.expire ? <span className="hidden sm:inline"> · −привилегии</span> : null}
           </span>
         </span>
       </div>

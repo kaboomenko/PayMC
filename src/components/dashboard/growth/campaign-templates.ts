@@ -1,3 +1,4 @@
+import { plural } from "@/lib/format";
 import type { Campaign, CampaignChannel, CampaignType, PlayerSegment } from "@/lib/mock/types";
 
 export type SegmentKey = PlayerSegment | "all";
@@ -120,13 +121,15 @@ export const TEMPLATES: Record<CampaignType, CampaignTemplate> = {
     channels: ["title", "chat", "telegram"],
     message: "Новый сезон! Все привилегии −{discount} первые 6 часов: {link}",
     title: "Новый сезон",
-    subtitle: "Привилегии −{discount} до 18:00",
+    subtitle: "Привилегии −{discount} первые 6 часов",
     discountPct: 20,
     productId: "cart",
     ttlHours: 6,
-    conversion: 14,
+    // only players online in the first hours see it: ≈ 2 300 shows → ≈ 160 purchases on a 7 700-player base,
+    // in line with the calendar's +210 % for a wipe day
+    conversion: 7,
     conversionSource: "network",
-    reach30: 0.6,
+    reach30: 0.3,
   },
   playtime_milestone: {
     delayLabel: "Наиграл за неделю",
@@ -195,7 +198,9 @@ export const TEMPLATE_ORDER: CampaignType[] = [
 export const IN_GAME: CampaignChannel[] = ["chat", "title", "bossbar", "actionbar"];
 export const OFF_GAME: CampaignChannel[] = ["telegram", "vk", "discord"];
 
-export const FREQ_OPTIONS = [1, 3, 7, 14];
+/** 1 in 3 days is the global cap across all campaigns, so a campaign can only be stricter. */
+export const FREQ_OPTIONS = [3, 7, 14];
+export const GLOBAL_CAP_DAYS = 3;
 export const TTL_OPTIONS = [6, 24, 48, 72, 168];
 
 export const CHAR_LIMITS: Partial<Record<CampaignChannel, number>> = { chat: 256, actionbar: 70 };
@@ -251,5 +256,13 @@ export function ttlLabel(hours: number) {
 }
 
 export function freqLabel(days: number) {
-  return days === 1 ? "раза в день" : `раза в ${days} ${days < 5 ? "дня" : "дней"}`;
+  return days === 1 ? "раза в день" : `раза в ${days} ${plural(days, ["день", "дня", "дней"])}`;
+}
+
+/**
+ * Keeps texts in step with the trigger: «закончится через 3 дня» becomes «через 7 дней»
+ * when the delay changes. Only the exact old phrase is swapped, the rest of an edited text stays.
+ */
+export function swapDelay(text: string, from: string, to: string) {
+  return from && text.includes(from) ? text.split(from).join(to) : text;
 }

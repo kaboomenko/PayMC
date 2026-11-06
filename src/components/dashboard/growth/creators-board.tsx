@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { ArrowUpRight, FileCheck2, Link2, MoreHorizontal, Pause, Play, Send, UserPlus, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatCompact, formatDateShort, formatMoney, formatNumber, formatPercent, formatRelative } from "@/lib/format";
+import { formatCompact, formatDateShort, formatMoney, formatNumber, formatPercent, formatRelative, plural, pluralize } from "@/lib/format";
 import { DAY, NOW, NOW_MS, mskDayStart } from "@/lib/mock/now";
 import { creatorPlatformMeta } from "@/lib/mock/meta";
 import type { Creator, CreatorPlatform } from "@/lib/mock/types";
@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Table, TableWrap, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { toast } from "@/components/ui/toaster";
+import { KpiStrip, Unit } from "./kpi-strip";
 import { useQueryState } from "./use-query-state";
 
 export interface CreatorOrder {
@@ -65,7 +66,61 @@ const STATUS: Record<Creator["status"], { label: string; tone: "ok" | "neutral" 
 
 const FROST_PRICE = 299;
 
-export function CreatorsBoard({ creators }: { creators: CreatorRow[] }) {
+/** Figures only the server knows: attributed buyers and orders over 30 days, daily revenue. */
+export interface CreatorKpiBase {
+  buyers30: number;
+  orders30: number;
+  daily: number[];
+}
+
+/** KPIs follow the table: paying a creator or inviting one updates them at once. */
+function CreatorKpis({ rows, kpi }: { rows: CreatorRow[]; kpi: CreatorKpiBase }) {
+  const revenue30 = rows.reduce((a, r) => a + r.revenue30, 0);
+  const selling = rows.filter((r) => r.revenue30 > 0).length;
+  const owed = rows.reduce((a, r) => a + r.owed, 0);
+  const owedTo = rows.filter((r) => r.owed > 0).length;
+  const avgShare = rows.reduce((a, r) => a + r.sharePct * r.revenue30, 0) / (revenue30 || 1);
+  const shares = rows.filter((r) => r.status === "active").map((r) => r.sharePct);
+  return (
+    <KpiStrip
+      items={[
+        {
+          label: "Выручка через блогеров · 30 дн",
+          value: (
+            <>
+              {formatNumber(revenue30)}
+              <Unit>₽</Unit>
+            </>
+          ),
+          sub: `${selling} ${plural(selling, ["блогер приносит", "блогера приносят", "блогеров приносят"])} продажи`,
+          accent: <Sparkline data={kpi.daily} width={84} height={26} tone="azure" />,
+        },
+        {
+          label: "Покупателей пришло",
+          value: formatNumber(kpi.buyers30),
+          sub: `${pluralize(kpi.orders30, ["заказ", "заказа", "заказов"])} с кодами за 30 дней`,
+        },
+        {
+          label: "К выплате блогерам",
+          value: (
+            <>
+              {formatNumber(owed)}
+              <Unit>₽</Unit>
+            </>
+          ),
+          sub: owedTo ? `${owedTo} ${plural(owedTo, ["блогеру", "блогерам", "блогерам"])} · автовыплата раз в 14 дней` : "всё выплачено · следующая через 14 дней",
+        },
+        {
+          label: "Средняя доля",
+          value: formatPercent(avgShare),
+          sub: shares.length ? `от ${Math.min(...shares)} до ${formatPercent(Math.max(...shares), { digits: 0 })} · взвешено по выручке` : "нет активных кодов",
+        },
+      ]}
+    />
+  );
+}
+
+export function CreatorsBoard({ creators, kpi }: { creators: CreatorRow[]; kpi: CreatorKpiBase }) {
   const [rows, setRows] = React.useState(creators);
   const [creatorParam, setCreatorParam] = useQueryState("creator");
   const [inviteParam, setInviteParam] = useQueryState("invite");
@@ -100,6 +155,8 @@ export function CreatorsBoard({ creators }: { creators: CreatorRow[] }) {
 
   return (
     <>
+      <CreatorKpis rows={rows} kpi={kpi} />
+
       <div className="mt-8 overflow-hidden rounded-xl border border-line bg-surface shadow-raise">
         <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3 sm:px-5">
           <div>
@@ -450,7 +507,8 @@ function CreatorDetail({ r, onPay, onCopy }: { r: CreatorRow; onPay: (r: Creator
           <div className="mb-2 flex items-center justify-between">
             <p className="label-mono text-fg-3">Последние заказы с кодом</p>
             {r.recentOrders.length ? (
-              <Link href={`/dashboard/orders?q=${r.code}`} className="text-xs text-azure-300 hover:text-azure-200">
+              // exact code filter: a text search for FROST would also match the «Frost» rank
+              <Link href={`/dashboard/orders?creator=${encodeURIComponent(r.code)}&days=90`} className="text-xs text-azure-300 hover:text-azure-200">
                 Все заказы →
               </Link>
             ) : null}
