@@ -16,7 +16,7 @@ export const buttonVariants = cva(
       variant: {
         /** Main action inside the product */
         primary:
-          "bg-azure-500 text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.18),0_1px_2px_rgb(0_0_0/0.4)] hover:bg-azure-400",
+          "bg-azure-600 text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.16),0_1px_2px_rgb(0_0_0/0.4)] hover:bg-azure-500",
         /** High-contrast marketing CTA */
         white:
           "bg-white text-canvas shadow-[inset_0_-1px_0_rgb(0_0_0/0.12),0_1px_2px_rgb(0_0_0/0.4)] hover:bg-azure-50",

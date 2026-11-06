@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "@fontsource-variable/onest";
+@import "@fontsource-variable/geologica/shrp.css";
 @import "@fontsource-variable/jetbrains-mono";
 
 /*
@@ -30,9 +31,9 @@
 
   /* Text */
   --color-fg: #edf1f8;
-  --color-fg-2: #a6b1c4;
-  --color-fg-3: #6c788d;
-  --color-fg-4: #475166;
+  --color-fg-2: #b2bccd;
+  --color-fg-3: #7c889d;
+  --color-fg-4: #4d586c;
 
   /* Azure — primary blue */
   --color-azure-50: #eef5ff;
@@ -66,6 +67,7 @@
 
   /* Typography */
   --font-sans: "Onest Variable", "Onest", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Geologica Variable", "Onest Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   --text-micro: 0.6875rem;
@@ -74,17 +76,17 @@
 
   --text-display: clamp(2.75rem, 6.4vw, 5.25rem);
   --text-display--line-height: 0.98;
-  --text-display--letter-spacing: -0.045em;
+  --text-display--letter-spacing: -0.042em;
   --text-display--font-weight: 600;
 
   --text-h1: clamp(2.25rem, 4.6vw, 3.75rem);
   --text-h1--line-height: 1.02;
-  --text-h1--letter-spacing: -0.04em;
+  --text-h1--letter-spacing: -0.036em;
   --text-h1--font-weight: 600;
 
   --text-h2: clamp(1.875rem, 3.4vw, 2.75rem);
   --text-h2--line-height: 1.06;
-  --text-h2--letter-spacing: -0.035em;
+  --text-h2--letter-spacing: -0.03em;
   --text-h2--font-weight: 600;
 
   --text-h3: 1.375rem;
@@ -210,6 +212,18 @@
   samp,
   pre {
     font-family: var(--font-mono);
+  }
+  /* Display headings use Geologica with a touch of its sharpness axis */
+  .text-display,
+  .text-h1,
+  .text-h2,
+  .text-h3,
+  .font-display {
+    font-family: var(--font-display);
+    font-variation-settings: "SHRP" 64;
+  }
+  h1, h2, h3 {
+    text-wrap: balance;
   }
   @media (prefers-reduced-motion: reduce) {
     *,
