@@ -211,7 +211,7 @@ export function buildAttention(): AttentionData {
       server: s.name,
       title: offline ? `нет связи ${formatDuration(NOW_MS - ts(s.lastSeenAt))}` : `TPS ${formatNumber(s.tps ?? 0, 1)} · ответ ${formatNumber(s.latencyMs)} мс`,
       detail: offline
-        ? `${pluralize(s.queue, ["задание", "задания", "заданий"])} в очереди — выполним, как только сервер вернётся`
+        ? `${pluralize(s.queue, ["команда", "команды", "команд"])} в очереди — выполним, как только сервер вернётся`
         : s.agentVersion !== latestAgent
           ? `Плагин PayMC ${s.agentVersion} → ${latestAgent}: обновление убирает задержку выдачи`
           : "Агент отвечает медленно — повторяем выдачу сами",

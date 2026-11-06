@@ -89,10 +89,15 @@ Demo project: **ArcticMC** (Minecraft network, plan «Рост · 3,9 %»), owne
 - Selectors: `getOrders({status|"issues", method, serverId, query, days, productId, playerId})` (newest first),
   `getOrder(id)` (with trace), `getPlayer(id)`, `getPlayerByName(name)`, `getPlayers({segment, query, online, flagged,
   sort})`, `getProduct(id)`, `getServer(id)`, `getOrdersByPlayer(id)`, `getOrdersByProduct(id)`, `getDailySeries(days)`,
-  `getKpis(7|30|90)` (+ `pct(cur, prev)`), `getIssues()`, `getTopProducts(n)`, `getRecentOrders(n)`, `isPaid(order)`.
+  `getKpis(7|30|90)` (+ `pct(cur, prev)`; previous period has the same length — today is only half over),
+  `getIssues()`, `getTopProducts(n)`, `getRecentOrders(n)`, `isPaid(order)`, `windowStart(days, offset)` (calendar
+  window start, same as `DAILY.slice(-days)` — use it for any «last N days» figure), `splitAmount(gross, members)`
+  (exact payout split, remainder to the owner).
 - Other libs: `@/lib/games` (`GAMES`, `GAME_LIST` — 16 games with integration info and rules),
   `@/lib/payments` (`PAYMENT_METHODS` with `availability: live|soon`, `LIVE_METHODS`, `COUNTRIES`, `PLAN_FEES`,
-  `PLAN_META`, `MOBILE_FEE`, `feeRateFor(turnover)`), `@/lib/command-library` (`COMMAND_LIBRARY`, `VARIABLES`,
+  `PLAN_META`, `MOBILE_FEE`, `feeRateFor(turnover)`, `TYPICAL_PLATFORM` / `TYPICAL_WITHDRAWAL_FEE` for anonymous
+  competitor comparisons), `@/lib/format` also has `typo()` (no line-leading dashes, sticky prepositions/units),
+  `@/lib/command-library` (`COMMAND_LIBRARY`, `VARIABLES`,
   `templatesFor(game)`, `pluginsFor(game)`, `unknownVariables(tpl, game)`).
 - `ORDERS`/`PLAYERS` are large: filter/paginate on the server (URL `searchParams`) and pass only the visible slice to
   client components. Never ship the whole array to the browser.
