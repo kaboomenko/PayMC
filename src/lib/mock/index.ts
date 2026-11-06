@@ -31,6 +31,7 @@ export {
   ONLINE_NOW,
   BUYERS_ONLINE,
   CAMPAIGN_REVENUE_30D,
+  splitAmount,
 } from "./analytics";
 export * from "./selectors";
 export { buildTrace, withTrace } from "./trace";

@@ -517,7 +517,8 @@ const PAID: OrderStatus[] = ["delivered", "delivering", "awaiting_player", "retr
 export const isPaid = (o: Order) => PAID.includes(o.status);
 
 export const PRODUCTS: Product[] = PRODUCT_SEEDS.map((seed, idx) => {
-  const since30 = NOW_MS - 30 * DAY;
+  const since30 = mskDayStart(29); // same calendar window as getKpis(30)
+  const todayStart = mskDayStart(0);
   let sales30d = 0;
   let revenue30d = 0;
   const trend = Array.from({ length: 14 }, () => 0);
@@ -528,9 +529,19 @@ export const PRODUCTS: Product[] = PRODUCT_SEEDS.map((seed, idx) => {
       if (it.productId !== seed.id) continue;
       sales30d += it.qty;
       revenue30d += Math.round(it.price * it.qty * (o.amount / o.items.reduce((a, b) => a + b.price * b.qty, 0)));
-      const dAgo = Math.floor((NOW_MS - t) / DAY);
+      const dAgo = Math.floor((todayStart + DAY - 1 - t) / DAY);
       if (dAgo < 14) trend[13 - dAgo] += it.qty;
     }
+  }
+  // pool progress comes from the actual contributions, not from the seed
+  let pool = seed.pool;
+  if (pool) {
+    const contributions = ORDERS.filter((o) => isPaid(o) && o.items.some((it) => it.productId === seed.id));
+    pool = {
+      ...pool,
+      raised: contributions.reduce((a, o) => a + o.amount, 0),
+      contributors: new Set(contributions.map((o) => o.playerId)).size,
+    };
   }
   const conv = 0.025 + ((idx * 37) % 70) / 1000; // 2.5–9.5 %
   const { weight, qty, createdDaysAgo, ...rest } = seed;
@@ -543,6 +554,7 @@ export const PRODUCTS: Product[] = PRODUCT_SEEDS.map((seed, idx) => {
     sales30d,
     revenue30d,
     salesTrend: trend,
+    pool,
     createdAt: new Date(NOW_MS - createdDaysAgo * DAY).toISOString(),
     sort: idx,
   };

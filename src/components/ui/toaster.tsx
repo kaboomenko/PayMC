@@ -8,6 +8,8 @@ export function Toaster() {
       theme="dark"
       position="bottom-right"
       gap={8}
+      offset={{ bottom: 88, right: 24 }}
+      mobileOffset={{ bottom: 88 }}
       toastOptions={{
         classNames: {
           toast:

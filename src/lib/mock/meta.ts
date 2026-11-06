@@ -113,8 +113,8 @@ export const creatorPlatformMeta: Record<CreatorPlatform, { label: string }> = {
 export const calendarKindMeta: Record<CalendarEventKind, { label: string; tone: Tone }> = {
   wipe: { label: "Вайп", tone: "ice" },
   sale: { label: "Распродажа", tone: "azure" },
-  event: { label: "Ивент", tone: "ok" },
-  holiday: { label: "Праздник", tone: "warn" },
+  event: { label: "Ивент", tone: "neutral" },
+  holiday: { label: "Праздник", tone: "neutral" },
   season: { label: "Сезон", tone: "neutral" },
 };
 

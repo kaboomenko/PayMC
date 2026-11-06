@@ -852,8 +852,8 @@ export const EXPERIMENTS: Experiment[] = [
     startedAt: daysAgo(9, 12, 0),
     endsAt: daysAgo(-5, 12, 0),
     variants: [
-      { id: "a", name: "A · 299 ₽", description: "Текущая цена", traffic: 50, visitors: 4182, conversions: 236, revenue: 70_564 },
-      { id: "b", name: "B · 349 ₽", description: "Цена +50 ₽, тот же набор", traffic: 50, visitors: 4207, conversions: 221, revenue: 77_129 },
+      { id: "a", name: "A · 299 ₽", description: "Текущая цена", traffic: 50, visitors: 786, conversions: 44, revenue: 13_156 },
+      { id: "b", name: "B · 349 ₽", description: "Цена +50 ₽, тот же набор", traffic: 50, visitors: 791, conversions: 41, revenue: 14_309 },
     ],
     probabilityToBeat: 0.87,
   },
@@ -866,8 +866,8 @@ export const EXPERIMENTS: Experiment[] = [
     startedAt: daysAgo(38, 12, 0),
     endsAt: daysAgo(24, 12, 0),
     variants: [
-      { id: "a", name: "A · привилегии сверху", description: "Текущий порядок", traffic: 50, visitors: 9120, conversions: 401, revenue: 131_870 },
-      { id: "b", name: "B · кейсы сверху", description: "Кейсы и наборы до привилегий", traffic: 50, visitors: 9088, conversions: 452, revenue: 118_400 },
+      { id: "a", name: "A · привилегии сверху", description: "Текущий порядок", traffic: 50, visitors: 8_120, conversions: 361, revenue: 118_610 },
+      { id: "b", name: "B · кейсы сверху", description: "Кейсы и наборы до привилегий", traffic: 50, visitors: 8_094, conversions: 405, revenue: 105_440 },
     ],
     probabilityToBeat: 0.96,
     winnerId: "a",

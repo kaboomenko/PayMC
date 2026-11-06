@@ -187,6 +187,15 @@ export const BALANCE: Balance = {
 
 const SPLIT_MEMBERS = TEAM.filter((m) => m.splitPct > 0);
 
+/** Split a payout by member shares: floor per member, the rounding remainder goes to the owner. Sums exactly to `gross`. */
+export function splitAmount(gross: number, members: { id: string; splitPct: number; role?: string }[]) {
+  const parts = members.map((m) => ({ memberId: m.id, amount: Math.floor((gross * m.splitPct) / 100) }));
+  const rest = gross - parts.reduce((a, p) => a + p.amount, 0);
+  const ownerIdx = Math.max(0, members.findIndex((m) => m.role === "owner"));
+  if (parts[ownerIdx]) parts[ownerIdx].amount += rest;
+  return parts;
+}
+
 export const PAYOUTS: Payout[] = (() => {
   const out: Payout[] = [];
   for (let d = 30; d >= 0; d--) {
@@ -205,7 +214,7 @@ export const PAYOUTS: Payout[] = (() => {
       status,
       createdAt,
       paidAt: status === "paid" ? new Date(mskDayStart(d) + 12 * HOUR + int(40, 280) * 1000).toISOString() : undefined,
-      splits: SPLIT_MEMBERS.map((m) => ({ memberId: m.id, amount: Math.round((gross * m.splitPct) / 100) })),
+      splits: splitAmount(gross, SPLIT_MEMBERS),
     });
     if (failed) {
       // retried via the backup bank 40 minutes later
@@ -218,7 +227,7 @@ export const PAYOUTS: Payout[] = (() => {
         status: "paid",
         createdAt: new Date(mskDayStart(d) + 12 * HOUR + 40 * MINUTE).toISOString(),
         paidAt: new Date(mskDayStart(d) + 12 * HOUR + 42 * MINUTE).toISOString(),
-        splits: SPLIT_MEMBERS.map((m) => ({ memberId: m.id, amount: Math.round((gross * m.splitPct) / 100) })),
+        splits: splitAmount(gross, SPLIT_MEMBERS),
       });
     }
   }

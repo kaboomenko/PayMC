@@ -51,9 +51,9 @@ export function formatCompact(value: number) {
 }
 
 /** 4,9 % → pass 4.9 ; signed adds + for positives */
-export function formatPercent(value: number, opts: { digits?: 0 | 1 | 2; signed?: boolean } = {}) {
-  const { digits = 1, signed = false } = opts;
-  const f = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: digits, minimumFractionDigits: 0 });
+export function formatPercent(value: number, opts: { digits?: 0 | 1 | 2; signed?: boolean; fixed?: boolean } = {}) {
+  const { digits = 1, signed = false, fixed = false } = opts;
+  const f = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: digits, minimumFractionDigits: fixed ? digits : 0 });
   const s = f.format(value);
   return `${signed && value > 0 ? "+" : ""}${s} %`;
 }
