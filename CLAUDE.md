@@ -72,6 +72,38 @@ The product must look like a crafted, opinionated fintech/devtool — not a temp
   Use «вы», sentence case, «ё» where needed, non-breaking spaces before units (helpers in `format.ts` handle numbers).
 - Every interactive element needs hover/focus states; every list/table needs an empty state; loading uses `skeleton`.
 
+## Data layer API (`@/lib/mock`)
+
+Demo project: **ArcticMC** (Minecraft network, plan «Рост · 3,9 %»), owner Артём Ковалёв. NOW = 6 Nov 2026 12:00 MSK.
+
+- Time: `NOW`, `NOW_MS`, `DAY`/`HOUR`/`MINUTE`, `daysAgo(n, h, m)`, `ago(ms)`, `later(ms)`, `msk(y, m, d, h)`, `mskDayStart(n)`.
+- Catalog: `PROJECTS`, `CURRENT_PROJECT_ID`, `SERVERS` (Лобби, Выживание, Анархия — degraded, SkyBlock — offline),
+  `TEAM` (split 60/25/15), `CAMPAIGNS`, `CALENDAR`, `KRAKEN_WIPES`, `EXPERIMENTS`, `INTEGRATIONS`.
+- Commerce: `ORDERS` (~5.5k, 90 days, oldest first, **`trace` is empty — call `getOrder(id)` for the full trace**),
+  `PLAYERS` (1 180), `PRODUCTS` (24, with `sales30d`, `revenue30d`, `salesTrend`, `eula`, `pool`), `PROMO_CODES`, `CREATORS`.
+- Analytics: `DAILY` (200 days of `DailyPoint`), `HOURLY_HEATMAP` (7×24, Mon..Sun × MSK hours, revenue), `METHOD_SPLIT`,
+  `COUNTRY_SPLIT`, `CATEGORY_SPLIT`, `SERVER_SPLIT`, `FUNNEL`, `FORECAST` (next 30 days low/mid/high), `ONLINE_NOW`,
+  `BUYERS_ONLINE`, `CAMPAIGN_REVENUE_30D`.
+- Money: `BALANCE`, `PAYOUTS` (daily, one failed + retried via backup bank), `TAX` (НПД limit tracker data).
+- Feed: `ACTIVITY` (newest first).
+- Selectors: `getOrders({status|"issues", method, serverId, query, days, productId, playerId})` (newest first),
+  `getOrder(id)` (with trace), `getPlayer(id)`, `getPlayerByName(name)`, `getPlayers({segment, query, online, flagged,
+  sort})`, `getProduct(id)`, `getServer(id)`, `getOrdersByPlayer(id)`, `getOrdersByProduct(id)`, `getDailySeries(days)`,
+  `getKpis(7|30|90)` (+ `pct(cur, prev)`), `getIssues()`, `getTopProducts(n)`, `getRecentOrders(n)`, `isPaid(order)`.
+- Other libs: `@/lib/games` (`GAMES`, `GAME_LIST` — 16 games with integration info and rules),
+  `@/lib/payments` (`PAYMENT_METHODS` with `availability: live|soon`, `LIVE_METHODS`, `COUNTRIES`, `PLAN_FEES`,
+  `PLAN_META`, `MOBILE_FEE`, `feeRateFor(turnover)`), `@/lib/command-library` (`COMMAND_LIBRARY`, `VARIABLES`,
+  `templatesFor(game)`, `pluginsFor(game)`, `unknownVariables(tpl, game)`).
+- `ORDERS`/`PLAYERS` are large: filter/paginate on the server (URL `searchParams`) and pass only the visible slice to
+  client components. Never ship the whole array to the browser.
+
+Business facts to keep consistent in copy: one all-inclusive rate **4,9 %** (auto tiers: 3,9 % from 500 тыс ₽/мес,
+2,9 % from 3 млн ₽/мес), no subscription; daily payouts at **12:00 МСК** to card/СБП with a backup bank route;
+card payments held 24 h, СБП without hold; automatic НПД receipts via «Мой налог» partner access, 54-ФЗ cloud
+receipts for ИП/ООО; RU rails live (СБП, Мир, SberPay, T-Pay, ЮMoney, mobile balance), Kaspi/ЕРИП/foreign cards
+«скоро»; **no crypto for RU players**; Discord is blocked in RU → Telegram/VK first; FiveM requires Tebex → GTA RP
+means RAGE:MP / alt:V.
+
 ## Data rules
 
 - Import data from `@/lib/mock` (types from `@/lib/mock/types`, labels/tones from `@/lib/mock/meta`).
