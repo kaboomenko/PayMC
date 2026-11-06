@@ -89,7 +89,7 @@ export function SiteFooter() {
               реквизиты оператора
             </Link>
           </p>
-          <p className="font-mono">СБП · Мир · SberPay · T-Pay · ЮMoney · Kaspi · ЕРИП</p>
+          <p className="font-mono">СБП · Мир · SberPay · T-Pay · ЮMoney · баланс телефона</p>
         </div>
       </div>
     </footer>

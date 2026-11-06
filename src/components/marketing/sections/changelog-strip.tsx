@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Section } from "@/components/marketing/section";
 import { StatusDot } from "@/components/ui/status-dot";
@@ -22,20 +20,11 @@ export function ChangelogStrip() {
           <span className="text-fg-4">релиз каждую неделю</span>
         </p>
         <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href="/status"
-            className="inline-flex h-7 items-center gap-2 rounded-full border border-line bg-surface px-3 text-[12.5px] text-fg-2 transition-colors hover:border-line-strong hover:text-fg"
-          >
+          <span className="inline-flex h-7 items-center gap-2 rounded-full border border-line bg-surface px-3 text-[12.5px] text-fg-2">
             <StatusDot tone="ok" pulse className="size-1.5" />
             Все системы работают
             <span className="font-mono text-[11.5px] text-fg-3 nums">99,98 % за 90 дней</span>
-          </Link>
-          <Link
-            href="/changelog"
-            className="inline-flex h-7 items-center gap-1 rounded-md px-2 text-[12.5px] text-fg-3 transition-colors hover:bg-white/[0.04] hover:text-fg"
-          >
-            Весь журнал <ArrowUpRight className="size-3.5" />
-          </Link>
+          </span>
         </div>
       </div>
 
