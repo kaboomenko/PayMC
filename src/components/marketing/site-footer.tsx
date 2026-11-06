@@ -8,9 +8,9 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
       { label: "Трассировка доставки", href: "/#delivery" },
       { label: "Кампании в игре", href: "/#growth" },
       { label: "Выплаты и сплит", href: "/#money" },
+      { label: "Калькулятор", href: "/#calculator" },
       { label: "Цены", href: "/#pricing" },
-      { label: "Демо-магазин", href: "/s/arctic" },
-      { label: "Что нового", href: "/changelog" },
+      { label: "Что нового", href: "/#changelog" },
     ],
   },
   {
@@ -25,23 +25,23 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
     ],
   },
   {
-    title: "Разработчикам",
+    title: "Попробовать",
     links: [
-      { label: "Документация", href: "/docs" },
-      { label: "REST API", href: "/docs" },
-      { label: "Вебхуки", href: "/docs" },
-      { label: "Плагин и моды", href: "/docs" },
-      { label: "Статус систем", href: "/status" },
+      { label: "Демо-кабинет", href: "/dashboard" },
+      { label: "Демо-витрина", href: "/s/arctic" },
+      { label: "Создать магазин", href: "/signup" },
+      { label: "Переезд с другой площадки", href: "/#migrate" },
+      { label: "Дизайн-система", href: "/design" },
     ],
   },
   {
-    title: "Компания",
+    title: "Документы",
     links: [
-      { label: "Поддержка в Telegram", href: "https://t.me/paymc" },
-      { label: "Партнёрская программа", href: "/#money" },
-      { label: "Оферта", href: "/legal/offer" },
-      { label: "Политика конфиденциальности", href: "/legal/privacy" },
-      { label: "Правила для магазинов", href: "/legal/rules" },
+      { label: "Оферта для владельцев", href: "/legal#offer" },
+      { label: "Правила для игроков", href: "/legal#players" },
+      { label: "Возвраты", href: "/legal#refunds" },
+      { label: "Персональные данные", href: "/legal#privacy" },
+      { label: "Реквизиты", href: "/legal#requisites" },
     ],
   },
 ];
@@ -57,7 +57,7 @@ export function SiteFooter() {
             самозанятых.
           </p>
           <Link
-            href="/status"
+            href="/#changelog"
             className="mt-6 inline-flex h-8 items-center gap-2 rounded-full border border-line bg-surface/60 px-3 text-xs text-fg-2 transition-colors hover:border-line-strong"
           >
             <span className="size-2 rounded-full bg-ok shadow-[0_0_8px_rgb(63_209_143/0.8)]" />
@@ -83,7 +83,12 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-line-soft">
         <div className="container-page flex flex-col gap-3 py-6 text-xs text-fg-4 sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 PayMC. Реквизиты оператора и оферта — на странице «Оферта».</p>
+          <p>
+            © 2026 PayMC · Данные хранятся в РФ ·{" "}
+            <Link href="/legal#requisites" className="transition-colors hover:text-fg-2">
+              реквизиты оператора
+            </Link>
+          </p>
           <p className="font-mono">СБП · Мир · SberPay · T-Pay · ЮMoney · Kaspi · ЕРИП</p>
         </div>
       </div>

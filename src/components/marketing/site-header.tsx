@@ -14,7 +14,7 @@ export const MARKETING_NAV = [
   { href: "/#money", label: "Деньги" },
   { href: "/#games", label: "Игры" },
   { href: "/#pricing", label: "Цены" },
-  { href: "/docs", label: "Документация" },
+  { href: "/#faq", label: "Вопросы" },
 ];
 
 export function SiteHeader() {
