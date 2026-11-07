@@ -135,7 +135,7 @@ export function DeliveryPanel({ demo, className }: { demo: DeliveryDemo; classNa
         <div className="ml-auto hidden h-7 w-64 items-center gap-2 rounded-md border border-line bg-surface px-2 text-[12px] text-fg-4 md:flex">
           <Search className="size-3.5" />
           <span className="flex-1 truncate">Ник, номер заказа или чека</span>
-          <Kbd className="h-[18px] text-[10px]">/</Kbd>
+          <Kbd className="h-[18px] text-[11px]">/</Kbd>
         </div>
         <p className="ml-auto flex shrink-0 items-center gap-2 font-mono text-[11px] text-fg-3 md:ml-0">
           <StatusDot tone="ok" className="size-1.5" />
@@ -172,12 +172,12 @@ export function DeliveryPanel({ demo, className }: { demo: DeliveryDemo; classNa
         {/* orders list + server queues */}
         <div className="flex min-w-0 flex-col border-b border-line lg:border-r lg:border-b-0">
           <div className="flex h-10 items-center justify-between border-b border-line-soft px-3.5">
-            <p className="label-mono text-[10px] text-fg-4">
+            <p className="label-mono text-fg-4">
               Сегодня <span className="text-fg-3">· последние {orders.length}</span>
             </p>
             <span className="hidden items-center gap-1 text-[11px] text-fg-4 sm:flex">
-              <Kbd className="h-[18px] min-w-[18px] text-[10px]">↑</Kbd>
-              <Kbd className="h-[18px] min-w-[18px] text-[10px]">↓</Kbd>
+              <Kbd className="h-[18px] min-w-[18px] text-[11px]">↑</Kbd>
+              <Kbd className="h-[18px] min-w-[18px] text-[11px]">↓</Kbd>
             </span>
           </div>
 
@@ -209,7 +209,7 @@ export function DeliveryPanel({ demo, className }: { demo: DeliveryDemo; classNa
                     </span>
                     <span className="mt-1 flex items-center justify-between gap-2">
                       <span className="truncate text-[12px] text-fg-3">{o.item}</span>
-                      <Badge tone={st.tone} className="shrink-0 font-mono text-[10.5px]">
+                      <Badge tone={st.tone} className="shrink-0 font-mono text-[11px]">
                         {st.label}
                       </Badge>
                     </span>
@@ -234,7 +234,7 @@ export function DeliveryPanel({ demo, className }: { demo: DeliveryDemo; classNa
             ))}
           </dl>
           <div className="hidden border-t border-line-soft p-3.5 lg:block">
-            <p className="label-mono mb-2.5 text-[10px] text-fg-4">Очереди серверов</p>
+            <p className="label-mono mb-2.5 text-fg-4">Очереди серверов</p>
             <ul className="space-y-2">
               {queue.map((q) => (
                 <li key={q.name} className="flex items-baseline gap-2.5 text-[12px]">
@@ -416,7 +416,7 @@ function InGamePreview({ data, player, keyId }: { data: InGame; player: string; 
   const label = data.kind === "empty" ? "Что увидит игрок" : "Что увидел игрок";
   return (
     <div className="border-t border-line bg-[#06080c] px-4 py-3 sm:px-5">
-      <p className="label-mono mb-2 flex items-center justify-between text-[10px] text-fg-4">
+      <p className="label-mono mb-2 flex items-center justify-between text-fg-4">
         <span>{label}</span>
         <span className="font-mono normal-case tracking-normal text-fg-4">{player}</span>
       </p>

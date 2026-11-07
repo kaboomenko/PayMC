@@ -92,7 +92,7 @@ export function Storefront({
         <section className="grid gap-3 pt-8 @3xl:pt-12 @4xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] @4xl:gap-4">
           <div className="flex flex-col gap-4">
             <div>
-              <p className="label-mono text-[10.5px] text-(--st-accent-text)">Донат-магазин · {data.game === "minecraft" ? "Minecraft 1.21" : GAMES[data.game].name}</p>
+              <p className="label-mono text-fg-4">Донат-магазин · {data.game === "minecraft" ? "Minecraft 1.21" : GAMES[data.game].name}</p>
               <h1 className="mt-2 font-display text-[30px] leading-[1.02] font-medium tracking-[-0.035em] text-fg @3xl:text-[44px]">
                 Поддержите {data.name} —<span className="text-fg-3"> покупка придёт в игру сразу</span>
               </h1>

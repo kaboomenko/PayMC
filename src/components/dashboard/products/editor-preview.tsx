@@ -26,7 +26,7 @@ export function PreviewCard({
   return (
     <section id={id} className={cn("scroll-mt-20 rounded-xl border border-line bg-surface shadow-raise", className)}>
       <div className="flex items-center justify-between gap-3 border-b border-line-soft px-4 py-2.5">
-        <h2 className="label-mono text-[10.5px] text-fg-3">{title}</h2>
+        <h2 className="label-mono text-fg-3">{title}</h2>
         {aside}
       </div>
       {children}
@@ -65,7 +65,7 @@ export function StorefrontPreview({
   const duration = durationLabel(durationDays);
   const visiblePerks = perks.filter((p) => p.trim()).slice(0, 6);
   return (
-    <PreviewCard title="Карточка в магазине" aside={<span className="font-mono text-[10.5px] text-fg-4">{domain}</span>}>
+    <PreviewCard title="Карточка в магазине" aside={<span className="font-mono text-[11px] text-fg-4">{domain}</span>}>
       <div className="bg-canvas/60 p-4">
         <article className="rounded-lg border border-line bg-surface-2/70 p-4">
           <div className="flex items-start gap-3.5">
@@ -178,7 +178,7 @@ export function ChatPreview({
     .replaceAll("{expires}", until || "сразу");
   const broadcast = price >= 250;
   return (
-    <PreviewCard title="Сообщение игроку в чате" aside={<span className="font-mono text-[10.5px] text-fg-4">Minecraft · чат</span>}>
+    <PreviewCard title="Сообщение игроку в чате" aside={<span className="font-mono text-[11px] text-fg-4">Minecraft · чат</span>}>
       <div className="relative overflow-hidden bg-[#06080c] px-4 py-3.5">
         <div aria-hidden className="absolute inset-0 bg-grid-sm opacity-40" />
         <div className="relative space-y-1 font-mono text-[12px] leading-[1.6]">
@@ -244,7 +244,7 @@ export function RulesCheck({
   }
 
   return (
-    <PreviewCard id="rules-check" title={`Правила ${gameName}`} aside={<span className="font-mono text-[10.5px] text-fg-4">проверка на лету</span>}>
+    <PreviewCard id="rules-check" title={`Правила ${gameName}`} aside={<span className="font-mono text-[11px] text-fg-4">проверка на лету</span>}>
       <div className="relative px-4 py-3.5">
         <span aria-hidden className={cn("absolute top-4 bottom-4 left-0 w-[2px] rounded-r-full", v.bar)} />
         <p className={cn("flex items-center gap-2 text-[13.5px] font-semibold", v.tone)} aria-live="polite">
@@ -264,7 +264,7 @@ export function RulesCheck({
           <ul className="mt-3 space-y-1.5">
             {[...places.values()].map(({ hit, terms }) => (
               <li key={`${hit.where}-${hit.index ?? 0}`} className="flex items-start gap-2 rounded-md border border-line-soft bg-surface-2/60 px-2.5 py-2 text-xs">
-                <span className="mt-px shrink-0 font-mono text-[10.5px] text-fg-4">
+                <span className="mt-px shrink-0 font-mono text-[11px] text-fg-4">
                   {WHERE_LABEL[hit.where]}
                   {hit.index !== undefined ? ` ${hit.index + 1}` : ""}
                 </span>

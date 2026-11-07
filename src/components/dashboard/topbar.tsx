@@ -134,7 +134,7 @@ function Notifications({ data, now }: { data: ShellData; now: number }) {
         <Button variant="ghost" size="icon-sm" aria-label="Уведомления" className="relative">
           <Bell />
           {unread ? (
-            <span className="absolute top-1 right-1 flex size-3.5 items-center justify-center rounded-full bg-azure-500 font-mono text-[9px] font-medium text-white ring-2 ring-canvas">
+            <span className="absolute top-0.5 right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-azure-500 px-1 font-mono text-[11px] leading-none font-medium text-white ring-2 ring-canvas">
               {unread}
             </span>
           ) : null}
@@ -162,7 +162,7 @@ function Notifications({ data, now }: { data: ShellData; now: number }) {
                   {n.description ? <p className="mt-0.5 truncate text-xs text-fg-3">{n.description}</p> : null}
                 </div>
                 <div className="shrink-0 text-right">
-                  <p className="font-mono text-[10.5px] text-fg-4">{formatRelative(n.at, now)}</p>
+                  <p className="font-mono text-[11px] text-fg-4">{formatRelative(n.at, now)}</p>
                   {n.amount ? <p className="mt-0.5 font-mono text-[11px] text-fg-2 nums">{formatMoney(n.amount)}</p> : null}
                 </div>
               </div>

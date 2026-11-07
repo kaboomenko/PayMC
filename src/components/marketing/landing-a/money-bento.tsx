@@ -39,7 +39,7 @@ export function Cell({
     <div className={cn("flex min-w-0 flex-col rounded-xl border border-line bg-surface p-4 shadow-raise sm:p-5", className)}>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="label-mono text-[10px] text-fg-4">{kicker}</p>
+          <p className="label-mono text-fg-4">{kicker}</p>
           <h3 className="mt-1.5 text-[16px] font-medium text-fg">{title}</h3>
         </div>
         {aside ? <div className="shrink-0">{aside}</div> : null}
@@ -144,7 +144,7 @@ function PayoutsCell({
                 active ? "bg-white/[0.05]" : "hover:bg-white/[0.03]",
               )}
             >
-              <span className={cn("hidden font-mono text-[10.5px] nums sm:block", active ? "text-fg" : "text-fg-4")}>
+              <span className={cn("hidden font-mono text-[11px] nums sm:block", active ? "text-fg" : "text-fg-4")}>
                 {formatNumber(d.amount)}
               </span>
               <span className="flex h-[92px] w-full items-end justify-center sm:h-[104px]">
@@ -168,7 +168,7 @@ function PayoutsCell({
                   ) : null}
                 </span>
               </span>
-              <span className={cn("font-mono text-[10.5px] whitespace-nowrap", active ? "text-fg-2" : "text-fg-4")}>
+              <span className={cn("font-mono text-[11px] whitespace-nowrap", active ? "text-fg-2" : "text-fg-4")}>
                 {formatWeekday(d.at)} {dayNum(d.at)}
               </span>
               <StatusGlyph status={d.status} />
@@ -292,7 +292,7 @@ function FlowNode({
       </p>
       {/* the status badge sits on the meta line, so a narrow node never clips its title */}
       <div className="mt-0.5 flex items-baseline justify-between gap-2">
-        <p className="min-w-0 truncate font-mono text-[10.5px] text-fg-4">{meta}</p>
+        <p className="min-w-0 truncate font-mono text-[11px] text-fg-4">{meta}</p>
         {badge ? <span className="shrink-0">{badge}</span> : null}
       </div>
     </div>
@@ -342,7 +342,7 @@ function RouteCell({
               title="Основной"
               meta="банк выплат"
               state={failover ? "down" : "active"}
-              badge={failover ? <span className="font-mono text-[10px] text-bad">отклонил</span> : null}
+              badge={failover ? <span className="font-mono text-[11px] text-bad">отклонил</span> : null}
             />
           </div>
           <div className="pl-1.5">
@@ -351,7 +351,7 @@ function RouteCell({
               title="Резервный"
               meta="второй банк"
               state={failover ? "active" : "standby"}
-              badge={<span className={cn("font-mono text-[10px]", failover ? "text-ice-300" : "text-fg-4")}>{failover ? `+${rerouteMin}\u00a0мин` : "ждёт"}</span>}
+              badge={<span className={cn("font-mono text-[11px]", failover ? "text-ice-300" : "text-fg-4")}>{failover ? `+${rerouteMin}\u00a0мин` : "ждёт"}</span>}
             />
           </div>
         </div>
@@ -413,13 +413,13 @@ function SplitCell({ members, day, className }: { members: SplitMember[]; day: P
             </span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[13px] text-fg">{m.name}</span>
-              <span className="block truncate font-mono text-[10.5px] text-fg-4">
+              <span className="block truncate font-mono text-[11px] text-fg-4">
                 {m.role} · {m.destination}
               </span>
             </span>
             <span className="text-right">
               <CountUp value={day.splits[i] ?? 0} className="block font-mono text-[13px] text-fg nums" />
-              <span className="font-mono text-[10.5px] text-fg-4 nums">{m.pct} %</span>
+              <span className="font-mono text-[11px] text-fg-4 nums">{m.pct} %</span>
             </span>
           </li>
         ))}

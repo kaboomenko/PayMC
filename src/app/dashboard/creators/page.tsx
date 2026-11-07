@@ -65,7 +65,7 @@ export default async function CreatorsPage({ searchParams }: PageProps<"/dashboa
     <>
       <PageHeader
         title="Партнёры"
-        description="Коды блогеров: доля начисляется сама, выплата — в один клик с чеком, у блогера свой кабинет со статистикой."
+        description="Коды блогеров: доля начисляется сама, выплата — в один клик с чеком, у блогера свой кабинет со статистикой"
         actions={
           <Suspense>
             <QueryButton param="invite" variant="primary" size="sm">

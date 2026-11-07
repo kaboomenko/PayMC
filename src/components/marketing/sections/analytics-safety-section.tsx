@@ -145,7 +145,7 @@ export function AnalyticsSafetySection() {
         </div>
 
         <ul className="divide-y divide-line-soft border-y border-line-soft lg:col-span-7">
-          <SpecRow title="Антифрод до оплаты" desc="Риск от 0 до 100 ещё до списания: устройство, IP и VPN, сколько карт пробовали, история в сети PayMC.">
+          <SpecRow title="Антифрод до оплаты" desc="Риск от 0 до 100 ещё до списания: устройство, IP и VPN, сколько карт пробовали, история в сети PayMC">
             <ul className="w-full space-y-1.5 sm:w-[260px]">
               {riskRows.map((r) => {
                 const tone = riskTone(r.risk);
@@ -159,7 +159,7 @@ export function AnalyticsSafetySection() {
                       />
                     </span>
                     <span className={cn("text-right nums", tone === "ok" ? "text-ok" : tone === "warn" ? "text-warn" : "text-bad")}>{r.risk}</span>
-                    <span className="col-span-3 -mt-1 text-[10px] text-fg-4">{r.verdict}</span>
+                    <span className="col-span-3 -mt-1 text-[11px] text-fg-4">{r.verdict}</span>
                   </li>
                 );
               })}
@@ -167,7 +167,7 @@ export function AnalyticsSafetySection() {
           </SpecRow>
           <SpecRow
             title="Общий чёрный список"
-            desc="Карта или аккаунт, отметившиеся чарджбэком в одном проекте PayMC, не пройдут оплату ни в одном другом."
+            desc="Карта или аккаунт, отметившиеся чарджбэком в одном проекте PayMC, не пройдут оплату ни в одном другом"
           >
             <p className="flex w-full items-center justify-between gap-3 rounded-md border border-bad/20 bg-bad-soft px-2.5 py-2 font-mono text-[11px] sm:w-[260px]">
               <span className="text-fg-2">карта •• 7731</span>
@@ -199,14 +199,14 @@ export function AnalyticsSafetySection() {
               </p>
             </div>
           </SpecRow>
-          <SpecRow title="Пакет доказательств для банка" desc="Трасса выдачи, IP, вход в игру после покупки и наигранные часы — один PDF для ответа на спор.">
+          <SpecRow title="Пакет доказательств для банка" desc="Трасса выдачи, IP, вход в игру после покупки и наигранные часы — один PDF для ответа на спор">
             <div className="flex w-full flex-wrap gap-1 sm:w-[260px]">
               {["trace.pdf", "logins.csv", "playtime.csv", "receipt.pdf"].map((f) => (
-                <span key={f} className="rounded-xs bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10.5px] text-fg-2 ring-1 ring-line ring-inset">
+                <span key={f} className="rounded-xs bg-white/[0.05] px-1.5 py-0.5 font-mono text-[11px] text-fg-2 ring-1 ring-line ring-inset">
                   {f}
                 </span>
               ))}
-              <span className="w-full pt-1 font-mono text-[10.5px] text-fg-4">собирается за 2&nbsp;с · отправка в&nbsp;банк в&nbsp;1&nbsp;клик</span>
+              <span className="w-full pt-1 font-mono text-[11px] text-fg-4">собирается за 2&nbsp;с · отправка в&nbsp;банк в&nbsp;1&nbsp;клик</span>
             </div>
           </SpecRow>
         </ul>

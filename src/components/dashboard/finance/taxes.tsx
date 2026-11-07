@@ -51,7 +51,7 @@ export function TaxesPanel({ tax, receipts, now }: { tax: TaxInfo; receipts: Rec
               <span key={m} aria-hidden className="absolute -top-1.5 -bottom-1.5 w-px bg-fg-3" style={{ left: `${m}%` }} />
             ))}
           </div>
-          <div className="relative mt-2 h-9 font-mono text-[10.5px]">
+          <div className="relative mt-2 h-9 font-mono text-[11px]">
             <span className="absolute left-0 text-fg-4">0 ₽</span>
             <span className="absolute -translate-x-1/2 text-center text-fg-3" style={{ left: "80%" }}>
               80 %
@@ -188,7 +188,7 @@ export function TaxesPanel({ tax, receipts, now }: { tax: TaxInfo; receipts: Rec
             {["Регистрация ИП онлайн — 3 рабочих дня", "УСН «Доходы» 6 % — уведомление в течение 20 дней", "Облачная касса и чеки по 54-ФЗ — подключим сами", "Выплаты на расчётный счёт — история сохранится"].map(
               (s, i) => (
                 <li key={s} className="flex gap-2.5">
-                  <span className="flex size-5 shrink-0 items-center justify-center rounded-full border border-line-strong font-mono text-[10.5px] text-fg-3">
+                  <span className="flex size-5 shrink-0 items-center justify-center rounded-full border border-line-strong font-mono text-[11px] text-fg-3">
                     {i + 1}
                   </span>
                   <span className="text-fg-2">{s}</span>
@@ -304,7 +304,7 @@ function IpWizard({ open, onOpenChange, projected }: { open: boolean; onOpenChan
                   className="group w-full text-left"
                 >
                   <span className={cn("block h-1 rounded-full transition-colors", i <= step ? "bg-azure-500" : "bg-white/[0.08] group-hover:bg-white/[0.14]")} />
-                  <span className={cn("mt-1.5 block font-mono text-[10.5px]", i === step ? "text-fg-2" : "text-fg-4")}>Шаг {i + 1}</span>
+                  <span className={cn("mt-1.5 block font-mono text-[11px]", i === step ? "text-fg-2" : "text-fg-4")}>Шаг {i + 1}</span>
                 </button>
               </li>
             ))}

@@ -165,7 +165,7 @@ export function StorefrontBuilder({ data }: { data: StoreData }) {
             <div className="flex h-8 min-w-0 flex-1 items-center gap-2 rounded-md border border-line-soft bg-canvas/60 px-2.5">
               <Lock className="size-3.5 shrink-0 text-ok" aria-hidden />
               <span className="truncate font-mono text-[12px] text-fg-2">{data.host}</span>
-              {dirty ? <span className="ml-auto shrink-0 rounded-sm bg-warn-soft px-1.5 py-0.5 text-[10.5px] text-warn">черновик</span> : null}
+              {dirty ? <span className="ml-auto shrink-0 rounded-sm bg-warn-soft px-1.5 py-0.5 text-[11px] text-warn">черновик</span> : null}
             </div>
             <Segmented
               value={device}
@@ -337,7 +337,7 @@ function BlocksPanel({ blocks, onChange, data }: { blocks: StoreBlock[]; onChang
                 !b.visible && "border-dashed bg-transparent",
               )}
             >
-              <span className="w-4 font-mono text-[10.5px] text-fg-4 nums">{String(i + 1).padStart(2, "0")}</span>
+              <span className="w-4 font-mono text-[11px] text-fg-4 nums">{String(i + 1).padStart(2, "0")}</span>
               <span className="min-w-0 flex-1">
                 <span className={cn("flex items-center gap-1.5 text-[13px] font-medium", b.visible ? "text-fg" : "text-fg-3")}>
                   {meta.label}
@@ -482,7 +482,7 @@ function ChannelsPanel({ data }: { data: StoreData }) {
         )}
       </div>
       <div className="flex items-center gap-3 rounded-lg border border-dashed border-line px-3 py-2.5 opacity-70">
-        <span className="flex size-4 shrink-0 items-center justify-center font-mono text-[10px] font-bold text-fg-3">VK</span>
+        <span className="flex size-4 shrink-0 items-center justify-center font-mono text-[11px] font-bold text-fg-3">VK</span>
         <div className="min-w-0 flex-1">
           <p className="text-[13px] font-medium text-fg">VK Mini App</p>
           <p className="truncate text-[11.5px] text-fg-3">Витрина в сообществе ВКонтакте</p>

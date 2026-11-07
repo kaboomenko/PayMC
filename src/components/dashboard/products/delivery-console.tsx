@@ -93,8 +93,8 @@ export function DeliveryConsole({
   return (
     <div className={cn("overflow-hidden rounded-lg border border-line bg-[#06080c]", className)}>
       <div className="flex h-8 items-center justify-between border-b border-line-soft px-3">
-        <span className="label-mono text-[10px] text-fg-4">{title}</span>
-        <span className="flex items-center gap-1.5 font-mono text-[10.5px] text-fg-4">
+        <span className="label-mono text-fg-4">{title}</span>
+        <span className="flex items-center gap-1.5 font-mono text-[11px] text-fg-4">
           <span className={cn("size-1.5 rounded-full", running ? "animate-pulse-dot bg-ice-400 text-ice-400" : (result?.dot ?? "bg-fg-4"))} />
           {running ? "выполняется" : (result?.label ?? "ожидание")}
         </span>

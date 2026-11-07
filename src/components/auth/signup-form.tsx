@@ -46,7 +46,7 @@ export function SignupForm() {
 
   return (
     <div>
-      <p className="label-mono text-[10.5px] text-azure-300">Новый магазин</p>
+      <p className="label-mono text-fg-3">Новый магазин</p>
       <h1 className="mt-3 font-display text-[32px] leading-[1.05] font-semibold tracking-[-0.035em] text-fg">Создайте магазин</h1>
       <p className="mt-2 text-[14px] leading-relaxed text-fg-3">
         Около 10&nbsp;минут до первой продажи. Без абонентской платы: 4,9&nbsp;% с оборота, эквайринг и чеки включены.

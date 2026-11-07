@@ -124,7 +124,7 @@ export function CommandBuilder({ className }: { className?: string }) {
       <div className="grid md:grid-cols-[230px_minmax(0,1fr)]">
         {/* actions */}
         <div role="radiogroup" aria-label="Что выдать" className="border-b border-line-soft p-1.5 md:border-r md:border-b-0">
-          <p className="label-mono px-2.5 pt-1.5 pb-2 text-[10px] text-fg-4">Что выдать</p>
+          <p className="label-mono px-2.5 pt-1.5 pb-2 text-fg-4">Что выдать</p>
           {actions.map((t) => {
             const active = t.id === action.id;
             return (
@@ -167,7 +167,7 @@ export function CommandBuilder({ className }: { className?: string }) {
           >
             <div>
               <div className="flex items-center justify-between gap-3">
-                <p className="label-mono text-[10px] text-fg-4">Шаблон в товаре</p>
+                <p className="label-mono text-fg-4">Шаблон в товаре</p>
                 <CopyButton value={action.template} label="Скопировать шаблон команды" className="-my-1 size-6" />
               </div>
               <p className="mt-1.5 font-mono text-[13px] leading-relaxed break-words text-fg">
@@ -201,7 +201,7 @@ export function CommandBuilder({ className }: { className?: string }) {
             ) : null}
 
             <div className="overflow-hidden rounded-lg border border-line bg-[#06080c]">
-              <p className="label-mono flex items-center justify-between border-b border-line-soft px-3 py-2 text-[10px] text-fg-4">
+              <p className="label-mono flex items-center justify-between border-b border-line-soft px-3 py-2 text-fg-4">
                 <span>Консоль сервера</span>
                 <span className="font-mono normal-case tracking-normal">{meta.runtime}</span>
               </p>

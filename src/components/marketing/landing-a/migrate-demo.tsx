@@ -139,7 +139,7 @@ export function MigrateDemo({ className }: { className?: string }) {
           onKeyDown={onKey}
           className="border-b border-line-soft p-1.5 sm:border-r sm:border-b-0"
         >
-          <p className="label-mono px-2.5 pt-1.5 pb-2 text-[10px] text-fg-4">Откуда</p>
+          <p className="label-mono px-2.5 pt-1.5 pb-2 text-fg-4">Откуда</p>
           {SOURCES.map((s) => {
             const active = s.id === sourceId;
             return (
@@ -157,7 +157,7 @@ export function MigrateDemo({ className }: { className?: string }) {
               >
                 {active ? <span aria-hidden className="absolute inset-y-2 left-0 w-[2px] rounded-r-full bg-azure-400" /> : null}
                 <span className="truncate">{s.name}</span>
-                <span className="shrink-0 font-mono text-[10px] text-fg-4">{s.how}</span>
+                <span className="shrink-0 font-mono text-[11px] text-fg-4">{s.how}</span>
               </button>
             );
           })}
@@ -208,7 +208,7 @@ function ImportLog({ source }: { source: Source }) {
   return (
     <div ref={ref} className="flex-1 border-t border-line bg-[#06080c]">
       <div className="flex items-center justify-between gap-3 px-4 pt-3 sm:px-5">
-        <p className="label-mono text-[10px] text-fg-4">
+        <p className="label-mono text-fg-4">
           Журнал импорта <span className="text-fg-3">· {source.name}</span>
         </p>
         <p className={cn("font-mono text-[11px] nums", done ? "text-ok" : "text-ice-300")}>

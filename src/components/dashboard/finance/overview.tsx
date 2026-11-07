@@ -254,7 +254,7 @@ function RecentPayoutBars({ data }: { data: FinanceData }) {
           </Tooltip>
         ))}
       </div>
-      <div className="mt-1.5 flex justify-between font-mono text-[10.5px] text-fg-4">
+      <div className="mt-1.5 flex justify-between font-mono text-[11px] text-fg-4">
         <span>{list[0] ? formatDateShort(list[0].createdAt) : ""}</span>
         <span className="flex items-center gap-3">
           <span className="flex items-center gap-1">
@@ -444,7 +444,7 @@ function FeeTierCard({ data, className }: { data: FinanceData; className?: strin
           <div className="absolute inset-y-0 left-0 rounded-full bg-azure-500" style={{ width: `${pctOf(tier.monthTurnover)}%` }} />
           <span aria-hidden className="absolute -top-1 -bottom-1 w-px bg-fg-2" style={{ left: `${pctOf(tier.floor)}%` }} />
         </div>
-        <div className="relative mt-1.5 h-8 font-mono text-[10.5px] text-fg-4">
+        <div className="relative mt-1.5 h-8 font-mono text-[11px] text-fg-4">
           <span className="absolute left-0">0</span>
           <span className="absolute -translate-x-1/2 text-center text-fg-3" style={{ left: `${pctOf(tier.floor)}%` }}>
             500 тыс

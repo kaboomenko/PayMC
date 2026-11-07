@@ -48,7 +48,7 @@ export function Sidebar({
         >
           <Search className="size-3.5" />
           <span className="flex-1 text-left">Поиск и команды</span>
-          <Kbd className="h-[18px] text-[10px]">⌘K</Kbd>
+          <Kbd className="h-[18px] text-[11px]">⌘K</Kbd>
         </button>
       </div>
 
@@ -84,7 +84,7 @@ export function Sidebar({
                       {badge ? (
                         <span
                           className={cn(
-                            "flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 font-mono text-[10px] font-semibold",
+                            "flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 font-mono text-[11px] font-semibold",
                             badge.tone === "warn" ? "bg-warn-soft text-warn" : "bg-bad-soft text-bad",
                           )}
                         >

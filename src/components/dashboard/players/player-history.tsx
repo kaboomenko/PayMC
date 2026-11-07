@@ -71,7 +71,7 @@ export function PlayerHistory({ rows, total, allHref }: { rows: PlayerOrderRow[]
                 <th
                   key={h}
                   className={cn(
-                    "h-9 px-3 text-left label-mono tracking-[0.07em] whitespace-nowrap text-fg-3 first:pl-5 last:pr-5",
+                    "h-9 px-3 text-left label-mono whitespace-nowrap text-fg-3 first:pl-5 last:pr-5",
                     (i === 2 || i === 4) && "text-right",
                   )}
                 >
@@ -108,7 +108,7 @@ export function PlayerHistory({ rows, total, allHref }: { rows: PlayerOrderRow[]
                         <span className="truncate text-fg-2">{itemsText(o)}</span>
                         {o.manual ? (
                           <Tooltip content={`Выдано вручную · ${o.manual.reason}`}>
-                            <span className="inline-flex shrink-0 items-center gap-1 rounded-xs bg-azure-500/12 px-1.5 py-px text-[10.5px] text-azure-300">
+                            <span className="inline-flex shrink-0 items-center gap-1 rounded-xs bg-azure-500/12 px-1.5 py-px text-[11px] text-azure-300">
                               <Hand className="size-3" /> вручную
                             </span>
                           </Tooltip>
@@ -160,7 +160,7 @@ function HistoryRowBody({ o, meta, items }: { o: PlayerOrderRow; meta: (typeof o
       <span className="mt-0.5 flex min-w-0 items-center gap-2 text-[12.5px] text-fg-3">
         <span className="min-w-0 truncate">{items}</span>
         {o.manual ? (
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-xs bg-azure-500/12 px-1.5 py-px text-[10.5px] text-azure-300">
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-xs bg-azure-500/12 px-1.5 py-px text-[11px] text-azure-300">
             <Hand className="size-3" /> вручную
           </span>
         ) : null}

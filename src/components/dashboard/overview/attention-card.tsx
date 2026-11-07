@@ -105,7 +105,7 @@ export function AttentionCard({ data, now }: { data: AttentionData; now: number 
                           </Link>
                           <span className="text-fg-3"> · {state === "sent" ? "отправили, ждём сервер" : o.item}</span>
                         </span>
-                        <span className="hidden shrink-0 font-mono text-[10.5px] text-fg-4 nums sm:inline xl:hidden 2xl:inline" title={formatMoney(o.amount)}>
+                        <span className="hidden shrink-0 font-mono text-[11px] text-fg-4 nums sm:inline xl:hidden 2xl:inline" title={formatMoney(o.amount)}>
                           {formatRelative(o.createdAt, now)}
                         </span>
                         <Button

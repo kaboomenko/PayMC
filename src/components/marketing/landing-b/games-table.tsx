@@ -41,7 +41,7 @@ export function GamesTable() {
               )}
             >
               {f.label}
-              <span className="font-mono text-[10.5px] text-fg-4 nums">{count(f.value)}</span>
+              <span className="font-mono text-[11px] text-fg-4 nums">{count(f.value)}</span>
             </button>
           ))}
         </div>
@@ -57,7 +57,7 @@ export function GamesTable() {
           <col className="w-[24%] sm:w-[20%] lg:w-[13%]" />
         </colgroup>
         <thead>
-          <tr className="border-b border-line text-left label-mono tracking-[0.07em] text-fg-3">
+          <tr className="border-b border-line text-left label-mono text-fg-3">
             <th className="h-9 pl-3 font-medium sm:pl-4">Игра</th>
             <th className="hidden h-9 px-3 font-medium lg:table-cell">Как подключается</th>
             <th className="hidden h-9 px-3 font-medium sm:table-cell">Платформы</th>
@@ -97,11 +97,11 @@ export function GamesTable() {
                   <td className="hidden px-3 sm:table-cell">
                     <span className="flex flex-wrap gap-1 py-2">
                       {g.platforms.slice(0, 4).map((p) => (
-                        <span key={p} className="rounded-xs bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10.5px] text-fg-2 ring-1 ring-line ring-inset">
+                        <span key={p} className="rounded-xs bg-white/[0.05] px-1.5 py-0.5 font-mono text-[11px] text-fg-2 ring-1 ring-line ring-inset">
                           {p}
                         </span>
                       ))}
-                      {g.platforms.length > 4 ? <span className="px-1 py-0.5 font-mono text-[10.5px] text-fg-4">+{g.platforms.length - 4}</span> : null}
+                      {g.platforms.length > 4 ? <span className="px-1 py-0.5 font-mono text-[11px] text-fg-4">+{g.platforms.length - 4}</span> : null}
                     </span>
                   </td>
                   <td className="truncate px-2 font-mono text-[11.5px] text-fg-2 sm:px-3">{g.idLabel}</td>
@@ -134,7 +134,7 @@ export function GamesTable() {
                               <p className="text-fg-2 lg:hidden">{g.integration}</p>
                               <p className="flex flex-wrap gap-1 sm:hidden">
                                 {g.platforms.map((p) => (
-                                  <span key={p} className="rounded-xs bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10.5px] text-fg-2 ring-1 ring-line ring-inset">
+                                  <span key={p} className="rounded-xs bg-white/[0.05] px-1.5 py-0.5 font-mono text-[11px] text-fg-2 ring-1 ring-line ring-inset">
                                     {p}
                                   </span>
                                 ))}

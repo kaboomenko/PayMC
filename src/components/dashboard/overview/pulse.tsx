@@ -27,7 +27,7 @@ export function KpiTiles({ data }: { data: OverviewPulseData }) {
             <p className={STAT_VALUE}>{k.value}</p>
             <Change value={k.delta} unit={k.deltaUnit} />
           </div>
-          <p className="mt-1.5 truncate font-mono text-[10.5px] text-fg-4 nums sm:text-[11px]">
+          <p className="mt-1.5 truncate font-mono text-[11px] text-fg-4 nums">
             {k.sub ? k.sub : <>было {k.prev}</>}
           </p>
           <p className="mt-3 border-t border-line-soft pt-2 text-[11px] leading-snug text-fg-4">{k.caption}</p>
@@ -138,7 +138,7 @@ export function RevenueCard({ data }: { data: OverviewPulseData }) {
               i === 2 && "sm:border-l",
             )}
           >
-            <dt className="label-mono text-[10px] text-fg-4">{s.label}</dt>
+            <dt className="label-mono text-fg-4">{s.label}</dt>
             <dd className="mt-1 font-mono text-[15px] font-semibold text-fg nums">{s.value}</dd>
             <dd className="mt-0.5 truncate text-[11.5px] text-fg-3">{s.hint}</dd>
           </div>

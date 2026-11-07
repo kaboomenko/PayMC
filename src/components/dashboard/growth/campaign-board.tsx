@@ -390,12 +390,12 @@ function IdeaPreview({ type, goal }: { type: CampaignType; goal: CampaignGoal | 
   return (
     <div className="mt-2 flex min-h-[132px] flex-1 flex-col justify-between overflow-hidden rounded-lg border border-line bg-[linear-gradient(to_bottom,#05070b,#0e121b_60%,#141a26)] px-3 pt-3 pb-2.5">
       <div>
-        <p className="label-mono mb-2 text-[10px] text-fg-4">Так это увидят игроки</p>
+        <p className="label-mono mb-2 text-fg-4">Так это увидят игроки</p>
         {type === "goal_progress" ? (
           <>
             <BossBar text={`Цель месяца — ${pct} %`} pct={pct} className="w-full" />
             {goal ? (
-              <p className="mt-1 text-center font-mono text-[10.5px] text-ice-200/80 nums">
+              <p className="mt-1 text-center font-mono text-[11px] text-ice-200/80 nums">
                 {formatMoney(goal.raised)} из {formatMoney(goal.target)}
               </p>
             ) : null}
@@ -586,7 +586,7 @@ function CampaignCard({
               <FunnelRow label="Покупки" value={s.converted} pct={total} rate={cr} tone="bg-ice-400" />
             </div>
             <div className="flex items-baseline justify-between gap-3 border-t border-line-soft pt-3 sm:block sm:border-0 sm:pt-0 sm:text-right">
-              <p className="label-mono text-[10px] text-fg-4">Выручка · 30 дн</p>
+              <p className="label-mono text-fg-4">Выручка · 30 дн</p>
               <p className="font-mono text-[20px] leading-none font-medium tracking-[-0.02em] text-fg nums sm:mt-1">{formatMoney(s.revenue)}</p>
               <p className="font-mono text-[11.5px] text-ok nums sm:mt-1.5">{formatPercent(total)} купили</p>
             </div>
@@ -594,7 +594,7 @@ function CampaignCard({
         ) : (
           <div className="flex items-end justify-between gap-4">
             <div>
-              <p className="label-mono text-[10px] text-fg-4">Показы · 30 дн</p>
+              <p className="label-mono text-fg-4">Показы · 30 дн</p>
               <p className="mt-1 font-mono text-[20px] leading-none font-medium text-fg nums">{formatNumber(s.reached)}</p>
             </div>
             <p className="max-w-[60%] text-right text-xs text-fg-3">
@@ -606,7 +606,7 @@ function CampaignCard({
 
       <div className="mt-auto rounded-b-xl border-t border-line-soft bg-[#06080c] px-4 py-3 sm:px-5">
         <MinecraftChat message={c.message} vars={vars} context={false} className="bg-transparent px-0 py-0 text-[11.5px] [&_p]:line-clamp-2" />
-        <p className="mt-2 flex items-center justify-between gap-3 font-mono text-[10.5px] text-fg-4">
+        <p className="mt-2 flex items-center justify-between gap-3 font-mono text-[11px] text-fg-4">
           <span>создана {formatDateShort(c.createdAt)}</span>
           {c.lastPurchaseAt && c.status !== "paused" ? (
             <span>

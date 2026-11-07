@@ -45,7 +45,7 @@ export default function DesignPage() {
       </div>
 
       <section className="mt-12">
-        <p className="label-mono text-azure-300">Типографика</p>
+        <p className="label-mono text-fg-3">Типографика</p>
         <h1 className="mt-4 text-display">Донат, который <span className="text-fg-3">доходит</span></h1>
         <h2 className="mt-6 text-h1">Заголовок H1 — 60/1.02</h2>
         <h2 className="mt-4 text-h2">Заголовок H2 — выплаты каждый день</h2>
@@ -58,7 +58,7 @@ export default function DesignPage() {
       </section>
 
       <section className="mt-14">
-        <p className="label-mono text-azure-300">Цвета</p>
+        <p className="label-mono text-fg-3">Цвета</p>
         <div className="mt-4 grid grid-cols-4 gap-3 sm:grid-cols-8">
           {swatches.map(([name, cls]) => (
             <div key={name}>

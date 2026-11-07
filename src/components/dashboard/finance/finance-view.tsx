@@ -50,7 +50,7 @@ export function FinanceView({
     <>
       <PageHeader
         title="Финансы"
-        description="Баланс, ежедневные выплаты в 12:00 МСК, распределение между командой и чеки самозанятого."
+        description="Баланс, ежедневные выплаты в 12:00 МСК, распределение между командой и чеки самозанятого"
         actions={
           <>
             <Button variant="secondary" size="sm" onClick={() => openTab("documents")}>

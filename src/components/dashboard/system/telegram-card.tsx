@@ -378,7 +378,7 @@ function ChatPreview({ preview, minSale, events }: { preview: TelegramPreview; m
                 {m.title}
               </p>
               <p className="mt-0.5 text-[12.5px] leading-relaxed text-fg-2">{m.body}</p>
-              <p className="mt-1 text-right font-mono text-[10.5px] text-fg-4 nums">{formatTime(m.at)}</p>
+              <p className="mt-1 text-right font-mono text-[11px] text-fg-4 nums">{formatTime(m.at)}</p>
             </div>
             {m.buttons ? (
               <div className="mt-1 grid auto-cols-fr grid-flow-col gap-1">

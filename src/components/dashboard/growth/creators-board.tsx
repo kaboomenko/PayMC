@@ -349,7 +349,7 @@ export function CreatorsBoard({ creators, kpi }: { creators: CreatorRow[]; kpi: 
 function Mini({ label, value, align }: { label: string; value: React.ReactNode; align?: "right" }) {
   return (
     <div className={cn(align === "right" && "text-right")}>
-      <p className="label-mono text-[10px] text-fg-4">{label}</p>
+      <p className="label-mono text-fg-4">{label}</p>
       <p className="mt-0.5 font-mono text-fg nums">{value}</p>
     </div>
   );
@@ -467,7 +467,7 @@ function CreatorDetail({ r, onPay, onCopy }: { r: CreatorRow; onPay: (r: Creator
             { k: "Выплачено", v: formatMoney(r.paidOut) },
           ].map((s) => (
             <div key={s.k} className="bg-surface px-3 py-2.5">
-              <p className="label-mono text-[10px] text-fg-4">{s.k}</p>
+              <p className="label-mono text-fg-4">{s.k}</p>
               <p className="mt-1 font-mono text-[14px] text-fg nums">{s.v}</p>
             </div>
           ))}

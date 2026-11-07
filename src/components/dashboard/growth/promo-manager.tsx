@@ -312,18 +312,18 @@ export function PromoManager({ codes, products, kpi }: { codes: PromoRow[]; prod
                   </div>
                   <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
                     <div>
-                      <p className="label-mono text-[10px] text-fg-4">Скидка</p>
+                      <p className="label-mono text-fg-4">Скидка</p>
                       <p className="mt-0.5 font-mono text-fg nums">{discountLabel(r)}</p>
                     </div>
                     <div>
-                      <p className="label-mono text-[10px] text-fg-4">Исп.</p>
+                      <p className="label-mono text-fg-4">Исп.</p>
                       <p className="mt-0.5 font-mono text-fg-2 nums">
                         {formatNumber(r.uses)}
                         {r.limit ? <span className="text-fg-4"> / {formatNumber(r.limit)}</span> : null}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="label-mono text-[10px] text-fg-4">Выручка</p>
+                      <p className="label-mono text-fg-4">Выручка</p>
                       <p className="mt-0.5 font-mono text-fg nums">{r.revenue ? formatMoney(r.revenue) : "—"}</p>
                     </div>
                   </div>
@@ -673,7 +673,7 @@ function CreatePromoForm({
             <div className="max-h-48 overflow-y-auto rounded-md border border-line bg-surface-2/60 p-2">
               {categories.map((cat) => (
                 <div key={cat} className="mb-1.5 last:mb-0">
-                  <p className="label-mono px-1 py-1 text-[10px] text-fg-4">{cat}</p>
+                  <p className="label-mono px-1 py-1 text-fg-4">{cat}</p>
                   {products
                     .filter((p) => p.category === cat)
                     .map((p) => (
@@ -838,7 +838,7 @@ function BatchForm({ existing, onDone, onCancel }: { existing: string[]; onDone:
           </Select>
         </Field>
         <div className="rounded-md border border-line-soft bg-[#06080c] p-3">
-          <p className="label-mono mb-2 text-[10px] text-fg-4">Превью · первые {Math.min(n || 0, 6)} из {formatNumber(n || 0)}</p>
+          <p className="label-mono mb-2 text-fg-4">Превью · первые {Math.min(n || 0, 6)} из {formatNumber(n || 0)}</p>
           {preview.length ? (
             <ul className="grid grid-cols-2 gap-x-4 gap-y-1 font-mono text-[12.5px] text-ice-200 sm:grid-cols-3">
               {preview.map((c) => (

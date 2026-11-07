@@ -60,7 +60,7 @@ export function NicknameCard({
         <label htmlFor="store-nick" className="text-[13px] font-medium text-fg">
           Ваш ник в игре
         </label>
-        <span className="label-mono text-[10px] text-fg-4">{platformHint}</span>
+        <span className="label-mono text-fg-4">{platformHint}</span>
       </div>
       <div className="mt-2.5 flex items-center gap-3">
         <PixelAvatar name={nick || storeName} size={40} className="rounded-(--st-r-ctl)" />
@@ -98,7 +98,7 @@ export function GoalWidget({ goal }: { goal: NonNullable<StoreData["goal"]> }) {
   return (
     <div className="rounded-(--st-r-card) border border-white/[0.08] bg-surface/80 p-4 shadow-raise @lg:p-5">
       <div className="flex items-center justify-between gap-3">
-        <p className="label-mono text-[10.5px] text-(--st-accent-text)">Цель месяца</p>
+        <p className="label-mono text-fg-4">Цель месяца</p>
         <p className="font-mono text-[11px] text-fg-3 nums">
           ещё {pluralize(goal.daysLeft, ["день", "дня", "дней"])}
         </p>
@@ -130,7 +130,7 @@ export function ServersCard({ servers }: { servers: StoreServer[] }) {
   if (servers.length === 0) return null;
   return (
     <div className="rounded-(--st-r-card) border border-white/[0.08] bg-surface/60 px-4 py-3">
-      <p className="label-mono flex items-center gap-1.5 text-[10px] text-fg-4">
+      <p className="label-mono flex items-center gap-1.5 text-fg-4">
         <Server className="size-3" /> Серверы сети
       </p>
       <ul className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5">
@@ -163,7 +163,7 @@ export function RecentTicker({ items, now }: { items: StorePurchase[]; now: numb
     ));
   return (
     <div className="flex items-center overflow-hidden rounded-(--st-r-card) border border-white/[0.08] bg-surface/60">
-      <p className="label-mono flex h-11 shrink-0 items-center gap-2 border-r border-white/[0.06] px-3.5 text-[10.5px] text-fg-2">
+      <p className="label-mono flex h-11 shrink-0 items-center gap-2 border-r border-white/[0.06] px-3.5 text-fg-2">
         <StatusDot tone="ok" className="size-1.5" />
         <span className="hidden @md:inline">Только что купили</span>
         <span className="@md:hidden">Купили</span>
@@ -200,7 +200,7 @@ function BadgeTag({ p }: { p: StoreProduct }) {
   if (!p.badge) return null;
   const b = BADGE[p.badge];
   const off = p.badge === "sale" && p.oldPrice ? ` −${Math.round((1 - p.price / p.oldPrice) * 100)} %` : "";
-  return <span className={cn("shrink-0 rounded-[3px] px-1.5 py-0.5 text-[10.5px] leading-none font-semibold whitespace-nowrap", b.cls)}>{b.label + off}</span>;
+  return <span className={cn("shrink-0 rounded-[3px] px-1.5 py-0.5 text-[11px] leading-none font-semibold whitespace-nowrap", b.cls)}>{b.label + off}</span>;
 }
 
 export function BuyButton({ onClick, children, className, disabled }: { onClick?: () => void; children: React.ReactNode; className?: string; disabled?: boolean }) {
@@ -349,7 +349,7 @@ export function PoolCard({ p, now, onBuy }: { p: StoreProduct; now: number; onBu
       <ProductArt p={p} size="md" className="size-16 @lg:size-20" />
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="label-mono text-[10px] text-(--st-accent-text)">Складчина</span>
+          <span className="label-mono text-fg-4">Складчина</span>
           <span className="flex items-center gap-1 font-mono text-[11px] text-fg-3">
             <Clock3 className="size-3" /> до {formatDateTime(pool.endsAt)} · {formatRelative(pool.endsAt, now)}
           </span>
@@ -459,7 +459,7 @@ export function BlockHeading({ eyebrow, title, sub, aside }: { eyebrow: string; 
   return (
     <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
       <div>
-        <p className="label-mono text-[10.5px] text-(--st-accent-text)">{eyebrow}</p>
+        <p className="label-mono text-fg-4">{eyebrow}</p>
         <h2 className="mt-1.5 font-display text-[22px] leading-tight font-semibold tracking-[-0.03em] text-fg @3xl:text-[26px]">{title}</h2>
         {sub ? <p className="mt-1 text-[13px] text-fg-3">{sub}</p> : null}
       </div>
@@ -475,7 +475,7 @@ export function StoreFooter({ data }: { data: StoreData }) {
     <footer className="mt-16 border-t border-white/[0.06] bg-[#04060a]">
       <div id="support" className="mx-auto grid max-w-[1200px] scroll-mt-24 gap-8 px-4 py-10 @3xl:grid-cols-[1.2fr_1fr_1fr] @3xl:px-8">
         <div>
-          <p className="label-mono text-[10.5px] text-fg-4">Поддержка</p>
+          <p className="label-mono text-fg-4">Поддержка</p>
           <p className="mt-2 text-[15px] font-medium text-fg">Что-то не пришло? Ответим в среднем за 12&nbsp;минут.</p>
           <p className="mt-1 text-[12.5px] text-fg-3">Укажите номер заказа PMC-… из письма — по нему видно каждый шаг выдачи.</p>
           <div className="mt-4 flex flex-wrap gap-2">
@@ -498,7 +498,7 @@ export function StoreFooter({ data }: { data: StoreData }) {
           </div>
         </div>
         <div className="text-[12.5px]">
-          <p className="label-mono text-[10.5px] text-fg-4">Документы</p>
+          <p className="label-mono text-fg-4">Документы</p>
           <ul className="mt-2 grid gap-1.5 text-fg-3">
             {[
               { href: "/legal#players", label: "Оферта для игроков" },
@@ -514,7 +514,7 @@ export function StoreFooter({ data }: { data: StoreData }) {
           </ul>
         </div>
         <div className="text-[12px] leading-relaxed text-fg-4">
-          <p className="label-mono text-[10.5px] text-fg-4">Оператор платежей</p>
+          <p className="label-mono text-fg-4">Оператор платежей</p>
           <p className="mt-2 text-fg-3">ООО «ПэйЭмСи Процессинг»</p>
           <p>ИНН 7700000000 · ОГРН 1267700000000</p>
           <p>Москва, ул. Примерная, д. 1 — демо-реквизиты</p>

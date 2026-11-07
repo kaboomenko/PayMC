@@ -27,13 +27,13 @@ export function AuthVisual() {
       <div aria-hidden className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-b from-transparent to-surface" />
 
       <div className="relative flex items-center justify-end">
-        <span className="label-mono flex items-center gap-1.5 text-[10px] text-fg-4">
+        <span className="label-mono flex items-center gap-1.5 text-fg-4">
           <span className="size-1.5 rounded-full bg-ok" /> все системы работают
         </span>
       </div>
 
       <div className="relative mx-auto w-full max-w-[460px]">
-        <p className="label-mono text-[10.5px] text-azure-300">Так выглядит каждая покупка</p>
+        <p className="label-mono text-fg-3">Так выглядит каждая покупка</p>
         <div className="mt-3 overflow-hidden rounded-xl border border-line-strong bg-canvas/90 shadow-pop">
           <div className="flex items-center gap-3 border-b border-line px-4 py-3">
             <PixelAvatar name="kotik228" size={28} />

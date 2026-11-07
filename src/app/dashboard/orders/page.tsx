@@ -48,7 +48,7 @@ export default async function OrdersPage(props: PageProps<"/dashboard/orders">) 
     <UrlNavProvider>
       <PageHeader
         title="Заказы"
-        description="Каждая покупка — с трассировкой выдачи: от платежа до ответа консоли сервера."
+        description="Каждая покупка — с трассировкой выдачи: от платежа до ответа консоли сервера"
         actions={
           <OrdersHeaderActions
             issues={issues.count}

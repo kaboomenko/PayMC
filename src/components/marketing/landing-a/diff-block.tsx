@@ -46,7 +46,7 @@ export function DiffBlock({ pairs, file = "donate.config", className }: { pairs:
     >
       <figcaption className="flex h-10 items-center gap-3 border-b border-line px-3.5">
         <span className="font-mono text-[12.5px] text-fg">{file}</span>
-        <span className="label-mono text-[10px] text-fg-4">было → стало</span>
+        <span className="label-mono text-fg-4">было → стало</span>
         <span className="ml-auto flex items-center gap-2 font-mono text-[11.5px] nums">
           <span className="text-ok">+{pairs.length}</span>
           <span className="text-bad">−{pairs.length}</span>

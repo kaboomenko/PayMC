@@ -9,7 +9,7 @@ const SPECS = [
   {
     label: "Постоянное соединение",
     value: "WebSocket",
-    text: "Агент на сервере держит соединение открытым — выдача без опроса раз в минуту.",
+    text: "Агент на сервере держит соединение открытым — выдача без опроса раз в минуту",
   },
   {
     label: "Офлайн-очередь",
@@ -24,7 +24,7 @@ const SPECS = [
   {
     label: "Журнал как доказательство",
     value: "PDF для банка",
-    text: "Трасса, IP, время входа на сервер — в пакете для спора с банком.",
+    text: "Трасса, IP, время входа на сервер — в пакете для спора с банком",
   },
 ];
 
@@ -58,7 +58,7 @@ export function DeliverySection() {
 
       <div className="mt-24 grid gap-10 lg:mt-28 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.6fr)] lg:gap-14">
         <div className="lg:pt-2">
-          <p className="label-mono text-azure-300">Библиотека команд</p>
+          <p className="label-mono text-fg-3">Библиотека команд</p>
           <h3 className="mt-4 text-h3 text-fg">
             {COMMAND_LIBRARY.length} {plural(COMMAND_LIBRARY.length, ["готовая команда", "готовые команды", "готовых команд"])} для
             популярных плагинов

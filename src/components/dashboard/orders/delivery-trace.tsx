@@ -113,7 +113,7 @@ function TimeCol({ at, deltaMs, tone }: { at: string; deltaMs?: number; tone?: s
   return (
     <div className="shrink-0 text-right">
       <p className={cn("font-mono text-[11px] leading-5 text-fg-3 nums", tone)}>{formatClock(at)}</p>
-      {deltaMs !== undefined ? <p className="font-mono text-[10.5px] leading-4 text-fg-4 nums">{formatDelta(deltaMs)}</p> : null}
+      {deltaMs !== undefined ? <p className="font-mono text-[11px] leading-4 text-fg-4 nums">{formatDelta(deltaMs)}</p> : null}
     </div>
   );
 }
@@ -211,10 +211,10 @@ function RetriesItem({ steps, last }: { steps: TraceStep[]; last: boolean }) {
           <table className="w-full text-[11.5px]">
             <thead>
               <tr className="bg-white/[0.02] text-left">
-                <th className="h-7 px-2.5 label-mono tracking-[0.06em] text-fg-4">Попытка</th>
-                <th className="h-7 px-2.5 label-mono tracking-[0.06em] text-fg-4">Время</th>
-                <th className="h-7 px-2.5 text-right label-mono tracking-[0.06em] text-fg-4">Пауза</th>
-                <th className="h-7 px-2.5 text-right label-mono tracking-[0.06em] text-fg-4">Итог</th>
+                <th className="h-7 px-2.5 label-mono text-fg-4">Попытка</th>
+                <th className="h-7 px-2.5 label-mono text-fg-4">Время</th>
+                <th className="h-7 px-2.5 text-right label-mono text-fg-4">Пауза</th>
+                <th className="h-7 px-2.5 text-right label-mono text-fg-4">Итог</th>
               </tr>
             </thead>
             <tbody>

@@ -200,7 +200,7 @@ function CommandRow({
           >
             <GripVertical className="size-3.5" />
           </button>
-          <span className="font-mono text-[10.5px] text-fg-4 nums">{index + 1}</span>
+          <span className="font-mono text-[11px] text-fg-4 nums">{index + 1}</span>
         </div>
 
         <div className="min-w-0 flex-1 space-y-2">
@@ -223,7 +223,7 @@ function CommandRow({
               </Tooltip>
             ))}
             {origin ? (
-              <span className="ml-auto pl-2 font-mono text-[10.5px] text-fg-4">
+              <span className="ml-auto pl-2 font-mono text-[11px] text-fg-4">
                 {origin.plugin} · {origin.title.toLowerCase()}
               </span>
             ) : null}

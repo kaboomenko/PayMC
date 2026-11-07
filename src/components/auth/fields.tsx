@@ -158,7 +158,7 @@ export function SocialButtons({ busy, onPick, verb }: { busy: string | null; onP
       </div>
       <Button variant="outline" size="lg" className="h-10 justify-between border-dashed text-[13.5px] text-fg-3" disabled>
         <span>Steam</span>
-        <span className="label-mono text-[10px]">скоро</span>
+        <span className="label-mono">скоро</span>
       </Button>
     </div>
   );

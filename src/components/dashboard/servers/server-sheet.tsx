@@ -408,13 +408,13 @@ function SheetInner({
             {journal.length ? (
               <div className="overflow-hidden rounded-lg border border-line bg-[#06080c]">
                 <div className="flex h-8 items-center justify-between border-b border-line-soft px-3">
-                  <span className="label-mono text-[10px] text-fg-4">{pluralize(journal.length, ["команда", "команды", "команд"])} · новые сверху</span>
-                  <span className="font-mono text-[10.5px] text-fg-4">МСК</span>
+                  <span className="label-mono text-fg-4">{pluralize(journal.length, ["команда", "команды", "команд"])} · новые сверху</span>
+                  <span className="font-mono text-[11px] text-fg-4">МСК</span>
                 </div>
                 <ul className="divide-y divide-line-soft">
                   {journal.map((j) => (
                     <li key={j.id} className="px-3 py-2 font-mono text-[11.5px] leading-[1.6]">
-                      <div className="flex items-center gap-2 text-[10.5px] text-fg-4">
+                      <div className="flex items-center gap-2 text-[11px] text-fg-4">
                         <span className="nums">{formatTime(j.at, true)}</span>
                         <span className="text-fg-3">{j.playerName}</span>
                         <Link href={`/dashboard/orders?id=${j.orderId}`} className="hover:text-fg-2">
@@ -599,7 +599,7 @@ function Health({ label, value, valueClass, children }: { label: string; value: 
   return (
     <div className="flex flex-col gap-2 bg-surface px-3.5 py-3 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
       <div className="min-w-0">
-        <p className="label-mono text-[10px] whitespace-nowrap text-fg-4">{label}</p>
+        <p className="label-mono whitespace-nowrap text-fg-4">{label}</p>
         <p className={cn("mt-1 font-mono text-[17px] font-medium tracking-[-0.02em] whitespace-nowrap nums", valueClass ?? "text-fg")}>{value}</p>
       </div>
       <div className="shrink-0">{children}</div>

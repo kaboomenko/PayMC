@@ -65,7 +65,7 @@ export function SectionHeading({
       )}
     >
       <div className={cn("max-w-3xl", align === "center" && "mx-auto")}>
-        <p className="label-mono flex items-center gap-2 text-azure-300">
+        <p className="label-mono flex items-center gap-2 text-fg-3">
           {index ? <span className="text-fg-4">{index}</span> : null}
           {index ? <span className="h-px w-6 bg-line-strong" aria-hidden /> : null}
           {eyebrow}

@@ -107,7 +107,7 @@ export function CheckoutTile({ items }: { items: CheckoutItem[] }) {
                     className="flex aspect-square flex-col items-center justify-center bg-ok-soft text-center"
                   >
                     <Check className="size-6 text-ok" strokeWidth={2.5} />
-                    <p className="mt-1 font-mono text-[10.5px] text-ok">оплачено</p>
+                    <p className="mt-1 font-mono text-[11px] text-ok">оплачено</p>
                   </motion.div>
                 ) : (
                   <motion.div key={item.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
@@ -161,7 +161,7 @@ export function CheckoutTile({ items }: { items: CheckoutItem[] }) {
         <ol className="grid gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-3 md:grid-cols-1 lg:grid-cols-3">
           {FLOW.map((f, i) => (
             <li key={f.k} className="bg-surface-2 px-3 py-2.5">
-              <p className="font-mono text-[10.5px] text-fg-4 nums">0{i + 1}</p>
+              <p className="font-mono text-[11px] text-fg-4 nums">0{i + 1}</p>
               <p className="mt-0.5 font-mono text-[12.5px] text-fg">{f.k}</p>
               <p className="text-[11.5px] leading-snug text-fg-3">{f.v}</p>
             </li>

@@ -51,7 +51,7 @@ const itemCls =
   "group flex h-10 cursor-default select-none items-center gap-3 rounded-md px-2.5 text-[13px] text-fg-2 outline-none data-[selected=true]:bg-white/[0.06] data-[selected=true]:text-fg [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-fg-4 data-[selected=true]:[&_svg]:text-azure-300";
 
 const groupCls =
-  "[&_[cmdk-group-heading]]:label-mono [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:pb-1.5 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:text-fg-4";
+  "[&_[cmdk-group-heading]]:label-mono [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:pb-1.5 [&_[cmdk-group-heading]]: [&_[cmdk-group-heading]]:text-fg-4";
 
 export function CommandPalette({
   open,

@@ -3,18 +3,18 @@ import { Section } from "@/components/marketing/section";
 import { StatusDot } from "@/components/ui/status-dot";
 
 const RELEASES = [
-  { date: "04.11", title: "Импорт из других платформ", text: "Товары, команды и история покупок — из CSV или по API, за вечер." },
-  { date: "28.10", title: "Складчина на бустеры и ивенты", text: "Игроки скидываются вместе. Не собрали — взносы вернутся сами." },
-  { date: "21.10", title: "Облачные чеки 54-ФЗ для ИП и ООО", text: "Чек уходит игроку на почту сразу после оплаты." },
-  { date: "14.10", title: "Календарь вайпов и сезонов", text: "Скидки и кампании включаются по расписанию." },
-  { date: "07.10", title: "Telegram-бот: сводка дня и алерты", text: "Выручка, сбои выдачи и выплаты — в личку или чат команды." },
+  { date: "04.11", title: "Импорт из других платформ", text: "Товары, команды и история покупок — из CSV или по API, за вечер" },
+  { date: "28.10", title: "Складчина на бустеры и ивенты", text: "Игроки скидываются вместе, а если не соберут — взносы вернутся сами" },
+  { date: "21.10", title: "Облачные чеки 54-ФЗ для ИП и ООО", text: "Чек уходит игроку на почту сразу после оплаты" },
+  { date: "14.10", title: "Календарь вайпов и сезонов", text: "Скидки и кампании включаются по расписанию" },
+  { date: "07.10", title: "Telegram-бот: сводка дня и алерты", text: "Выручка, сбои выдачи и выплаты — в личку или чат команды" },
 ];
 
 export function ChangelogStrip() {
   return (
     <Section id="changelog" className="py-16 sm:py-20 lg:py-20">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <p className="label-mono flex items-center gap-2 text-azure-300">
+        <p className="label-mono flex items-center gap-2 text-fg-3">
           Что нового
           <span className="h-px w-6 bg-line-strong" aria-hidden />
           <span className="text-fg-4">релиз каждую неделю</span>

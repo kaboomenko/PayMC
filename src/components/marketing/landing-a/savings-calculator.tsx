@@ -85,7 +85,7 @@ export function SavingsCalculator() {
                 className="block size-[18px] rounded-full border-2 border-white bg-azure-500 shadow-[0_0_0_4px_rgb(51_119_255/0.2),0_2px_6px_rgb(0_0_0/0.5)] transition-shadow outline-none hover:shadow-[0_0_0_6px_rgb(51_119_255/0.25)] focus-visible:shadow-[0_0_0_6px_rgb(51_119_255/0.4)]"
               />
             </S.Root>
-            <div className="relative mt-2 h-4 font-mono text-[10.5px] text-fg-4" aria-hidden>
+            <div className="relative mt-2 h-4 font-mono text-[11px] text-fg-4" aria-hidden>
               {TICKS.map((t, i) => {
                 const left = (STEPS.indexOf(t) / (STEPS.length - 1)) * 100;
                 return (
@@ -125,7 +125,7 @@ export function SavingsCalculator() {
 
           {/* tier track */}
           <div>
-            <p className="label-mono text-[10px] text-fg-4">Ставка PayMC по обороту</p>
+            <p className="label-mono text-fg-4">Ставка PayMC по обороту</p>
             <div className="mt-2.5 grid grid-cols-3 gap-1">
               {TIERS.map((t, i) => (
                 <div
@@ -154,7 +154,7 @@ export function SavingsCalculator() {
 
         {/* outputs */}
         <div className="flex flex-col p-5 sm:p-7">
-          <p className="label-mono text-[10px] text-fg-4">Останется у вас в месяц</p>
+          <p className="label-mono text-fg-4">Останется у вас в месяц</p>
 
           <div className="mt-4 space-y-4">
             <ResultRow
@@ -190,7 +190,7 @@ export function SavingsCalculator() {
           </div>
 
           <div className="mt-auto pt-7">
-            <p className="label-mono text-[10px] text-fg-4">В ставку PayMC уже входит</p>
+            <p className="label-mono text-fg-4">В ставку PayMC уже входит</p>
             <ul className="mt-2.5 flex flex-wrap gap-1.5">
               {INCLUDED.map((x) => (
                 <li key={x} className="inline-flex h-6 items-center rounded-sm border border-line-soft px-2 font-mono text-[11px] text-fg-3">

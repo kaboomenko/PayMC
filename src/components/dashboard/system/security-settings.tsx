@@ -88,14 +88,14 @@ export function SecuritySettings({ team, now }: { team: TeamRow[]; now: number }
           />
           <SettingRow
             title="Подтверждать вывод денег"
-            description="Перед мгновенным выводом и сменой реквизитов спросим код 2FA, даже в текущей сессии."
+            description="Перед мгновенным выводом и сменой реквизитов спросим код 2FA, даже в текущей сессии"
             control={<Badge tone="ok">Всегда</Badge>}
           />
         </SettingsSection>
 
         <SettingsSection
           title="Активные сессии"
-          description="Где сейчас открыт кабинет под вашим аккаунтом."
+          description="Где сейчас открыт кабинет под вашим аккаунтом"
           aside={
             sessions.length > 1 ? (
               <Button

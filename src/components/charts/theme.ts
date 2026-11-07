@@ -16,7 +16,7 @@ export const CHART = {
 
 export const axisTick = {
   fill: CHART.axis,
-  fontSize: 10.5,
+  fontSize: 11,
   fontFamily: "var(--font-mono)",
 } as const;
 

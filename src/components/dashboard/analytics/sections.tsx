@@ -138,7 +138,7 @@ export function MethodsSplit({ methods }: { methods: AnalyticsData["splits"]["me
           <li key={m.key}>
             <div className="flex items-center justify-between gap-3 text-[13px]">
               <span className="min-w-0 truncate text-fg-2">
-                {m.label} <span className={cn("ml-1 font-mono text-[10.5px]", HOLD_TONE[m.settlement] ?? "text-fg-4")}>{m.settlement}</span>
+                {m.label} <span className={cn("ml-1 font-mono text-[11px]", HOLD_TONE[m.settlement] ?? "text-fg-4")}>{m.settlement}</span>
               </span>
               <span className="flex shrink-0 items-baseline gap-2.5 font-mono nums">
                 <span className="text-[11.5px] text-fg-3">{formatPercent(m.share * 100)}</span>
@@ -180,7 +180,7 @@ export function CountriesTable({ countries }: { countries: AnalyticsData["splits
               {countries.map((c) => (
                 <TR key={c.key}>
                   <TD className="h-10">
-                    <span className="inline-flex h-5 w-7 items-center justify-center rounded-xs border border-line bg-surface-2 font-mono text-[10.5px] text-fg-2">
+                    <span className="inline-flex h-5 w-7 items-center justify-center rounded-xs border border-line bg-surface-2 font-mono text-[11px] text-fg-2">
                       {c.key}
                     </span>
                   </TD>
@@ -223,12 +223,12 @@ export function CohortTable({ cohorts }: { cohorts: AnalyticsData["cohorts"] }) 
         <table className="w-full border-separate border-spacing-1 text-[12px] sm:min-w-[520px] sm:text-[13px]">
           <thead>
             <tr>
-              <th className="label-mono pb-1 text-left text-[10px] font-medium text-fg-4">
+              <th className="label-mono pb-1 text-left font-medium text-fg-4">
                 Когорта<span className="sm:hidden">, покуп.</span>
               </th>
-              <th className="label-mono hidden pb-1 text-right text-[10px] font-medium text-fg-4 sm:table-cell">Покупателей</th>
+              <th className="label-mono hidden pb-1 text-right font-medium text-fg-4 sm:table-cell">Покупателей</th>
               {heads.map((h) => (
-                <th key={h.full} className="label-mono pb-1 text-center text-[10px] font-medium whitespace-nowrap text-fg-4">
+                <th key={h.full} className="label-mono pb-1 text-center font-medium whitespace-nowrap text-fg-4">
                   <span className="sm:hidden">{h.short}</span>
                   <span className="hidden sm:inline">{h.full}</span>
                 </th>
@@ -241,7 +241,7 @@ export function CohortTable({ cohorts }: { cohorts: AnalyticsData["cohorts"] }) 
                 <td className="pr-1 leading-tight text-fg-2 sm:pr-2">
                   {r.month}
                   {ri === 0 ? <span className="text-fg-4">*</span> : null}
-                  <span className="block font-mono text-[10.5px] text-fg-4 nums sm:hidden">{formatNumber(r.size)}</span>
+                  <span className="block font-mono text-[11px] text-fg-4 nums sm:hidden">{formatNumber(r.size)}</span>
                 </td>
                 <td className="hidden pr-2 text-right font-mono text-fg-3 nums sm:table-cell">{formatNumber(r.size)}</td>
                 {r.cells.map((c, ci) =>
@@ -281,17 +281,17 @@ export function CohortTable({ cohorts }: { cohorts: AnalyticsData["cohorts"] }) 
       </div>
       <div className="mx-4 mt-2 grid gap-px overflow-hidden rounded-lg border border-line-soft bg-line-soft sm:mx-5 sm:grid-cols-3">
         <div className="bg-surface-2/60 px-3.5 py-2.5">
-          <p className="label-mono text-[10px] text-fg-4">Купили 2+ раза</p>
+          <p className="label-mono text-fg-4">Купили 2+ раза</p>
           <p className="mt-1 font-mono text-[15px] text-fg nums">{formatPercent(cohorts.repeatShare, { digits: 0 })}</p>
           <p className="text-[11px] text-fg-4">всех покупателей</p>
         </div>
         <div className="bg-surface-2/60 px-3.5 py-2.5">
-          <p className="label-mono text-[10px] text-fg-4">Вернулись через месяц</p>
+          <p className="label-mono text-fg-4">Вернулись через месяц</p>
           <p className="mt-1 font-mono text-[15px] text-fg nums">{formatPercent(cohorts.nextMonthAvg, { digits: 0 })}</p>
           <p className="text-[11px] text-fg-4">в среднем по закрытым месяцам</p>
         </div>
         <div className="bg-surface-2/60 px-3.5 py-2.5">
-          <p className="label-mono text-[10px] text-fg-4">Как читать</p>
+          <p className="label-mono text-fg-4">Как читать</p>
           {cohorts.guide ? (
             <p className="mt-1 text-[11.5px] leading-snug text-fg-3">
               Из {formatNumber(cohorts.guide.size)} новых покупателей {cohorts.guide.monthGen}{" "}

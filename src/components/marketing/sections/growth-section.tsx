@@ -157,7 +157,7 @@ export function GrowthSection() {
         <Tile
           className="md:col-span-2 lg:col-span-7"
           title="Вайп-календарь"
-          desc="Отметьте вайпы и сезоны один раз — скидка, сообщение в игре и пост в Telegram включатся по расписанию."
+          desc="Отметьте вайпы и сезоны один раз — скидка, сообщение в игре и пост в Telegram включатся по расписанию"
           meta={<span className="label-mono hidden text-fg-4 sm:inline">Kraken Rust · ноябрь</span>}
         >
           <WipeStrip days={wipe.days} next={wipe.next} />
@@ -174,7 +174,7 @@ export function GrowthSection() {
         <Tile
           className="md:col-span-1 lg:col-span-5 lg:row-span-2"
           title="Покупка не выходя из игры"
-          desc="/donate открывает меню прямо на сервере, а QR для оплаты по СБП рисуется на карте в руке."
+          desc="/donate открывает меню прямо на сервере, а QR для оплаты по СБП рисуется на карте в руке"
         >
           <CheckoutTile items={checkoutItems} />
         </Tile>

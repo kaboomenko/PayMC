@@ -53,7 +53,7 @@ export function FaqSection() {
       <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
         <div className="lg:col-span-4">
           <div className="lg:sticky lg:top-28">
-            <p className="label-mono text-azure-300">Вопросы</p>
+            <p className="label-mono text-fg-3">Вопросы</p>
             <h2 className="mt-5 text-h2 text-fg">
               Коротко <span className="text-fg-3">о&nbsp;главном</span>
             </h2>

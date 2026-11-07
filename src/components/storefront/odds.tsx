@@ -22,7 +22,7 @@ export function CaseOddsList({ odds, className }: { odds: CaseOdds; className?: 
           </li>
         ))}
       </ol>
-      <p className="mt-2 font-mono text-[10.5px] text-fg-4">Сумма — 100 %. Шансы не меняются без объявления.</p>
+      <p className="mt-2 font-mono text-[11px] text-fg-4">Сумма — 100 %. Шансы не меняются без объявления.</p>
     </div>
   );
 }

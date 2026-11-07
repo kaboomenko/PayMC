@@ -21,7 +21,7 @@ export function Heatmap({
     <div className={cn("w-full", className)}>
       <div className="grid grid-cols-[28px_1fr] gap-x-2">
         <div />
-        <div className="mb-1.5 grid grid-cols-24 font-mono text-[9.5px] text-fg-4" style={{ gridTemplateColumns: "repeat(24, minmax(0, 1fr))" }}>
+        <div className="mb-1.5 grid grid-cols-24 font-mono text-[11px] text-fg-4" style={{ gridTemplateColumns: "repeat(24, minmax(0, 1fr))" }}>
           {Array.from({ length: 24 }).map((_, h) => (
             <span key={h} className="text-center">
               {h % 3 === 0 ? String(h).padStart(2, "0") : ""}
@@ -30,7 +30,7 @@ export function Heatmap({
         </div>
         {data.map((row, d) => (
           <React.Fragment key={d}>
-            <span className="flex items-center font-mono text-[10px] text-fg-4">{DAYS[d]}</span>
+            <span className="flex items-center font-mono text-[11px] text-fg-4">{DAYS[d]}</span>
             <div className="grid gap-[3px] py-[1.5px]" style={{ gridTemplateColumns: "repeat(24, minmax(0, 1fr))" }}>
               {row.map((v, h) => {
                 const t = v / max;

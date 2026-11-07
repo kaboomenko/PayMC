@@ -192,7 +192,7 @@ function GrantDialog({
             </div>
             {product ? (
               <div className="overflow-hidden rounded-lg border border-line bg-[#06080c]">
-                <p className="label-mono flex items-center justify-between border-b border-line-soft px-3 py-2 text-[10px] text-fg-4">
+                <p className="label-mono flex items-center justify-between border-b border-line-soft px-3 py-2 text-fg-4">
                   <span>Выполнится на «{product.serverName}»</span>
                   {waits ? <span className="text-ice-300 normal-case tracking-normal">ждёт входа игрока</span> : null}
                 </p>
@@ -275,7 +275,7 @@ function MessageDialog({ open, onOpenChange, player }: { open: boolean; onOpenCh
             </Field>
 
             <div aria-label="Предпросмотр в игре" className="relative h-[150px] overflow-hidden rounded-lg border border-line bg-[linear-gradient(180deg,#0d1a2a_0%,#13283a_55%,#1f3a2a_56%,#16281d_100%)]">
-              <span className="label-mono absolute top-2 right-2.5 text-[9.5px] text-white/40">предпросмотр</span>
+              <span className="label-mono absolute top-2 right-2.5 text-white/40">предпросмотр</span>
               {channel === "chat" ? (
                 <div className="absolute bottom-9 left-3 max-w-[85%] space-y-0.5 font-mono text-[12px] leading-[1.45] [text-shadow:1px_1px_0_rgb(0_0_0/0.8)]">
                   <p className="w-fit bg-black/35 px-1.5 text-white/60">&lt;Sneg_mc&gt; кто на спавн?</p>

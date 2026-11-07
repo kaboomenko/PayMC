@@ -686,7 +686,7 @@ function CheckoutFlow({
         ) : (
           <motion.div key="done" initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.18 }} className="px-5 py-5">
             <div className="flex items-center justify-between">
-              <p className="label-mono text-[10.5px] text-fg-4">
+              <p className="label-mono text-fg-4">
                 Заказ <span className="text-fg-2">{orderNo}</span>
               </p>
               {delivered >= 3 ? (
@@ -778,7 +778,7 @@ function SbpOption({ active }: { active: boolean }) {
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-2 text-[13px] font-medium text-fg">
           {PAYMENT_METHODS.sbp.label}
-          <span className="rounded-[3px] bg-ok-soft px-1 py-px text-[10px] font-semibold whitespace-nowrap text-ok">без комиссии</span>
+          <span className="rounded-[3px] bg-ok-soft px-1 py-px text-[11px] font-semibold whitespace-nowrap text-ok">без комиссии</span>
         </span>
         <span className="block truncate text-[11.5px] text-fg-3">{HINT.sbp}</span>
       </span>

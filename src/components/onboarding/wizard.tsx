@@ -281,7 +281,7 @@ export function OnboardingWizard({ initialGame }: { initialGame: GameId }) {
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-10">
         <section aria-labelledby="ob-title" className="min-w-0">
-          <p className="label-mono hidden text-[10.5px] text-azure-300 sm:block">
+          <p className="label-mono hidden text-fg-3 sm:block">
             Шаг {step + 1} из {STEPS.length}
           </p>
           <AnimatePresence mode="wait" initial={false}>
@@ -547,7 +547,7 @@ export function OnboardingWizard({ initialGame }: { initialGame: GameId }) {
                                         />
                                         <span className="pl-1 text-[12px] text-fg-4">₽</span>
                                       </div>
-                                      {bad ? <p className="mt-0.5 text-right text-[10.5px] text-bad">от 10 ₽</p> : null}
+                                      {bad ? <p className="mt-0.5 text-right text-[11px] text-bad">от 10 ₽</p> : null}
                                     </div>
                                   </li>
                                 );

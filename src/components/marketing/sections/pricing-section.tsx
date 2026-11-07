@@ -133,7 +133,7 @@ export function PricingSection() {
           <div>
             <table className="w-full text-[13px]">
               <thead>
-                <tr className="border-b border-line-soft text-left label-mono tracking-[0.07em] text-fg-4">
+                <tr className="border-b border-line-soft text-left label-mono text-fg-4">
                   <th className="h-9 pl-6 font-medium">Оборот</th>
                   <th className="h-9 px-3 font-medium">Ставка</th>
                   <th className="hidden h-9 pr-6 text-right font-medium sm:table-cell">Пример</th>

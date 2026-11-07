@@ -222,7 +222,7 @@ export function ProductsCatalog({
                 label: (
                   <>
                     {s === "all" ? "Все статусы" : STATUS_META[s].short}
-                    <span className="font-mono text-[10.5px] text-fg-4 nums">{statusCount(s)}</span>
+                    <span className="font-mono text-[11px] text-fg-4 nums">{statusCount(s)}</span>
                   </>
                 ),
               }))}
@@ -322,7 +322,7 @@ export function ProductsCatalog({
             </span>
             <span className="hidden items-center gap-1.5 sm:flex">
               Новый товар —{" "}
-              <kbd className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-xs border border-line-strong bg-surface-3 px-1 font-mono text-[10px] text-fg-2">
+              <kbd className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-xs border border-line-strong bg-surface-3 px-1 font-mono text-[11px] text-fg-2">
                 N
               </kbd>
             </span>
@@ -385,7 +385,7 @@ interface RowActions {
 function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
     <div className="bg-surface px-4 py-3">
-      <dt className="label-mono text-[10px] text-fg-4">{label}</dt>
+      <dt className="label-mono text-fg-4">{label}</dt>
       <dd className="mt-1 flex items-baseline gap-2">
         <span className="font-mono text-[19px] font-medium tracking-[-0.02em] text-fg nums">{value}</span>
         {hint ? <span className="hidden truncate text-[11.5px] text-fg-4 xl:inline">{hint}</span> : null}

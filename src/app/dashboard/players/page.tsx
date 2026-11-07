@@ -35,7 +35,7 @@ export default async function PlayersPage(props: PageProps<"/dashboard/players">
 
   return (
     <UrlNavProvider>
-      <PageHeader title="Игроки" description="Кто платит, кто уходит и кому нужен лимит трат. Профиль игрока — с историей покупок и риском." />
+      <PageHeader title="Игроки" description="Кто платит, кто уходит и кому нужен лимит трат. Профиль игрока — с историей покупок и риском" />
 
       <StatStrip cols="grid-cols-2 lg:grid-cols-4" className="mb-6">
         <Stat label="Игроков в базе" value={formatNumber(PLAYERS.length)} sub={`+${pluralize(stats.fresh, ["новичок", "новичка", "новичков"])} за 14 дней`} />

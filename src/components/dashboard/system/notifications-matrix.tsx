@@ -115,7 +115,7 @@ export function NotificationsMatrix() {
           <table className="w-full border-collapse text-[13px] sm:min-w-[560px]">
             <thead>
               <tr className="border-b border-line">
-                <th scope="col" className="h-11 px-4 text-left label-mono tracking-[0.07em] text-fg-3 sm:px-5">
+                <th scope="col" className="h-11 px-4 text-left label-mono text-fg-3 sm:px-5">
                   Событие
                 </th>
                 {CHANNELS.map((c) => {
@@ -123,7 +123,7 @@ export function NotificationsMatrix() {
                   return (
                     <th key={c.key} scope="col" className={cn("h-11 w-[96px] px-3 text-center sm:table-cell sm:w-[120px]", c.key !== mobileCh && "hidden")}>
                       <label className="inline-flex cursor-pointer flex-col items-center gap-1.5">
-                        <span className="label-mono tracking-[0.07em] text-fg-3">{c.label}</span>
+                        <span className="label-mono text-fg-3">{c.label}</span>
                         <Checkbox checked={st} onCheckedChange={(v) => setCol(c.key, v === true)} aria-label={`${c.label}: все события`} />
                       </label>
                     </th>
@@ -142,7 +142,7 @@ export function NotificationsMatrix() {
                   <tr key={e.key} className="border-b border-line-soft transition-colors hover:bg-white/[0.015]">
                     <th scope="row" className="px-4 py-2.5 text-left font-normal sm:px-5">
                       <span className="text-fg-2">{e.label}</span>
-                      {e.critical ? <span className="ml-2 font-mono text-[10.5px] whitespace-nowrap text-warn">важное</span> : null}
+                      {e.critical ? <span className="ml-2 font-mono text-[11px] whitespace-nowrap text-warn">важное</span> : null}
                       {e.hint ? <span className="block text-[11.5px] text-fg-4">{e.hint}</span> : null}
                     </th>
                     {CHANNELS.map((c) => (

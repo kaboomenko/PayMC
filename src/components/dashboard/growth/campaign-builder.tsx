@@ -226,7 +226,7 @@ function BuilderBody({
       }}
     >
       <SheetHeader>
-        <p className="label-mono text-azure-300">{mode === "edit" ? "Редактирование" : "Новая кампания"}</p>
+        <p className="label-mono text-fg-3">{mode === "edit" ? "Редактирование" : "Новая кампания"}</p>
         <SheetTitle className="mt-1 text-lg">{d.name.trim() || campaignTypeMeta[d.type].label}</SheetTitle>
         <SheetDescription>{tpl.sentence(d.delay)}</SheetDescription>
         <ol className="mt-4 grid grid-cols-4 gap-2" aria-label="Шаги">
@@ -303,7 +303,7 @@ function BuilderBody({
                         <span className="mt-auto flex items-center justify-between gap-2 pt-1">
                           <span className="flex flex-wrap gap-1">
                             {t.channels.map((c) => (
-                              <span key={c} className="rounded-xs bg-white/[0.05] px-1.5 py-0.5 text-[10.5px] text-fg-3">
+                              <span key={c} className="rounded-xs bg-white/[0.05] px-1.5 py-0.5 text-[11px] text-fg-3">
                                 {channelMeta[c].label}
                               </span>
                             ))}
@@ -720,7 +720,7 @@ function BuilderBody({
 function Summary({ k, v }: { k: string; v: string }) {
   return (
     <div className="flex min-w-0 flex-col gap-0.5">
-      <dt className="label-mono text-[10px] text-fg-4">{k}</dt>
+      <dt className="label-mono text-fg-4">{k}</dt>
       <dd className="text-fg-2">{v}</dd>
     </div>
   );

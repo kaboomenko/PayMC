@@ -111,11 +111,11 @@ export function ProjectSettings({ project }: { project: ProjectInfo }) {
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
       <div className="min-w-0 space-y-4">
-        <SettingsSection title="Основное" description="Как проект называется и где живёт витрина.">
+        <SettingsSection title="Основное" description="Как проект называется и где живёт витрина">
           <SettingRow
             title="Название проекта"
             htmlFor="p-name"
-            description="Видно игрокам на витрине, в чеках и в сообщениях бота."
+            description="Видно игрокам на витрине, в чеках и в сообщениях бота"
             control={
               <div className="w-full sm:w-72">
                 <Input id="p-name" value={form.name} onChange={(e) => set("name", e.target.value)} aria-invalid={!!errors.name} />
@@ -126,7 +126,7 @@ export function ProjectSettings({ project }: { project: ProjectInfo }) {
           <SettingRow
             title="Адрес витрины"
             htmlFor="p-slug"
-            description="Старый адрес продолжит работать как редирект ещё 30 дней после смены."
+            description="Старый адрес продолжит работать как редирект ещё 30 дней после смены"
             control={
               <div className="w-full sm:w-72">
                 <div className="relative flex">
@@ -156,7 +156,7 @@ export function ProjectSettings({ project }: { project: ProjectInfo }) {
           />
           <SettingRow
             title="Свой домен"
-            description="Игроки видят ваш адрес, SSL-сертификат выпускаем и продлеваем сами."
+            description="Игроки видят ваш адрес, SSL-сертификат выпускаем и продлеваем сами"
             control={
               <div className="flex flex-wrap items-center gap-1.5">
                 <span className="font-mono text-[13px] text-fg">{project.domain ?? "не подключён"}</span>
@@ -187,11 +187,11 @@ export function ProjectSettings({ project }: { project: ProjectInfo }) {
           </SettingRow>
         </SettingsSection>
 
-        <SettingsSection title="Игра и регион" description="Влияет на команды выдачи, переменные и формат времени в отчётах.">
+        <SettingsSection title="Игра и регион" description="Влияет на команды выдачи, переменные и формат времени в отчётах">
           <SettingRow
             title="Игра"
             htmlFor="p-game"
-            description="Определяет библиотеку команд и идентификатор игрока: для Minecraft — UUID."
+            description="Определяет библиотеку команд и идентификатор игрока: для Minecraft — UUID"
             control={
               <div className="w-full sm:w-72">
                 <Select value={form.game} onValueChange={(v) => set("game", v as GameId)}>
@@ -236,7 +236,7 @@ export function ProjectSettings({ project }: { project: ProjectInfo }) {
           <SettingRow
             title="Язык витрины"
             htmlFor="p-lang"
-            description="Кабинет остаётся на русском."
+            description="Кабинет остаётся на русском"
             control={
               <div className="w-full sm:w-72">
                 <Select value={form.lang} onValueChange={(v) => set("lang", v)}>
@@ -309,7 +309,7 @@ export function ProjectSettings({ project }: { project: ProjectInfo }) {
           <SettingRow
             title="ИНН"
             htmlFor="p-inn"
-            description="Проверяем контрольные цифры сразу, до отправки в ФНС."
+            description="Проверяем контрольные цифры сразу, до отправки в ФНС"
             control={
               <div className="w-full sm:w-72">
                 <Input

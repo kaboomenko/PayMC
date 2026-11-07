@@ -63,7 +63,7 @@ export function PlayerSegmentTabs({ query, counts }: { query: PlayersQuery; coun
               {SEGMENT_LABEL[s]}
               <span
                 className={cn(
-                  "inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-xs px-1 font-mono text-[10.5px] nums",
+                  "inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-xs px-1 font-mono text-[11px] nums",
                   active ? "bg-white/[0.08] text-fg-2" : "bg-white/[0.04] text-fg-3",
                 )}
               >

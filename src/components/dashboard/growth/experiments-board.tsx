@@ -322,7 +322,7 @@ function RunningCard({ e, onStop, onResume, onApply }: { e: ExperimentView; onSt
               <div className="h-full rounded-full bg-azure-500" style={{ width: `${p}%` }} />
               <span className="absolute -top-1 h-4 w-px bg-ok" style={{ left: "95%" }} aria-hidden />
             </div>
-            <div className="mt-1.5 flex justify-between font-mono text-[10.5px] text-fg-4">
+            <div className="mt-1.5 flex justify-between font-mono text-[11px] text-fg-4">
               <span>50 % — монетка</span>
               <span className="text-ok">порог 95 %</span>
             </div>
@@ -332,7 +332,7 @@ function RunningCard({ e, onStop, onResume, onApply }: { e: ExperimentView; onSt
             {e.chart ? (
               <div className="mt-4">
                 <div className="mb-1 flex items-center justify-between">
-                  <p className="label-mono text-[10px] text-fg-4">₽ на посетителя, накопительно</p>
+                  <p className="label-mono text-fg-4">₽ на посетителя, накопительно</p>
                   <span className="flex items-center gap-3 text-[11px] text-fg-3">
                     <span className="flex items-center gap-1">
                       <span className="h-0 w-3 border-t border-dashed border-fg-3" />A
@@ -469,7 +469,7 @@ function CompletedCard({ e }: { e: ExperimentView }) {
           <div className="mt-3 flex gap-2.5 rounded-lg border border-line bg-surface-2/60 px-3.5 py-3">
             <Lightbulb className="mt-0.5 size-4 shrink-0 text-warn" />
             <div>
-              <p className="label-mono text-[10px] text-fg-4">Вывод</p>
+              <p className="label-mono text-fg-4">Вывод</p>
               <p className="mt-1 text-[13px] leading-relaxed text-fg-2">{e.learnings}</p>
             </div>
           </div>
@@ -705,11 +705,11 @@ function NewExperimentForm({
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-md border border-line bg-surface-2/60 px-3 py-2.5">
-            <p className="label-mono text-[10px] text-fg-4">A · контроль</p>
+            <p className="label-mono text-fg-4">A · контроль</p>
             <p className="mt-1 text-[13px] text-fg-2">{aLabel}</p>
           </div>
           <div className="rounded-md border border-azure-400/30 bg-azure-500/[0.05] px-3 py-2.5">
-            <p className="label-mono mb-1.5 text-[10px] text-azure-300">B · новый вариант</p>
+            <p className="label-mono mb-1.5 text-azure-300">B · новый вариант</p>
             {kind === "price" ? (
               <Input
                 aria-label="Цена варианта B"

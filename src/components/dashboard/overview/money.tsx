@@ -43,7 +43,7 @@ export function TopProducts({ products }: { products: TopProduct[] }) {
                         style={{ width: `${Math.max(4, (p.revenue30d / max) * 100)}%`, opacity: 1 - i * 0.12 }}
                       />
                     </span>
-                    <span className="shrink-0 font-mono text-[10.5px] text-fg-4 nums">
+                    <span className="shrink-0 font-mono text-[11px] text-fg-4 nums">
                       {formatNumber(p.sales30d)} × {formatMoney(p.price)}
                     </span>
                   </span>
@@ -57,7 +57,7 @@ export function TopProducts({ products }: { products: TopProduct[] }) {
           ))}
         </ol>
       )}
-      <p className="mt-auto border-t border-line-soft px-4 py-2.5 font-mono text-[10.5px] text-fg-4 sm:px-5">Полоса — выручка относительно лидера · линия — продажи за 14 дней</p>
+      <p className="mt-auto border-t border-line-soft px-4 py-2.5 font-mono text-[11px] text-fg-4 sm:px-5">Полоса — выручка относительно лидера · линия — продажи за 14 дней</p>
     </Card>
   );
 }
@@ -95,7 +95,7 @@ export function PayoutCard({ payout, now }: { payout: PayoutPreview; now: number
             </span>
             <span className="text-right">
               <span className="block font-mono text-[12.5px] text-fg nums">{formatMoney(s.amount)}</span>
-              <span className="block font-mono text-[10.5px] text-fg-4 nums">{s.pct} %</span>
+              <span className="block font-mono text-[11px] text-fg-4 nums">{s.pct} %</span>
             </span>
           </li>
         ))}

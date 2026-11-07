@@ -146,7 +146,7 @@ export function ServersView({
     <>
       <PageHeader
         title="Серверы"
-        description="Агенты PayMC на ваших серверах: связь, очередь команд и журнал выдачи."
+        description="Агенты PayMC на ваших серверах: связь, очередь команд и журнал выдачи"
         actions={
           <Button variant="primary" size="sm" onClick={() => onConnectChange(true)}>
             <Plus /> Подключить сервер
@@ -203,7 +203,7 @@ export function ServersView({
         <div className="overflow-hidden rounded-xl border border-line bg-surface shadow-raise">
           <div className="hidden grid-cols-[minmax(170px,1.3fr)_minmax(210px,1.5fr)_minmax(140px,1fr)_64px_76px_70px_minmax(110px,0.9fr)_20px] gap-4 border-b border-line px-5 py-2.5 lg:grid">
             {["Сервер", "Адрес и агент", "Онлайн · 24 ч", "TPS", "Задержка", "Очередь", "Аптайм · 30 дн", ""].map((h, i) => (
-              <span key={i} className={cn("label-mono text-[10.5px] text-fg-3", (i === 3 || i === 4 || i === 5) && "text-right")}>
+              <span key={i} className={cn("label-mono text-fg-3", (i === 3 || i === 4 || i === 5) && "text-right")}>
                 {h}
               </span>
             ))}
@@ -255,7 +255,7 @@ export function ServersView({
 function Stat({ label, value, hint, tone }: { label: string; value: string; hint?: string; tone?: "warn" }) {
   return (
     <div className="bg-surface px-4 py-3">
-      <dt className="label-mono text-[10px] text-fg-4">{label}</dt>
+      <dt className="label-mono text-fg-4">{label}</dt>
       {/* the value never breaks; a long hint drops under it instead of squeezing it */}
       <dd className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
         <span className="font-mono text-[19px] font-medium tracking-[-0.02em] whitespace-nowrap text-fg nums">{value}</span>

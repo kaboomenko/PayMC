@@ -45,7 +45,7 @@ export function OrderViewTabs({ query, counts }: { query: OrdersQuery; counts: R
               {ORDER_VIEW_LABELS[v]}
               <span
                 className={cn(
-                  "inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-xs px-1 font-mono text-[10.5px] nums",
+                  "inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-xs px-1 font-mono text-[11px] nums",
                   n > 0 && ATTENTION[v] ? ATTENTION[v] : active ? "bg-white/[0.08] text-fg-2" : "bg-white/[0.04] text-fg-3",
                 )}
               >

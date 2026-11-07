@@ -65,7 +65,7 @@ export function StoreHeader({ data, preview = false }: { data: StoreData; previe
 
           <div className="ml-auto flex items-center gap-2">
             <div className="hidden h-8 items-center gap-1 rounded-(--st-r-ctl) border border-white/[0.08] bg-white/[0.03] pr-0.5 pl-2.5 @md:flex">
-              <span className="label-mono text-[10px] text-fg-4">IP</span>
+              <span className="label-mono text-fg-4">IP</span>
               <span className="font-mono text-[12.5px] text-fg">{data.address}</span>
               <CopyButton value={data.address} label="Скопировать адрес сервера" className="size-7" />
             </div>

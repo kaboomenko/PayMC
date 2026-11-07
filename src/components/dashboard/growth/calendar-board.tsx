@@ -240,7 +240,7 @@ export function CalendarBoard({
             <div>
               <div className="grid grid-cols-7 border-b border-line-soft">
                 {WEEKDAYS.map((d, i) => (
-                  <div key={d} className={cn("px-2 py-1.5 label-mono tracking-[0.06em]", i >= 5 ? "text-fg-4" : "text-fg-3")}>
+                  <div key={d} className={cn("px-2 py-1.5 label-mono", i >= 5 ? "text-fg-4" : "text-fg-3")}>
                     {d}
                   </div>
                 ))}
@@ -440,7 +440,7 @@ function WeekRow({
               >
                 {dom(idx)}
               </span>
-              {today ? <span className="hidden text-[10.5px] text-azure-300 md:inline">сегодня</span> : null}
+              {today ? <span className="hidden text-[11px] text-azure-300 md:inline">сегодня</span> : null}
             </span>
           </div>
         );
@@ -481,13 +481,13 @@ function MoreButton({
           type="button"
           style={{ gridColumn: col + 1, gridRow: row }}
           aria-label={label}
-          className="relative z-10 mx-0.5 my-px justify-self-start rounded-[4px] px-1.5 font-mono text-[10.5px] text-fg-3 transition-colors hover:bg-white/[0.06] hover:text-fg data-[state=open]:bg-white/[0.06] data-[state=open]:text-fg"
+          className="relative z-10 mx-0.5 my-px justify-self-start rounded-[4px] px-1.5 font-mono text-[11px] text-fg-3 transition-colors hover:bg-white/[0.06] hover:text-fg data-[state=open]:bg-white/[0.06] data-[state=open]:text-fg"
         >
           +{events.length}
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-72 p-2">
-        <p className="label-mono px-1.5 pt-1 pb-2 text-[10px] text-fg-4">{formatDate(day * DAY, { year: false })} · ещё</p>
+        <p className="label-mono px-1.5 pt-1 pb-2 text-fg-4">{formatDate(day * DAY, { year: false })} · ещё</p>
         <ul className="space-y-1">
           {events.map((ev) => (
             <li key={ev.id} className="rounded-md px-1.5 py-1.5 hover:bg-white/[0.03]">
@@ -523,7 +523,7 @@ function EventBar({ seg, serverName, onAuto }: { seg: Seg; serverName: Map<strin
           type="button"
           style={{ gridColumn: `${seg.from + 1} / ${seg.to + 2}`, gridRow: seg.lane + 2 }}
           className={cn(
-            "relative z-10 mx-0.5 my-px flex min-w-0 items-center gap-1 overflow-hidden rounded-[4px] px-1.5 text-left text-[10.5px] font-medium whitespace-nowrap transition-colors sm:text-[11px]",
+            "relative z-10 mx-0.5 my-px flex min-w-0 items-center gap-1 overflow-hidden rounded-[4px] px-1.5 text-left text-[11px] font-medium whitespace-nowrap transition-colors",
             ev.demo ? demoBar : kindBar[ev.kind],
             seg.contL && "ml-0 rounded-l-none",
             seg.contR && "mr-0 rounded-r-none",
@@ -612,7 +612,7 @@ function WipeSchedule() {
                 {c.server}
               </p>
               <p className="row-span-2 self-center text-right font-mono text-[12px] text-fg-2 nums">
-                <span className="block text-[11px] tracking-[0.06em] text-fg-4">след.</span>
+                <span className="block text-[11px] text-fg-4">след.</span>
                 {c.next}
               </p>
               <p className="pl-3.5 text-xs text-fg-3">
@@ -662,22 +662,22 @@ function WipeTimeline({ on }: { on: Record<string, boolean> }) {
         <div className="absolute top-5 right-0 left-0 h-px bg-line-strong" />
         {on.sale ? (
           <div className="absolute top-[17px] h-[7px] rounded-[2px] bg-azure-500/60 ring-1 ring-azure-400/50" style={{ left: at(0), right: 0 }}>
-            <span className="absolute -top-4 right-0 font-mono text-[10px] whitespace-nowrap text-azure-200">−20 % на привилегии</span>
+            <span className="absolute -top-4 right-0 font-mono text-[11px] whitespace-nowrap text-azure-200">−20 % на привилегии</span>
           </div>
         ) : null}
         {on.announce ? (
           <span className="absolute top-[15px] size-[11px] -translate-x-1/2 rounded-full border-2 border-[#06080c] bg-ice-300" style={{ left: at(-2) }}>
-            <span className="absolute -top-4 left-0 font-mono text-[10px] whitespace-nowrap text-ice-200">анонс</span>
+            <span className="absolute -top-4 left-0 font-mono text-[11px] whitespace-nowrap text-ice-200">анонс</span>
           </span>
         ) : null}
         {/* the label hangs to the right of the marker, so it never runs into «анонс» on phones */}
         <span className="absolute top-2.5 h-5 w-[2px] -translate-x-1/2 bg-ice-300" style={{ left: at(0) }}>
-          <span className="absolute -top-4 left-0 font-mono text-[10px] whitespace-nowrap text-fg">
+          <span className="absolute -top-4 left-0 font-mono text-[11px] whitespace-nowrap text-fg">
             вайп{on.expire ? <span className="hidden sm:inline"> · −привилегии</span> : null}
           </span>
         </span>
       </div>
-      <div className="relative mt-1 h-4 font-mono text-[10.5px] text-fg-4 nums">
+      <div className="relative mt-1 h-4 font-mono text-[11px] text-fg-4 nums">
         {[
           { h: -2, t: "10:00" },
           { h: 0, t: "12:00" },

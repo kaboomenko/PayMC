@@ -135,7 +135,7 @@ export function DeliverySandbox({ className }: { className?: string }) {
             </button>
           ))}
         </div>
-        <span className="label-mono hidden shrink-0 items-center gap-1.5 text-[10px] text-fg-4 sm:flex">
+        <span className="label-mono hidden shrink-0 items-center gap-1.5 text-fg-4 sm:flex">
           <span className="size-1.5 rounded-full bg-ice-400" /> песочница
         </span>
       </div>
@@ -212,7 +212,7 @@ export function DeliverySandbox({ className }: { className?: string }) {
 
       {/* trace */}
       <div className="flex items-center justify-between px-4 pt-3 pb-1">
-        <p className="label-mono text-[10px] text-fg-4">
+        <p className="label-mono text-fg-4">
           Трасса заказа <span className="text-fg-3">PMC-{orderNo}</span>
         </p>
         <AnimatePresence mode="wait">
@@ -248,7 +248,7 @@ export function DeliverySandbox({ className }: { className?: string }) {
 
       {/* in-game chat */}
       <div className="relative border-t border-line bg-[#06080c] px-4 py-3">
-        <p className="label-mono mb-1.5 text-[10px] text-fg-4">Чат в игре</p>
+        <p className="label-mono mb-1.5 text-fg-4">Чат в игре</p>
         <div className="min-h-[40px] font-mono text-[12px] leading-[1.6]">
           <AnimatePresence>
             {phase === "done" ? (

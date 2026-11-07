@@ -315,7 +315,7 @@ function Loaded({
 
         {status !== "refunded" && status !== "chargeback" ? (
           <section aria-label="Что видит игрок" className="overflow-hidden rounded-lg border border-line bg-[#06080c]">
-            <p className="label-mono border-b border-line-soft px-3.5 py-2 text-[10px] text-fg-4">
+            <p className="label-mono border-b border-line-soft px-3.5 py-2 text-fg-4">
               {status === "delivered" ? "Что увидел игрок в чате" : status === "delivering" ? "Игрок увидит через мгновение" : "Игрок увидит после выдачи"}
             </p>
             <div className="space-y-0.5 px-3.5 py-2.5 font-mono text-[12px] leading-[1.6]">
@@ -394,7 +394,7 @@ function Loaded({
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="min-w-0">
-      <dt className="label-mono text-[10px] text-fg-4">{label}</dt>
+      <dt className="label-mono text-fg-4">{label}</dt>
       <dd className="mt-1 truncate text-[13px] text-fg-2">{children}</dd>
     </div>
   );

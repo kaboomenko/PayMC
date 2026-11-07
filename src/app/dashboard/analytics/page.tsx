@@ -31,7 +31,7 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/dashbo
     <>
       <PageHeader
         title="Аналитика"
-        description="Выручка в контексте онлайна: что растёт, когда покупают и чего ждать дальше."
+        description="Выручка в контексте онлайна: что растёт, когда покупают и чего ждать дальше"
         meta={
           <span className="font-mono text-[11.5px] text-fg-3 nums">
             {formatDateShort(a.range.from)} — {formatDateShort(a.range.to)} · сравнение с {formatDateShort(a.range.prevFrom)} — {formatDateShort(a.range.prevTo)}
@@ -83,17 +83,17 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/dashbo
           </div>
           <div className="mt-auto grid gap-px border-t border-line-soft bg-line-soft sm:grid-cols-3">
             <div className="bg-surface px-4 py-3 sm:px-5">
-              <p className="label-mono text-[10px] text-fg-4">Пик</p>
+              <p className="label-mono text-fg-4">Пик</p>
               <p className="mt-1 text-[13px] text-fg first-letter:uppercase">{a.heatmap.peak}</p>
               <p className="mt-0.5 font-mono text-[11px] text-fg-3 nums">{formatPercent(a.heatmap.peakShare)} недели за 2 часа</p>
             </div>
             <div className="bg-surface px-4 py-3 sm:px-5">
-              <p className="label-mono text-[10px] text-fg-4">Вечер 18–24</p>
+              <p className="label-mono text-fg-4">Вечер 18–24</p>
               <p className="mt-1 font-mono text-[13px] text-fg nums">{formatPercent(a.heatmap.eveningShare, { digits: 0 })} выручки</p>
               <p className="mt-0.5 text-[11px] text-fg-3">лучший день — {a.heatmap.bestDay}</p>
             </div>
             <div className="bg-surface px-4 py-3 sm:px-5">
-              <p className="label-mono text-[10px] text-fg-4">Совет</p>
+              <p className="label-mono text-fg-4">Совет</p>
               <p className="mt-1 text-[13px] text-fg">Запускайте акции {a.heatmap.launchAt}</p>
               <Link href="/dashboard/calendar" className="mt-0.5 inline-flex items-center gap-1 text-[11.5px] text-azure-300 hover:text-azure-200">
                 <CalendarRange className="size-3" /> В календарь акций
@@ -111,7 +111,7 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/dashbo
           <PanelHeader title="Прогноз на 30 дней" meta={<span className="hidden text-[11px] sm:inline">по тренду, дням недели и календарю акций</span>} />
           <div className="flex flex-wrap items-end gap-x-8 gap-y-3 px-4 pt-4 sm:px-5">
             <div>
-              <p className="label-mono text-[10px] text-fg-4">Ожидаем</p>
+              <p className="label-mono text-fg-4">Ожидаем</p>
               <p className="mt-1 font-mono text-[26px] leading-none font-semibold tracking-[-0.03em] text-fg nums">
                 ≈ {formatMoney(a.forecast.total.mid)}
                 <span className="ml-2 text-[13px] font-normal tracking-normal text-fg-3">± {formatPercent(a.forecast.total.spread, { digits: 0 })}</span>
@@ -122,14 +122,14 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/dashbo
             </div>
             {a.forecast.markers.bf ? (
               <div>
-                <p className="label-mono text-[10px] text-azure-300">Чёрная пятница · 27–30.11</p>
+                <p className="label-mono text-azure-300">Чёрная пятница · 27–30.11</p>
                 <p className="mt-1 font-mono text-[15px] text-fg nums">≈ {formatMoney(a.forecast.markers.bf.sum)}</p>
                 <p className="mt-0.5 text-[11px] text-fg-4">за 4 дня, промокод включится сам</p>
               </div>
             ) : null}
             {a.forecast.markers.wipe ? (
               <div>
-                <p className="label-mono text-[10px] text-ice-300">Вайп Анархии · 01.12</p>
+                <p className="label-mono text-ice-300">Вайп Анархии · 01.12</p>
                 <p className="mt-1 font-mono text-[15px] text-fg nums">≈ {formatMoney(a.forecast.markers.wipe.value)}</p>
                 <p className="mt-0.5 text-[11px] text-fg-4">{formatPercent(a.forecast.markers.wipe.vsUsual, { digits: 0, signed: true })} к обычному дню</p>
               </div>

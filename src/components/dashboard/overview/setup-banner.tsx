@@ -91,7 +91,7 @@ export function SetupBanner({ steps }: { steps: SetupStep[] }) {
                 <li key={s.id} className={cn("flex items-start gap-2.5 bg-surface px-4 py-3 sm:px-5", !s.done && "bg-surface-2 sm:col-span-2")}>
                   <span
                     className={cn(
-                      "mt-px flex size-4 shrink-0 items-center justify-center rounded-full font-mono text-[9px]",
+                      "mt-px flex size-4 shrink-0 items-center justify-center rounded-full font-mono text-[11px]",
                       s.done ? "bg-azure-500/15 text-azure-300" : "border border-line-strong text-fg-3",
                     )}
                   >

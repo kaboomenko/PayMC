@@ -93,7 +93,7 @@ export function RevenueOnlineChart({
               >
                 {e.title}
                 {e.uplift !== null ? (
-                  <span className={cn("font-mono text-[10.5px] nums", e.uplift >= 0 ? "text-ice-300" : "text-bad")}>
+                  <span className={cn("font-mono text-[11px] nums", e.uplift >= 0 ? "text-ice-300" : "text-bad")}>
                     {formatPercent(e.uplift, { digits: 0, signed: true })}
                   </span>
                 ) : null}
@@ -262,9 +262,9 @@ export function CategoryDonut({ items }: { items: { label: string; amount: numbe
       <table className="mt-3.5 w-full text-[12.5px]">
         <thead>
           <tr className="text-left">
-            <th className="label-mono w-full pb-1.5 text-[9.5px] font-medium text-fg-4">Категория</th>
-            <th className="label-mono pb-1.5 text-right text-[9.5px] font-medium text-fg-4">Выручка</th>
-            <th className="label-mono pb-1.5 pl-3 text-right text-[9.5px] font-medium text-fg-4">Покупки</th>
+            <th className="label-mono w-full pb-1.5 font-medium text-fg-4">Категория</th>
+            <th className="label-mono pb-1.5 text-right font-medium text-fg-4">Выручка</th>
+            <th className="label-mono pb-1.5 pl-3 text-right font-medium text-fg-4">Покупки</th>
           </tr>
         </thead>
         <tbody>

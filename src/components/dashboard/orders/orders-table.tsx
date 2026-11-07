@@ -285,7 +285,7 @@ export function OrdersTable({
                     <span className="min-w-0 truncate text-[12.5px] text-fg-3">
                       {r.items.map((it) => (it.qty > 1 ? `${it.name} ×${it.qty}` : it.name)).join(", ")}
                     </span>
-                    <span className="shrink-0 font-mono text-[10.5px] text-fg-4 nums">{r.id}</span>
+                    <span className="shrink-0 font-mono text-[11px] text-fg-4 nums">{r.id}</span>
                   </span>
                   <span className="mt-1.5 flex items-center justify-between gap-3">
                     <DeliveryCell status={statusOf(r)} deliveryMs={r.deliveryMs} manual={Boolean(overrides[r.id])} serverOffline={serverById.get(r.serverId)?.status === "offline"} retry={r.retry} compact />
@@ -366,13 +366,13 @@ function SourceTag({ row }: { row: OrderRow }) {
   if (row.promoCode)
     return (
       <Tooltip content={`Промокод ${row.promoCode}`}>
-        <span className="rounded-xs bg-ice-400/10 px-1 py-px font-mono text-[10px] text-ice-300">{row.promoCode}</span>
+        <span className="rounded-xs bg-ice-400/10 px-1 py-px font-mono text-[11px] text-ice-300">{row.promoCode}</span>
       </Tooltip>
     );
   if (row.creatorCode)
     return (
       <Tooltip content={`Код блогера ${row.creatorCode}`}>
-        <span className="rounded-xs bg-azure-500/12 px-1 py-px font-mono text-[10px] text-azure-300">@{row.creatorCode}</span>
+        <span className="rounded-xs bg-azure-500/12 px-1 py-px font-mono text-[11px] text-azure-300">@{row.creatorCode}</span>
       </Tooltip>
     );
   return null;

@@ -106,7 +106,7 @@ export function DocumentsPanel() {
                   <Button key={f} variant="secondary" size="xs" onClick={() => download(d, f)} aria-label={`Скачать ${d.title} в ${f}`}>
                     <Download />
                     {f}
-                    <span className="font-mono text-[10.5px] text-fg-4 nums">{fileSize(d, f, current.scale)}</span>
+                    <span className="font-mono text-[11px] text-fg-4 nums">{fileSize(d, f, current.scale)}</span>
                   </Button>
                 ))}
               </div>

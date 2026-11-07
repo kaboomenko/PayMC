@@ -65,7 +65,7 @@ export function RecentOrders({ orders, now, salesLastHour }: { orders: RecentOrd
                       {live ? <StatusDot tone="azure" pulse className="size-1.5" /> : null}
                       {o.statusLabel}
                     </Badge>
-                    <span className="font-mono text-[10.5px] text-fg-4 nums">{formatRelative(o.createdAt, now)}</span>
+                    <span className="font-mono text-[11px] text-fg-4 nums">{formatRelative(o.createdAt, now)}</span>
                   </span>
                 </Link>
                 {live ? (
@@ -110,7 +110,7 @@ export function ServersCard({ servers, onlineNow, nowHour }: { servers: ServerRo
               {formatNumber(onlineNow)}
               <span className="text-[12px] font-normal tracking-normal text-fg-4"> / {formatNumber(capacity)} слотов</span>
             </p>
-            <p className="text-right font-mono text-[10.5px] text-fg-4 nums">
+            <p className="text-right font-mono text-[11px] text-fg-4 nums">
               пик за сутки {formatNumber(peak)} · {String(peakHour).padStart(2, "0")}:00
             </p>
           </div>
@@ -152,7 +152,7 @@ export function ServersCard({ servers, onlineNow, nowHour }: { servers: ServerRo
                     {formatNumber(s.online)}
                     <span className="text-fg-4">/{formatNumber(s.maxOnline)}</span>
                   </span>
-                  <span className={cn("block font-mono text-[10.5px] nums", s.status === "online" ? "text-fg-4" : s.status === "degraded" ? "text-warn" : "text-bad")}>
+                  <span className={cn("block font-mono text-[11px] nums", s.status === "online" ? "text-fg-4" : s.status === "degraded" ? "text-warn" : "text-bad")}>
                     {s.status === "offline" ? serverStatusMeta.offline.label.toLowerCase() : `${formatNumber(s.latencyMs)} мс`}
                   </span>
                 </span>
@@ -162,7 +162,7 @@ export function ServersCard({ servers, onlineNow, nowHour }: { servers: ServerRo
           );
         })}
       </ul>
-      <p className="mt-auto border-t border-line-soft px-4 py-2.5 font-mono text-[10.5px] text-fg-4 sm:px-5">
+      <p className="mt-auto border-t border-line-soft px-4 py-2.5 font-mono text-[11px] text-fg-4 sm:px-5">
         Плагин PayMC {latest} — на {upToDate} из {servers.length} серверов
       </p>
     </Card>

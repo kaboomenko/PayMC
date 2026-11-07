@@ -28,7 +28,7 @@ export function SettingsView({ data, initialTab }: { data: SettingsData; initial
 
   return (
     <>
-      <PageHeader title="Настройки" description="Проект, команда и доступы, защита от мошенничества, уведомления и переезд с другой платформы." />
+      <PageHeader title="Настройки" description="Проект, команда и доступы, защита от мошенничества, уведомления и переезд с другой платформы" />
       <Tabs value={tab} onValueChange={setTab}>
         <TabsScroller active={tab}>
           <TabsList className="w-max min-w-full">

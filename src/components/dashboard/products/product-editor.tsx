@@ -298,7 +298,7 @@ export function ProductEditor({
             ) : null}
             <Button variant="primary" size="sm" onClick={save} disabled={!dirty && !isNew}>
               {isNew ? "Создать товар" : "Сохранить"}
-              <Kbd className="hidden h-[18px] border-white/25 bg-white/10 text-[10px] text-white sm:inline-flex">⌘S</Kbd>
+              <Kbd className="hidden h-[18px] border-white/25 bg-white/10 text-[11px] text-white sm:inline-flex">⌘S</Kbd>
             </Button>
           </div>
         </div>
@@ -792,7 +792,7 @@ function MessageField({ value, onChange, isPool }: { value: string; onChange: (v
     <PreviewCard title="Текст сообщения" className="mt-2 rounded-t-md">
       <div className="p-3">
         <Input aria-label="Текст сообщения игроку" value={value} maxLength={120} onChange={(e) => onChange(e.target.value)} className="[&_input]:h-8 [&_input]:text-[13px]" />
-        <p className="mt-1.5 font-mono text-[10.5px] text-fg-4">
+        <p className="mt-1.5 font-mono text-[11px] text-fg-4">
           {vars.map((v) => (
             <React.Fragment key={v}>
               <span className="text-ice-300">{v}</span>{" "}

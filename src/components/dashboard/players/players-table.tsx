@@ -58,7 +58,7 @@ export function PlayersTable({ rows, empty }: { rows: PlayerRow[]; empty: React.
                         {p.name}
                       </Link>
                       <span className="flex items-center gap-1.5 text-[11.5px] leading-4 text-fg-3">
-                        <span className="font-mono text-[10.5px] text-fg-4">{p.country}</span>
+                        <span className="font-mono text-[11px] text-fg-4">{p.country}</span>
                         {p.online ? <span className="text-ok">онлайн · {p.serverName}</span> : null}
                       </span>
                     </span>
@@ -152,12 +152,12 @@ export function RankChips({ ranks, max = 2 }: { ranks: PlayerRow["ranks"]; max?:
                 ∞
               </span>
             ) : (
-              <span className={cn("font-mono text-[10px] nums", soon ? "text-warn" : "text-fg-4")}>{r.daysLeft}&nbsp;дн</span>
+              <span className={cn("font-mono text-[11px] nums", soon ? "text-warn" : "text-fg-4")}>{r.daysLeft}&nbsp;дн</span>
             )}
           </span>
         );
       })}
-      {ranks.length > max ? <span className="font-mono text-[10.5px] text-fg-4">+{ranks.length - max}</span> : null}
+      {ranks.length > max ? <span className="font-mono text-[11px] text-fg-4">+{ranks.length - max}</span> : null}
     </span>
   );
 }

@@ -50,7 +50,7 @@ export function ProductStats({
           { label: "Конверсия", value: formatPercent(conv) },
         ].map((s) => (
           <div key={s.label} className="bg-surface px-4 py-3">
-            <dt className="label-mono text-[10px] text-fg-4">{s.label}</dt>
+            <dt className="label-mono text-fg-4">{s.label}</dt>
             <dd className="mt-1 font-mono text-[19px] font-medium tracking-[-0.02em] text-fg nums">{s.value}</dd>
           </div>
         ))}

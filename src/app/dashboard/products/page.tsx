@@ -59,7 +59,7 @@ export default async function ProductsPage({ searchParams }: PageProps<"/dashboa
     <>
       <PageHeader
         title="Товары"
-        description={`Каталог магазина ${project.name}: цены, сроки и команды, которые сервер выполнит после оплаты.`}
+        description={`Каталог магазина ${project.name}: цены, сроки и команды, которые сервер выполнит после оплаты`}
         actions={
           <>
             <Button asChild variant="secondary" size="sm">
@@ -72,7 +72,7 @@ export default async function ProductsPage({ searchParams }: PageProps<"/dashboa
             <Button asChild variant="primary" size="sm">
               <Link href="/dashboard/products/new">
                 <Plus /> Новый товар
-                <Kbd className="ml-0.5 h-[18px] min-w-[18px] border-white/25 bg-white/10 text-[10px] text-white">N</Kbd>
+                <Kbd className="ml-0.5 h-[18px] min-w-[18px] border-white/25 bg-white/10 text-[11px] text-white">N</Kbd>
               </Link>
             </Button>
           </>
