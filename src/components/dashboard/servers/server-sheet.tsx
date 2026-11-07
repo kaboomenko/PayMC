@@ -306,7 +306,7 @@ function SheetInner({
           <TabsList variant="pill">
             <TabsTrigger value="queue">
               Очередь
-              <span className={cn("font-mono text-[11px] nums", queue.length ? "text-warn" : "text-fg-4")}>{queue.length}</span>
+              <span className={cn("font-mono text-[11px] nums", queue.length ? "text-fg-2" : "text-fg-4")}>{queue.length}</span>
             </TabsTrigger>
             <TabsTrigger value="journal">Журнал выдачи</TabsTrigger>
             <TabsTrigger value="settings">Настройки</TabsTrigger>

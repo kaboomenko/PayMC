@@ -377,7 +377,6 @@ function CheckoutFlow({
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
                     >
                       <label htmlFor="co-friend" className="mt-1 mb-2 block text-[13px] font-medium text-fg-2">
                         Ник друга

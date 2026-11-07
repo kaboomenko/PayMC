@@ -51,7 +51,7 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/dashbo
       <Card className="mt-4 overflow-hidden">
         <PanelHeader
           title="Выручка × онлайн"
-          meta={<span className="hidden text-[11px] sm:inline">столбцы — выручка за день, линия — пиковый онлайн, % у события — к обычному дню</span>}
+          meta={<span className="hidden text-[11px] sm:inline">столбцы — выручка за день, линия — пиковый онлайн<span className="hidden xl:inline">, % у события — к обычному дню</span></span>}
           actions={
             <ul className="flex items-center gap-3 text-[11.5px] text-fg-3" aria-label="Легенда">
               <li className="flex items-center gap-1.5">

@@ -126,7 +126,6 @@ export function GamesTable() {
                           id={`game-${g.id}`}
                           initial={reduce ? false : { opacity: 0, y: -4 }}
                           animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0 }}
                           transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                           className="overflow-hidden border-b border-line-soft bg-surface-2/50"
                         >

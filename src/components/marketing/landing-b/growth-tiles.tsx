@@ -52,7 +52,7 @@ export function WipeStrip({
                   )}
                   style={{ height: `${Math.round(14 + d.h * 62)}px` }}
                 />
-                {d.today ? <span aria-hidden className="absolute inset-y-0 -right-[1.5px] w-px bg-fg-3" /> : null}
+                {d.today ? <span aria-hidden className="absolute top-4 bottom-0 -right-[1.5px] w-px bg-fg-3" /> : null}
               </div>
             ))}
           </div>

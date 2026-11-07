@@ -38,7 +38,7 @@ export function ReceiptCard({ income, limit, item }: { income: number; limit: nu
   const pct = (income / limit) * 100;
   const price = formatNumber(item.price, 2);
   return (
-    <div className="grid flex-1 gap-5 sm:grid-cols-[200px_minmax(0,1fr)] lg:grid-cols-1 xl:grid-cols-[196px_minmax(0,1fr)]">
+    <div className="grid flex-1 gap-5 sm:grid-cols-[200px_minmax(0,1fr)] md:grid-cols-1 xl:grid-cols-[196px_minmax(0,1fr)]">
       <figure
         aria-label="Пример чека самозанятого"
         className="relative w-full max-w-[280px] self-start rounded-t-sm bg-[#e8edf6] px-3.5 pt-3 pb-5 font-mono text-[10px] leading-[1.5] text-surface-3 [--qr-bg:#e8edf6] [mask-image:radial-gradient(circle_at_50%_100%,transparent_3px,#000_3.5px)] [mask-repeat:repeat-x] [mask-size:9px_100%]"

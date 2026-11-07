@@ -56,12 +56,6 @@ export function SiteFooter() {
             Донат-магазин для игровых серверов: приём платежей, мгновенная выдача в игре, ежедневные выплаты и чеки для
             самозанятых.
           </p>
-          <Link
-            href="/#changelog"
-            className="mt-6 inline-flex h-8 items-center gap-2 rounded-full border border-line bg-surface/60 px-3 text-xs text-fg-2 transition-colors hover:border-line-strong"
-          >
-            Что нового
-          </Link>
         </div>
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
           {COLUMNS.map((col) => (

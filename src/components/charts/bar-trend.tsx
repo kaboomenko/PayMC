@@ -67,7 +67,7 @@ export function BarTrend({
                 <Cell
                   key={i}
                   fill={color}
-                  fillOpacity={dim ? 0.45 : highlightLast && !isLast && active === null ? 0.5 : 1}
+                  fillOpacity={dim ? 0.45 : highlightLast && !isLast && active === null ? 0.8 : 1}
                 />
               );
             })}
