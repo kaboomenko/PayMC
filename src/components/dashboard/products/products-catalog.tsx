@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/toaster";
+import { Stat, StatStrip } from "@/components/dashboard/overview/stat-strip";
 import { ProductArt } from "./product-art";
 import { BADGE_META, KIND_ORDER, STATUS_META, conversionOf, durationLabel } from "./product-meta";
 import type { CatalogFilters, CatalogProduct, CatalogStatusFilter } from "./types";
@@ -167,12 +168,12 @@ export function ProductsCatalog({
   return (
     <div className="space-y-5">
       {/* totals */}
-      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line lg:grid-cols-4">
+      <StatStrip cols="grid-cols-2 lg:grid-cols-4">
         <Stat label="Выручка · 30 дн" value={formatMoney(totals.revenue)} />
         <Stat label="Продано, шт · 30 дн" value={formatNumber(totals.sales)} />
-        <Stat label="Конверсия витрины" value={formatPercent(totals.conv)} hint="Покупки / просмотры карточек" />
-        <Stat label="В магазине" value={`${totals.active} из ${items.length}`} hint={`${statusCount("draft")} черн. · ${statusCount("hidden")} скрыт.`} />
-      </dl>
+        <Stat label="Конверсия витрины" value={formatPercent(totals.conv)} sub="Покупки / просмотры карточек" />
+        <Stat label="В магазине" value={`${totals.active} из ${items.length}`} sub={`${statusCount("draft")} черн. · ${statusCount("hidden")} скрыт.`} />
+      </StatStrip>
 
       {riskCount > 0 ? (
         <RulesBanner
@@ -380,18 +381,6 @@ interface RowActions {
   toggle: (p: CatalogProduct, on: boolean) => void;
   hide: (p: CatalogProduct) => void;
   askDelete: (p: CatalogProduct) => void;
-}
-
-function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
-  return (
-    <div className="bg-surface px-4 py-3">
-      <dt className="label-mono text-fg-4">{label}</dt>
-      <dd className="mt-1 flex items-baseline gap-2">
-        <span className="font-mono text-[19px] font-medium tracking-[-0.02em] text-fg nums">{value}</span>
-        {hint ? <span className="hidden truncate text-[11.5px] text-fg-4 xl:inline">{hint}</span> : null}
-      </dd>
-    </div>
-  );
 }
 
 function RulesBanner({
@@ -612,7 +601,7 @@ function CatalogTable({ rows, now, actions }: { rows: CatalogProduct[]; now: num
                   <>
                     <TD>
                       <div className="flex items-center gap-3">
-                        <span className="w-9 font-mono text-fg nums">{formatNumber(p.sales30d)}</span>
+                        <span className="w-9 text-right font-mono text-fg nums">{formatNumber(p.sales30d)}</span>
                         <Sparkline data={p.salesTrend} width={84} height={22} tone={p.sales30d ? "azure" : "muted"} />
                       </div>
                     </TD>

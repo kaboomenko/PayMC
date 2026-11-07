@@ -183,7 +183,7 @@ export function DeliverySandbox({ className }: { className?: string }) {
           </label>
         </div>
 
-        <div className="mt-3 flex items-center gap-1.5">
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
           {scenario.methods.map((m) => (
             <button
               key={m}
@@ -202,7 +202,7 @@ export function DeliverySandbox({ className }: { className?: string }) {
             type="button"
             onClick={run}
             disabled={running}
-            className="ml-auto inline-flex h-8 items-center gap-1.5 rounded-md bg-white px-3.5 text-[13px] font-semibold text-canvas shadow-[inset_0_-1px_0_rgb(0_0_0/0.15)] transition-[background-color,opacity,transform] hover:bg-azure-50 active:translate-y-px disabled:opacity-70"
+            className="inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-md bg-white px-3.5 text-[13px] font-semibold whitespace-nowrap text-canvas shadow-[inset_0_-1px_0_rgb(0_0_0/0.15)] transition-[background-color,opacity,transform] hover:bg-azure-50 active:translate-y-px disabled:opacity-70 sm:ml-auto sm:w-auto"
           >
             {phase === "done" ? <RotateCcw className="size-3.5" /> : <Zap className="size-3.5" />}
             {running ? "Выдаём…" : phase === "done" ? "Ещё раз" : `Купить за ${formatMoney(scenario.product.price)}`}
@@ -236,8 +236,8 @@ export function DeliverySandbox({ className }: { className?: string }) {
       <ol ref={listRef} className="scrollbar-none relative h-[268px] overflow-y-auto px-4 pb-3" aria-live="polite">
         {phase === "idle" ? (
           <li className="flex h-full flex-col items-center justify-center text-center">
-            <p className="text-[13px] text-fg-2">Нажмите «Купить» — покажем путь платежа до игры.</p>
-            <p className="mt-1 text-xs text-fg-4">Ник можно заменить на свой.</p>
+            <p className="text-[13px] text-fg-2">Нажмите «Купить» — покажем путь платежа до игры</p>
+            <p className="mt-1 text-xs text-fg-4">Ник можно заменить на свой</p>
           </li>
         ) : (
           steps.slice(0, visible).map((step, i) => (
@@ -253,18 +253,18 @@ export function DeliverySandbox({ className }: { className?: string }) {
           <AnimatePresence>
             {phase === "done" ? (
               <motion.div key={`chat-${orderNo}`} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-                <p className="truncate">
+                <p className="break-words sm:truncate">
                   <span className="text-ice-300">{scenario.chat.prefix}</span>{" "}
                   <span className="text-fg-2">{fillTemplate(scenario.chat.broadcast, safeNick, scenario)}</span>
                 </p>
-                <p className="truncate text-azure-200">
+                <p className="break-words text-azure-200 sm:truncate">
                   <span className="text-fg-4">→ </span>
                   {scenario.chat.personal}
                 </p>
               </motion.div>
             ) : (
               <p className="text-fg-4">
-                <span className="animate-blink">▌</span>
+                <span className={running ? "animate-blink" : undefined}>▌</span>
               </p>
             )}
           </AnimatePresence>

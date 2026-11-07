@@ -123,7 +123,7 @@ function StepItem({ step, last }: { step: TraceStep; last: boolean }) {
   return (
     <li className="relative grid grid-cols-[22px_minmax(0,1fr)] gap-x-3 pb-4 last:pb-0">
       <Rail last={last} />
-      <Node status={step.status} icon={iconFor(step)} pulse={pending} />
+      <Node status={step.status} icon={iconFor(step)} pulse={pending && (step.kind === "executed" || step.kind === "receipt")} />
       <div className="min-w-0">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -195,7 +195,7 @@ function RetriesItem({ steps, last }: { steps: TraceStep[]; last: boolean }) {
   return (
     <li className="relative grid grid-cols-[22px_minmax(0,1fr)] gap-x-3 pb-4 last:pb-0">
       <Rail last={last} />
-      <Node status={status} icon={RotateCw} pulse={Boolean(next)} />
+      <Node status={status} icon={RotateCw} />
       <div className="min-w-0">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">

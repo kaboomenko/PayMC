@@ -43,7 +43,7 @@ export function ReceiptCard({ income, limit, item }: { income: number; limit: nu
         aria-label="Пример чека самозанятого"
         className="relative w-full max-w-[280px] self-start rounded-t-sm bg-[#e8edf6] px-3.5 pt-3 pb-5 font-mono text-[10px] leading-[1.5] text-surface-3 [--qr-bg:#e8edf6] [mask-image:radial-gradient(circle_at_50%_100%,transparent_3px,#000_3.5px)] [mask-repeat:repeat-x] [mask-size:9px_100%]"
       >
-        <p className="text-center text-[10.5px] font-semibold tracking-wide">ЧЕК № 205k1mzq8c</p>
+        <p className="text-center text-[10.5px] font-semibold">Чек № 205k1mzq8c</p>
         <p className="text-center text-[9.5px] opacity-70">
           {formatDateNumeric(paidAt)} {formatTime(paidAt)} (+03:00)
         </p>
@@ -99,7 +99,7 @@ export function ReceiptCard({ income, limit, item }: { income: number; limit: nu
             <span className="absolute -translate-x-full pr-1 whitespace-nowrap text-warn/80" style={{ left: "80%" }}>
               80 %
             </span>
-            <span className="absolute -translate-x-[78%] whitespace-nowrap text-bad/80" style={{ left: "95%" }}>
+            <span className="absolute -translate-x-full pr-1 whitespace-nowrap text-bad/80" style={{ left: "95%" }}>
               95 %
             </span>
           </div>

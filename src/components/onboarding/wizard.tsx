@@ -714,7 +714,7 @@ export function OnboardingWizard({ initialGame }: { initialGame: GameId }) {
                             migrationLog(source, game)
                               .slice(0, migration.lines)
                               .map((l, i) => (
-                                <li key={i} className={cn("flex gap-2 animate-fade-up", l.tone === "ok" ? "text-fg-2" : l.tone === "warn" ? "text-warn" : "text-fg-3")}>
+                                <li key={i} className={cn("flex gap-2 animate-[fade-up_0.2s_var(--ease-snappy)_both]", l.tone === "ok" ? "text-fg-2" : l.tone === "warn" ? "text-warn" : "text-fg-3")}>
                                   <span className={cn("w-3 shrink-0", l.tone === "ok" ? "text-ok" : l.tone === "warn" ? "text-warn" : "text-fg-4")}>
                                     {l.tone === "ok" ? "✓" : l.tone === "warn" ? "!" : "→"}
                                   </span>
@@ -1000,8 +1000,8 @@ function ProgressRail({ step, reached, valid, onGo }: { step: number; reached: n
                 <span className="block h-1 overflow-hidden rounded-full bg-white/[0.07]">
                   <span
                     className={cn(
-                      "block h-full rounded-full transition-[width,background-color] duration-300 ease-[var(--ease-snappy)]",
-                      i < step ? "w-full bg-azure-500" : i === step ? "w-1/2 bg-azure-400" : "w-0",
+                      "block h-full w-full rounded-full transition-[translate,background-color] duration-200 ease-[var(--ease-snappy)]",
+                      i < step ? "bg-azure-500" : i === step ? "-translate-x-1/2 bg-azure-400" : "-translate-x-full",
                     )}
                   />
                 </span>
@@ -1046,7 +1046,7 @@ function ConnectConsole({ status, lines, slug, game }: { status: ConnectStatus; 
       <div className="min-h-[124px] px-3.5 py-3 font-mono text-[12px] leading-[1.75]" aria-live="polite">
         {rows.length === 0 ? <p className="text-fg-4">Выполните команду в консоли — статус обновится сам.</p> : null}
         {rows.map((r) => (
-          <p key={r.t} className={cn("animate-fade-up truncate", r.c)}>
+          <p key={r.t} className={cn("animate-[fade-up_0.2s_var(--ease-snappy)_both] truncate", r.c)}>
             {r.t}
           </p>
         ))}
@@ -1070,7 +1070,7 @@ function TestTrace({ lines, status, command }: { lines: number; status: "idle" |
   return (
     <ol className="px-3.5 pt-3 pb-1" aria-live="polite">
       {steps.slice(0, lines).map((s, i) => (
-        <li key={s.t} className="relative grid animate-fade-up grid-cols-[18px_1fr_auto] gap-x-2.5 pb-2.5">
+        <li key={s.t} className="relative grid animate-[fade-up_0.2s_var(--ease-snappy)_both] grid-cols-[18px_1fr_auto] gap-x-2.5 pb-2.5">
           {i < lines - 1 ? <span aria-hidden className="absolute top-[20px] bottom-0 left-[8.5px] w-px bg-line" /> : null}
           <span className="relative z-10 mt-[3px] flex size-[18px] items-center justify-center rounded-full border border-ok/30 bg-ok-soft text-ok">
             <Check className="size-2.5" strokeWidth={3} />

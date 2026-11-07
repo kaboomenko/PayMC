@@ -44,7 +44,7 @@ export function FinanceOverview({
             hint: "СБП без холда + остаток прошлых дней",
             tip: "Можно вывести прямо сейчас за 0,5 % или дождаться плановой выплаты в 12:00 — бесплатно.",
             action: (
-              <button type="button" onClick={onWithdraw} className="font-medium text-azure-300 transition-colors hover:text-azure-200">
+              <button type="button" onClick={onWithdraw} className="font-medium text-fg-2 transition-colors hover:text-fg">
                 Вывести
               </button>
             ),
@@ -91,8 +91,7 @@ function BalanceStrip({
   return (
     <dl className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-line bg-line-soft min-[480px]:grid-cols-2 xl:grid-cols-4">
       {items.map((it) => (
-        <div key={it.label} className={cn("relative bg-surface px-5 py-4", it.accent && "bg-[linear-gradient(180deg,rgb(51_119_255/0.07),transparent_70%)]")}>
-          {it.accent ? <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-azure-500/60" /> : null}
+        <div key={it.label} className={cn("bg-surface px-5 py-4", it.accent && "bg-surface-2")}>
           <dt className="flex items-center justify-between gap-2">
             <span className="flex items-center gap-1.5 label-mono text-fg-3">
               {it.label}
@@ -210,7 +209,7 @@ function NextPayoutCard({
           <Button variant="ghost" size="sm" onClick={() => onOpenTab("split")}>
             Распределение
           </Button>
-          <Button variant="primary" size="sm" onClick={onWithdraw}>
+          <Button variant="secondary" size="sm" onClick={onWithdraw}>
             Вывести сейчас
             <ArrowUpRight />
           </Button>
@@ -247,7 +246,7 @@ function RecentPayoutBars({ data }: { data: FinanceData }) {
               aria-label={`${formatDateShort(p.createdAt)}: ${formatMoney(p.amount)}`}
               className={cn(
                 "relative flex-1 rounded-t-[3px] transition-opacity outline-none hover:opacity-100 focus-visible:opacity-100",
-                p.status === "failed" ? "bg-warn/70" : p.status === "processing" ? "bg-ice-400" : "bg-azure-500/70 hover:bg-azure-400",
+                p.status === "failed" ? "bg-warn/70" : p.status === "processing" ? "bg-ice-400" : "bg-surface-4 hover:bg-fg-4",
               )}
               style={{ height: `${Math.max(8, (p.amount / max) * 100)}%` }}
             />
@@ -431,7 +430,7 @@ function FeeTierCard({ data, className }: { data: FinanceData; className?: strin
         </div>
         <div>
           <dt className="text-[12px] text-fg-3">Прогноз на месяц</dt>
-          <dd className="mt-0.5 font-mono text-[15px] text-fg-2 nums">≈ {formatMoneyCompact(tier.monthForecast)}</dd>
+          <dd className="mt-0.5 font-mono text-[15px] text-fg-2 nums">≈ {formatMoney(Math.round(tier.monthForecast / 100) * 100)}</dd>
         </div>
       </dl>
 

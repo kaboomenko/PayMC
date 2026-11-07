@@ -470,7 +470,7 @@ function CampaignCard({
       <header className="flex items-start justify-between gap-3 px-4 pt-4 sm:px-5">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="label-mono text-azure-300">{campaignTypeMeta[c.type].label}</span>
+            <span className="label-mono text-fg-3">{campaignTypeMeta[c.type].label}</span>
             <Badge tone={badge.tone} dot={c.status === "active"}>
               {badge.label}
             </Badge>
@@ -541,9 +541,9 @@ function CampaignCard({
         {c.offer ? (
           <span className="ml-auto font-mono text-[11.5px] text-fg-3">
             {c.offer.discountPct > 0 ? (
-              <span className="text-ice-300">−{formatPercent(c.offer.discountPct, { digits: 0 })}</span>
+              <span className="text-fg-2">−{formatPercent(c.offer.discountPct, { digits: 0 })}</span>
             ) : (
-              <>подарок{offerProduct ? <span className="text-ice-300"> · {offerProduct}</span> : null}</>
+              <>подарок{offerProduct ? <span className="text-fg-2"> · {offerProduct}</span> : null}</>
             )}{" "}
             · {ttlLabel(c.offer.ttlHours)}
           </span>
@@ -552,8 +552,8 @@ function CampaignCard({
 
       <div className={cn("mt-4 border-t border-line-soft px-4 py-4 sm:px-5", c.status === "paused" && "opacity-60")}>
         {isDraft ? (
-          <div className="flex items-start gap-3 rounded-lg border border-ice-400/20 bg-ice-400/[0.05] px-3.5 py-3">
-            <CalendarClock className="mt-0.5 size-4 shrink-0 text-ice-300" />
+          <div className="flex items-start gap-3 rounded-lg border border-line bg-white/[0.02] px-3.5 py-3">
+            <CalendarClock className="mt-0.5 size-4 shrink-0 text-fg-3" />
             <div className="min-w-0">
               <p className="text-[13px] font-medium text-fg">{c.scheduleNote ?? "Черновик — включите, когда будете готовы"}</p>
               <p className="mt-0.5 text-xs text-fg-3">
@@ -581,14 +581,14 @@ function CampaignCard({
         ) : hasOffer ? (
           <div className="grid gap-x-5 gap-y-3 sm:grid-cols-[1fr_auto] sm:items-end">
             <div className="space-y-1.5">
-              <FunnelRow label="Показы" value={s.reached} pct={100} tone="bg-azure-500/45" />
-              <FunnelRow label="Клики" value={s.clicked} pct={ctr} rate={ctr} tone="bg-azure-500/70" />
-              <FunnelRow label="Покупки" value={s.converted} pct={total} rate={cr} tone="bg-ice-400" />
+              <FunnelRow label="Показы" value={s.reached} pct={100} tone="bg-fg-4/40" />
+              <FunnelRow label="Клики" value={s.clicked} pct={ctr} rate={ctr} tone="bg-fg-4/70" />
+              <FunnelRow label="Покупки" value={s.converted} pct={total} rate={cr} tone="bg-azure-500" />
             </div>
             <div className="flex items-baseline justify-between gap-3 border-t border-line-soft pt-3 sm:block sm:border-0 sm:pt-0 sm:text-right">
               <p className="label-mono text-fg-4">Выручка · 30 дн</p>
               <p className="font-mono text-[20px] leading-none font-medium tracking-[-0.02em] text-fg nums sm:mt-1">{formatMoney(s.revenue)}</p>
-              <p className="font-mono text-[11.5px] text-ok nums sm:mt-1.5">{formatPercent(total)} купили</p>
+              <p className="font-mono text-[11.5px] text-fg-3 nums sm:mt-1.5">{formatPercent(total)} купили</p>
             </div>
           </div>
         ) : (
@@ -628,7 +628,7 @@ function FunnelRow({ label, value, pct, rate, tone }: { label: string; value: nu
       </span>
       <span className="w-[92px] text-right font-mono text-fg-2 nums">
         {formatNumber(value)}
-        {rate !== undefined ? <span className="ml-1.5 text-fg-4">{formatPercent(rate, { digits: 0 })}</span> : null}
+        <span className="ml-1.5 inline-block w-9 text-right text-fg-4">{rate !== undefined ? formatPercent(rate, { digits: 0 }) : null}</span>
       </span>
     </div>
   );

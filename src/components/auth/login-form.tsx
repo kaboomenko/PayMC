@@ -45,7 +45,7 @@ export function LoginForm() {
   return (
     <div>
       <p className="label-mono text-fg-3">Кабинет владельца</p>
-      <h1 className="mt-3 font-display text-[32px] leading-[1.05] font-semibold tracking-[-0.035em] text-fg">С возвращением</h1>
+      <h1 className="mt-3 font-display text-[32px] leading-[1.05] font-semibold tracking-[-0.035em] text-fg">Вход в кабинет</h1>
       <p className="mt-2 text-[14px] leading-relaxed text-fg-3">Пока вас не было, магазин продавал. Заказы, выплаты и сбои выдачи — в кабинете.</p>
 
       <form onSubmit={submit} noValidate className="mt-8 grid gap-4">

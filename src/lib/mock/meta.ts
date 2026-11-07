@@ -65,9 +65,9 @@ export const eulaMeta: Record<EulaLevel, { label: string; tone: Tone; hint: stri
 };
 
 export const segmentMeta: Record<PlayerSegment, { label: string; tone: Tone; description: string }> = {
-  whale: { label: "Киты", tone: "azure", description: "Потратили 5 000 ₽ и больше" },
-  loyal: { label: "Активные", tone: "ok", description: "Играют регулярно — с покупками или без" },
-  new: { label: "Новички", tone: "ice", description: "Впервые зашли меньше 14 дней назад" },
+  whale: { label: "Киты", tone: "neutral", description: "Потратили 5 000 ₽ и больше" },
+  loyal: { label: "Активные", tone: "neutral", description: "Играют регулярно — с покупками или без" },
+  new: { label: "Новички", tone: "neutral", description: "Впервые зашли меньше 14 дней назад" },
   at_risk: { label: "Под угрозой ухода", tone: "warn", description: "Покупали, но не заходят 14–45 дней" },
   dormant: { label: "Спящие", tone: "neutral", description: "Не заходят больше 45 дней" },
 };

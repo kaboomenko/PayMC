@@ -82,7 +82,7 @@ export function SavingsCalculator() {
               <S.Thumb
                 aria-labelledby="calc-turnover-label"
                 aria-valuetext={formatMoney(turnover)}
-                className="block size-[18px] rounded-full border-2 border-white bg-azure-500 shadow-[0_0_0_4px_rgb(51_119_255/0.2),0_2px_6px_rgb(0_0_0/0.5)] transition-shadow outline-none hover:shadow-[0_0_0_6px_rgb(51_119_255/0.25)] focus-visible:shadow-[0_0_0_6px_rgb(51_119_255/0.4)]"
+                className="block size-[18px] rounded-full border-2 border-white bg-azure-500 shadow-[0_2px_6px_rgb(0_0_0/0.5)] transition-shadow outline-none hover:shadow-[0_0_0_4px_rgb(148_166_204/0.16),0_2px_6px_rgb(0_0_0/0.5)] focus-visible:shadow-[0_0_0_6px_rgb(51_119_255/0.4)]"
               />
             </S.Root>
             <div className="relative mt-2 h-4 font-mono text-[11px] text-fg-4" aria-hidden>
@@ -239,8 +239,8 @@ function ResultRow({
       <div className="mt-2 flex items-center gap-3">
         <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/[0.05]">
           <div
-            className={cn("h-full rounded-full transition-[width] duration-300 ease-[var(--ease-snappy)]", highlight ? "bg-azure-400" : "bg-fg-4")}
-            style={{ width: `${barPct}%` }}
+            className={cn("h-full w-full rounded-full transition-transform duration-200 ease-[var(--ease-snappy)]", highlight ? "bg-azure-400" : "bg-fg-4")}
+            style={{ transform: `translateX(-${100 - barPct}%)` }}
           />
         </div>
         <p className="w-[132px] shrink-0 text-right font-mono text-[11px] text-fg-4 nums">

@@ -333,7 +333,7 @@ export default async function PlayerPage(props: PageProps<"/dashboard/players/[i
               )}
               {expiring && ranks.some((r) => r.left !== null) ? (
                 <p className="flex items-start gap-2 border-t border-line-soft pt-3 text-[12px] leading-relaxed text-fg-3">
-                  <Clock3 className="mt-0.5 size-3.5 shrink-0 text-ice-300" />
+                  <Clock3 className="mt-0.5 size-3.5 shrink-0 text-fg-3" />
                   <span>
                     За 3 дня до конца сработает кампания «{expiring.name}» — {expiring.channels.map((c) => (/^[А-ЯЁ]/.test(channelMeta[c].label) ? channelMeta[c].label.toLowerCase() : channelMeta[c].label)).join(" и ")}
                     {expiring.offer ? `, скидка ${expiring.offer.discountPct} %` : ""}.

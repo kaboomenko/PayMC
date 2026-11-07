@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 export const buttonVariants = cva(
   [
     "relative inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap font-medium select-none",
-    "transition-[background-color,border-color,color,box-shadow,transform,opacity] duration-150 ease-out",
+    "transition-[background-color,border-color,color,box-shadow,transform,opacity] duration-150 ease-[var(--ease-snappy)]",
     "disabled:pointer-events-none disabled:opacity-45 active:translate-y-px",
     "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-azure-400",
     "[&_svg]:pointer-events-none [&_svg]:shrink-0",

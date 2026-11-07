@@ -296,7 +296,7 @@ export function ProductEditor({
                 </a>
               </Button>
             ) : null}
-            <Button variant="primary" size="sm" onClick={save} disabled={!dirty && !isNew}>
+            <Button variant={dirty ? "secondary" : "primary"} size="sm" onClick={save} disabled={!dirty && !isNew}>
               {isNew ? "Создать товар" : "Сохранить"}
               <Kbd className="hidden h-[18px] border-white/25 bg-white/10 text-[11px] text-white sm:inline-flex">⌘S</Kbd>
             </Button>

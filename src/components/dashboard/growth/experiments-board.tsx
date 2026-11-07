@@ -292,7 +292,7 @@ function RunningCard({ e, onStop, onResume, onApply }: { e: ExperimentView; onSt
               <Square /> Остановить
             </Button>
           )}
-          <Button variant="primary" size="sm" onClick={onApply} disabled={!hasData}>
+          <Button variant="secondary" size="sm" onClick={onApply} disabled={!hasData}>
             <Check /> Применить вариант B
           </Button>
         </div>
@@ -467,7 +467,7 @@ function CompletedCard({ e }: { e: ExperimentView }) {
         <Verdict e={e} />
         {e.learnings ? (
           <div className="mt-3 flex gap-2.5 rounded-lg border border-line bg-surface-2/60 px-3.5 py-3">
-            <Lightbulb className="mt-0.5 size-4 shrink-0 text-warn" />
+            <Lightbulb className="mt-0.5 size-4 shrink-0 text-fg-3" />
             <div>
               <p className="label-mono text-fg-4">Вывод</p>
               <p className="mt-1 text-[13px] leading-relaxed text-fg-2">{e.learnings}</p>
@@ -506,7 +506,7 @@ function DraftCard({ e, onLaunch }: { e: ExperimentView; onLaunch: () => void })
       </ul>
       <PlanNote perDay={perDay} split={split} days={days} where={e.kind === "order" ? "витрины" : "карточки"} className="mx-4 mt-3 sm:mx-5" />
       <div className="flex justify-end px-4 py-4 sm:px-5">
-        <Button variant="primary" size="sm" onClick={onLaunch}>
+        <Button variant="secondary" size="sm" onClick={onLaunch}>
           <CirclePlay /> Запустить на {pluralize(days, DAYS)}
         </Button>
       </div>
@@ -518,7 +518,7 @@ function DraftCard({ e, onLaunch }: { e: ExperimentView; onLaunch: () => void })
 function PlanNote({ perDay, split, days, where, className }: { perDay: number; split: number; days: number; where: string; className?: string }) {
   return (
     <div className={cn("flex items-start gap-2.5 rounded-lg border border-line bg-[#06080c] px-3.5 py-3", className)}>
-      <FlaskConical className="mt-0.5 size-4 shrink-0 text-ice-300" />
+      <FlaskConical className="mt-0.5 size-4 shrink-0 text-fg-3" />
       <p className="text-[12.5px] leading-relaxed text-fg-2">
         <span className="font-mono text-fg nums">≈ {formatNumber(Math.round(perDay))}</span> {plural(Math.round(perDay), ["посетитель", "посетителя", "посетителей"])}{" "}
         {where} в день → минимум <span className="font-mono text-fg nums">{days}</span> <span className="text-fg">{plural(days, DAYS)}</span>: столько нужно, чтобы набрать ≈{" "}

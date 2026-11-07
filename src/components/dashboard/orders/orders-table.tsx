@@ -225,7 +225,7 @@ export function OrdersTable({
                           <span className="truncate text-fg">{r.playerName}</span>
                           {r.giftTo ? (
                             <Tooltip content={`Подарок для ${r.giftTo}`}>
-                              <span className="inline-flex text-ice-300" aria-label={`Подарок для ${r.giftTo}`}>
+                              <span className="inline-flex text-fg-3" aria-label={`Подарок для ${r.giftTo}`}>
                                 <Gift className="size-3.5" />
                               </span>
                             </Tooltip>
@@ -248,7 +248,9 @@ export function OrdersTable({
                             <Tooltip content={server.status === "offline" ? "Сервер без связи — заказ ждёт в очереди" : "Сервер медленно отвечает"}>
                               <span className={cn("size-1.5 rounded-full", SERVER_DOT[server.status])} />
                             </Tooltip>
-                          ) : null}
+                          ) : (
+                            <span aria-hidden className="size-1.5" />
+                          )}
                           {server?.name ?? r.serverId}
                         </span>
                       </TD>
@@ -277,7 +279,7 @@ export function OrdersTable({
                     <span className="flex min-w-0 items-center gap-2">
                       <PixelAvatar name={r.playerName} size={18} />
                       <span className="truncate text-[13px] font-medium text-fg">{r.playerName}</span>
-                      {r.giftTo ? <Gift className="size-3.5 shrink-0 text-ice-300" aria-label={`Подарок для ${r.giftTo}`} /> : null}
+                      {r.giftTo ? <Gift className="size-3.5 shrink-0 text-fg-3" aria-label={`Подарок для ${r.giftTo}`} /> : null}
                     </span>
                     <span className="shrink-0 font-mono text-[13px] text-fg nums">{formatMoney(r.amount)}</span>
                   </span>
@@ -366,13 +368,13 @@ function SourceTag({ row }: { row: OrderRow }) {
   if (row.promoCode)
     return (
       <Tooltip content={`Промокод ${row.promoCode}`}>
-        <span className="rounded-xs bg-ice-400/10 px-1 py-px font-mono text-[11px] text-ice-300">{row.promoCode}</span>
+        <span className="rounded-xs bg-white/[0.05] px-1 py-px font-mono text-[11px] text-fg-3">{row.promoCode}</span>
       </Tooltip>
     );
   if (row.creatorCode)
     return (
       <Tooltip content={`Код блогера ${row.creatorCode}`}>
-        <span className="rounded-xs bg-azure-500/12 px-1 py-px font-mono text-[11px] text-azure-300">@{row.creatorCode}</span>
+        <span className="rounded-xs bg-white/[0.05] px-1 py-px font-mono text-[11px] text-fg-3">@{row.creatorCode}</span>
       </Tooltip>
     );
   return null;

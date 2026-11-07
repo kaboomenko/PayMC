@@ -105,9 +105,11 @@ export function Sidebar({
           href={current.storefrontUrl}
           target="_blank"
           rel="noreferrer"
-          className="flex h-8 items-center gap-2 rounded-md px-2 text-[13px] text-fg-3 transition-colors hover:bg-white/[0.04] hover:text-fg-2"
+          className="flex h-8 items-center gap-2.5 rounded-md px-2 text-[13px] text-fg-3 transition-colors hover:bg-white/[0.04] hover:text-fg-2"
         >
-          <span aria-hidden className="size-2 rounded-full bg-ok" />
+          <span aria-hidden className="flex size-4 shrink-0 items-center justify-center">
+            <span className="size-2 rounded-full bg-ok" />
+          </span>
           <span className="flex-1 truncate">Магазин открыт</span>
           <ArrowUpRight className="size-3.5" />
         </a>

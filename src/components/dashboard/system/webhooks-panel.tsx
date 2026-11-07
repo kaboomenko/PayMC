@@ -231,8 +231,8 @@ export function WebhooksPanel({ payload }: { payload: { json: string; orderId: s
           <AnimatePresence initial={false}>
             {test === "done" ? (
               <motion.div
-                initial={reduce ? { opacity: 0 } : { opacity: 0, height: 0 }}
-                animate={reduce ? { opacity: 1 } : { opacity: 1, height: "auto" }}
+                initial={reduce ? { opacity: 0 } : { opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
                 className="overflow-hidden"
               >

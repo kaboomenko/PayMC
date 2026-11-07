@@ -242,7 +242,7 @@ export function buildAttention(): AttentionData {
           pulse: false,
           server: serverName,
           title: `нет плагина ${plugin}`,
-          detail: `Автоповторы закончились. Установите ${plugin} или поменяйте команду в товаре${product ? ` «${product.name}»` : ""}`,
+          detail: `Автоповторы закончились — установите ${plugin} или поменяйте команду в товаре${product ? ` «${product.name}»` : ""}`,
           href: product ? `/dashboard/products/${product.id}` : "/dashboard/products",
           cta: "Товар",
           console: { command, output: "Unknown or incomplete command, see below for error" },

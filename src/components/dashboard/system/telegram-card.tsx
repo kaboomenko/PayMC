@@ -365,7 +365,7 @@ function ChatPreview({ preview, minSale, events }: { preview: TelegramPreview; m
         </div>
         <span className="ml-auto shrink-0 label-mono text-fg-4">превью</span>
       </div>
-      <ol className="space-y-2.5 bg-[radial-gradient(rgb(148_166_204/0.07)_1px,transparent_1px)] [background-size:14px_14px] px-4 py-4" aria-label="Пример сообщений бота">
+      <ol className="space-y-2.5 px-4 py-4" aria-label="Пример сообщений бота">
         {visible.map((m) => (
           <li key={m.key} className="max-w-[92%]">
             <div className="rounded-lg rounded-tl-sm border border-line bg-surface-3 px-3 py-2 shadow-raise">

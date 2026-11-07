@@ -243,8 +243,6 @@ function StatusGlyph({ status }: { status: PayoutDay["status"] }) {
 
 /* ───────────── (b) Money route ───────────── */
 
-const FLOW_CSS = `@keyframes paymc-wire{to{stroke-dashoffset:-16}}.paymc-wire{animation:paymc-wire .9s linear infinite}`;
-
 function Wire({ d, state, className }: { d: string; state: "active" | "idle" | "down"; className?: string }) {
   return (
     <path
@@ -255,7 +253,7 @@ function Wire({ d, state, className }: { d: string; state: "active" | "idle" | "
       strokeDasharray={state === "active" ? "5 3" : "2 4"}
       className={cn(
         "transition-[stroke] duration-200",
-        state === "active" && "paymc-wire stroke-azure-400",
+        state === "active" && "stroke-azure-400",
         state === "idle" && "stroke-line-strong",
         state === "down" && "stroke-bad/60",
         className,
@@ -324,7 +322,6 @@ function RouteCell({
         </label>
       }
     >
-      <style>{FLOW_CSS}</style>
       <div className="flex flex-1 flex-col justify-center">
         <FlowNode icon={UserRound} title="Игрок" meta="СБП · Мир · SberPay · T-Pay · ЮMoney" />
         <svg aria-hidden viewBox="0 0 100 20" preserveAspectRatio="none" className="h-5 w-full">
@@ -362,7 +359,7 @@ function RouteCell({
         <FlowNode icon={Users} title="Вы и команда" meta={`карта или СБП · доли ${shares}`} />
       </div>
       <p className="mt-4 flex items-start gap-2 border-t border-line-soft pt-3 text-[12.5px] leading-snug text-fg-3">
-        <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-ok" />
+        <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-fg-3" />
         <span>
           <span className="text-fg-2">PayMC не держит деньги на своём счёте.</span> Платёж идёт через номинальный счёт банка-партнёра и
           уходит вам напрямую.

@@ -25,14 +25,14 @@ export function WipeStrip({
   return (
     <div className="flex flex-1 flex-col">
       <div className="scrollbar-none -mx-5 overflow-x-auto px-5">
-        <div className="min-w-[540px]">
-          <div className="grid items-end gap-[3px]" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
+        <div className="sm:min-w-[540px]">
+          <div className="grid items-end gap-0.5" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
             {days.map((d, i) => (
               <div key={i} className="relative flex h-[92px] flex-col justify-end">
                 {d.wipe ? (
                   <span
                     className={cn(
-                      "absolute -top-0.5 left-1/2 -translate-x-1/2 font-mono text-[9.5px] whitespace-nowrap",
+                      "absolute -top-0.5 left-1/2 -translate-x-1/2 font-mono text-[11px] whitespace-nowrap",
                       d.past ? "text-fg-3" : "text-ice-300",
                     )}
                   >
@@ -52,15 +52,15 @@ export function WipeStrip({
                   )}
                   style={{ height: `${Math.round(14 + d.h * 62)}px` }}
                 />
-                {d.today ? <span aria-hidden className="absolute inset-y-0 -right-[2.5px] w-px bg-fg-3" /> : null}
+                {d.today ? <span aria-hidden className="absolute inset-y-0 -right-[1.5px] w-px bg-fg-3" /> : null}
               </div>
             ))}
           </div>
-          <div className="mt-1.5 grid gap-[3px] border-t border-line pt-1.5" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
+          <div className="mt-1.5 grid gap-0.5 border-t border-line pt-1.5" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
             {days.map((d, i) => (
-              <div key={i} className="text-center font-mono leading-tight">
-                <p className={cn("text-[10px] nums", d.today ? "text-fg" : d.wipe ? "text-ice-300" : d.weekend ? "text-fg-3" : "text-fg-4")}>{d.n}</p>
-                <p className="text-[8.5px] text-fg-4">{d.wd}</p>
+              <div key={i} className={cn("text-center font-mono leading-tight", i % 7 !== 0 && "max-sm:invisible")}>
+                <p className={cn("text-[11px] nums", d.today ? "text-fg" : d.wipe ? "text-ice-300" : d.weekend ? "text-fg-3" : "text-fg-4")}>{d.n}</p>
+                <p className="hidden text-[11px] text-fg-4 sm:block">{d.wd}</p>
               </div>
             ))}
           </div>
@@ -86,17 +86,9 @@ export function WipeStrip({
               <span className="font-mono text-fg-2 nums">{next.when}</span> — {next.title}
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="inline-flex h-6 items-center rounded-sm bg-ice-400/10 px-2 font-mono text-[11px] text-ice-300 ring-1 ring-ice-400/20 ring-inset">
-              −{next.discount} % на 6 ч
-            </span>
-            <span className="inline-flex h-6 items-center gap-1.5 rounded-sm bg-ok-soft px-2 text-[11px] text-ok ring-1 ring-ok/20 ring-inset">
-              <span className="size-1.5 rounded-full bg-ok" /> скидка стартует сама
-            </span>
-            <span className="inline-flex h-6 items-center rounded-sm px-2 font-mono text-[11px] text-fg-3 ring-1 ring-line-strong ring-inset">
-              прогноз +{next.uplift} %
-            </span>
-          </div>
+          <p className="font-mono text-[11px] text-fg-3">
+            −{next.discount}&nbsp;% на 6&nbsp;ч · скидка стартует сама · прогноз +{next.uplift}&nbsp;%
+          </p>
         </div>
       </div>
     </div>

@@ -244,12 +244,12 @@ function Loaded({
           <Fact label="Источник">
             {o.promoCode ? (
               <span className="inline-flex items-center gap-1.5">
-                <span className="rounded-xs bg-ice-400/10 px-1 font-mono text-[11.5px] text-ice-300">{o.promoCode}</span>
+                <span className="rounded-xs bg-white/[0.05] px-1 font-mono text-[11.5px] text-fg-3">{o.promoCode}</span>
                 <span className="text-fg-3">промокод</span>
               </span>
             ) : o.creatorCode ? (
               <span className="inline-flex items-center gap-1.5">
-                <span className="rounded-xs bg-azure-500/12 px-1 font-mono text-[11.5px] text-azure-300">{o.creatorCode}</span>
+                <span className="rounded-xs bg-white/[0.05] px-1 font-mono text-[11.5px] text-fg-3">{o.creatorCode}</span>
                 <span className="text-fg-3">код блогера</span>
               </span>
             ) : o.campaignName ? (
@@ -293,7 +293,7 @@ function Loaded({
           <Fact label="Подарок">
             {o.giftTo ? (
               <span className="inline-flex items-center gap-1.5">
-                <Gift className="size-3.5 text-ice-300" /> для <span className="font-medium text-fg">{o.giftTo}</span>
+                <Gift className="size-3.5 text-fg-3" /> для <span className="font-medium text-fg">{o.giftTo}</span>
               </span>
             ) : (
               <span className="text-fg-4">нет</span>
@@ -332,7 +332,7 @@ function Loaded({
 
         <section className={cn("rounded-lg border p-3.5", status === "chargeback" ? "border-azure-500/30 bg-azure-500/[0.06]" : "border-line bg-surface-2/50")}>
           <div className="flex items-start gap-3">
-            <ShieldCheck className="mt-0.5 size-4 shrink-0 text-azure-300" />
+            <ShieldCheck className="mt-0.5 size-4 shrink-0 text-fg-3" />
             <div className="min-w-0 flex-1">
               <p className="text-[13px] font-medium text-fg">
                 {status === "chargeback" ? "Пакет доказательств уже отправлен в банк" : "Пакет доказательств для банка"}

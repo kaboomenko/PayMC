@@ -26,11 +26,7 @@ export function AuthVisual() {
     <div className="relative flex h-full flex-col justify-between p-10 xl:p-14">
       <div aria-hidden className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-b from-transparent to-surface" />
 
-      <div className="relative flex items-center justify-end">
-        <span className="label-mono flex items-center gap-1.5 text-fg-4">
-          <span className="size-1.5 rounded-full bg-ok" /> все системы работают
-        </span>
-      </div>
+      <div className="relative flex items-center justify-end" />
 
       <div className="relative mx-auto w-full max-w-[460px]">
         <p className="label-mono text-fg-3">Так выглядит каждая покупка</p>

@@ -245,8 +245,8 @@ function BuilderBody({
                   <span className="block h-[3px] overflow-hidden rounded-full bg-white/[0.08]">
                     <span
                       className={cn(
-                        "block h-full rounded-full transition-[width,background-color] duration-200 ease-[var(--ease-snappy)]",
-                        done ? "w-full bg-azure-400" : current ? "w-1/2 bg-azure-400" : "w-0",
+                        "block h-full w-full rounded-full transition-[translate,background-color] duration-200 ease-[var(--ease-snappy)]",
+                        done ? "bg-azure-400" : current ? "-translate-x-1/2 bg-azure-400" : "-translate-x-full",
                       )}
                     />
                   </span>
@@ -345,7 +345,7 @@ function BuilderBody({
                   <p className="label-mono mb-2 text-fg-3">Триггер</p>
                   <div className="rounded-lg border border-line bg-surface-2/60 p-3.5">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-2 text-[14px] leading-8 text-fg">
-                      <Zap className="size-4 text-azure-300" />
+                      <Zap className="size-4 text-fg-3" />
                       {sentenceBefore ? <span>{sentenceBefore}</span> : null}
                       <Select
                         value={d.delay}
@@ -441,7 +441,7 @@ function BuilderBody({
 
                 <section className="flex items-start justify-between gap-4 rounded-lg border border-line bg-surface-2/60 p-3.5">
                   <div className="flex items-start gap-2.5">
-                    <Moon className="mt-0.5 size-4 shrink-0 text-ice-300" />
+                    <Moon className="mt-0.5 size-4 shrink-0 text-fg-3" />
                     <div>
                       <Label htmlFor="cmp-quiet" className="text-fg">
                         Не беспокоить 23:00–09:00

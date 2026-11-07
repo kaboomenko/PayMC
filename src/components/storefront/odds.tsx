@@ -15,7 +15,7 @@ export function CaseOddsList({ odds, className }: { odds: CaseOdds; className?: 
       <p className="text-[12px] leading-snug text-fg-3">{odds.note}</p>
       <ol className="mt-2 grid gap-px">
         {odds.rewards.map((r) => (
-          <li key={r.name} className="relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-[3px] px-1.5 py-[3px] text-[12px]">
+          <li key={r.name} className="relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-[3px] px-1.5 py-1 text-[12px]">
             <span aria-hidden className="absolute inset-y-0 left-0 rounded-[3px] bg-azure-500/[0.12]" style={{ width: `${(r.chance / max) * 100}%` }} />
             <span className="relative truncate text-fg-2">{r.name}</span>
             <span className="relative font-mono text-[11.5px] text-fg nums">{formatNumber(r.chance, 1)}&nbsp;%</span>

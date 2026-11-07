@@ -7,6 +7,7 @@ import { formatDuration, formatNumber, formatPercent, formatRelative, plural, pl
 import { connectionMeta, serverStatusMeta } from "@/lib/mock/meta";
 import type { ConnectionKind, GameId } from "@/lib/mock/types";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { Stat, StatStrip } from "@/components/dashboard/overview/stat-strip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
@@ -155,12 +156,12 @@ export function ServersView({
       />
 
       <div className="space-y-5">
-        <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line lg:grid-cols-4">
-          <Stat label="Игроков онлайн" value={formatNumber(onlineNow)} hint={`на ${pluralize(live.length, ["сервере", "серверах", "серверах"])}`} />
-          <Stat label="На связи" value={`${live.length} из ${servers.length}`} hint={linkHint || "всё в порядке"} tone={linkHint ? "warn" : undefined} />
-          <Stat label="Команд в очереди" value={formatNumber(queued)} hint="выполнятся сами" tone={queued ? "warn" : undefined} />
-          <Stat label="Средняя задержка" value={formatDuration(avgLatency)} hint="от оплаты до агента" />
-        </dl>
+        <StatStrip cols="grid-cols-2 lg:grid-cols-4">
+          <Stat label="Игроков онлайн" value={formatNumber(onlineNow)} sub={`на ${pluralize(live.length, ["сервере", "серверах", "серверах"])}`} />
+          <Stat label="На связи" value={`${live.length} из ${servers.length}`} sub={linkHint ? <span className="text-warn">{linkHint}</span> : "всё в порядке"} />
+          <Stat label="Команд в очереди" value={formatNumber(queued)} sub="выполнятся сами" />
+          <Stat label="Средняя задержка" value={formatDuration(avgLatency)} sub="от оплаты до агента" />
+        </StatStrip>
 
         {incident && incidentServer ? (
           <section aria-label="Инцидент" className="relative overflow-hidden rounded-xl border border-bad/30 bg-surface shadow-raise">
@@ -252,19 +253,6 @@ export function ServersView({
   );
 }
 
-function Stat({ label, value, hint, tone }: { label: string; value: string; hint?: string; tone?: "warn" }) {
-  return (
-    <div className="bg-surface px-4 py-3">
-      <dt className="label-mono text-fg-4">{label}</dt>
-      {/* the value never breaks; a long hint drops under it instead of squeezing it */}
-      <dd className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-        <span className="font-mono text-[19px] font-medium tracking-[-0.02em] whitespace-nowrap text-fg nums">{value}</span>
-        {hint ? <span className={cn("hidden text-[11.5px] leading-snug sm:inline", tone === "warn" ? "text-warn" : "text-fg-4")}>{hint}</span> : null}
-      </dd>
-    </div>
-  );
-}
-
 function ServerRow({ s, queue, now, onOpen, active }: { s: ServerView; queue: number; now: number; onOpen: () => void; active: boolean }) {
   const meta = serverStatusMeta[s.status];
   const offline = s.status === "offline";
@@ -331,7 +319,7 @@ function ServerRow({ s, queue, now, onOpen, active }: { s: ServerView; queue: nu
         </span>
         <span className="hidden text-right lg:block">
           {queue ? (
-            <span className="inline-flex h-5 min-w-6 items-center justify-center rounded-sm bg-warn-soft px-1.5 font-mono text-[12px] text-warn nums">{queue}</span>
+            <span className="font-mono text-[13px] text-fg-2 nums">{queue}</span>
           ) : (
             <span className="font-mono text-[13px] text-fg-4">0</span>
           )}
@@ -351,7 +339,7 @@ function ServerRow({ s, queue, now, onOpen, active }: { s: ServerView; queue: nu
             пинг <span className={cn(offline ? "text-fg-4" : s.latencyMs > 300 ? "text-warn" : "text-fg")}>{offline ? "—" : formatDuration(s.latencyMs)}</span>
           </span>
           <span>
-            очередь <span className={queue ? "text-warn" : "text-fg"}>{queue}</span>
+            очередь <span className="text-fg">{queue}</span>
           </span>
           <span>
             аптайм <span className="text-fg">{formatPercent(s.uptime30d, { digits: 2 })}</span>

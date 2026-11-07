@@ -35,7 +35,7 @@ export function SetupBanner({ steps }: { steps: SetupStep[] }) {
     <section aria-label="Настройка проекта" className="mb-4 overflow-hidden rounded-xl border border-line bg-surface shadow-raise">
       <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:gap-4 sm:px-5">
         <div className="flex min-w-0 flex-1 items-center gap-3.5">
-          <div className="flex shrink-0 gap-[3px]" aria-hidden>
+          <div className="flex shrink-0 gap-0.5" aria-hidden>
             {steps.map((s) => (
               <span key={s.id} className={cn("h-4 w-1.5 rounded-[2px]", s.done ? "bg-azure-500" : verify === "review" ? "bg-ice-400" : "bg-white/[0.1]")} />
             ))}
@@ -80,9 +80,9 @@ export function SetupBanner({ steps }: { steps: SetupStep[] }) {
           <motion.div
             id={panelId}
             key="steps"
-            initial={reduce ? false : { height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={reduce ? undefined : { height: 0, opacity: 0 }}
+            initial={reduce ? false : { opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={reduce ? undefined : { opacity: 0 }}
             transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden"
           >

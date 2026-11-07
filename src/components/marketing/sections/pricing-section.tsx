@@ -51,7 +51,7 @@ export function PricingSection() {
 
       <div className="grid gap-4 lg:grid-cols-12">
         {/* the rate */}
-        <div className="relative flex flex-col overflow-hidden rounded-xl border border-line-strong bg-surface p-6 sm:p-8 lg:col-span-5">
+        <div className="relative flex flex-col overflow-hidden rounded-xl border border-line-strong bg-surface px-6 pt-4 pb-6 lg:col-span-5">
           <div className="relative">
             <p className="label-mono text-fg-4">С каждого платежа</p>
             <p className="mt-4 font-display text-[96px] leading-[0.85] font-medium tracking-[-0.05em] text-fg nums sm:text-[120px]">
@@ -140,7 +140,7 @@ export function PricingSection() {
                 </tr>
               </thead>
               <tbody>
-                {TIERS.map((t, i) => (
+                {TIERS.map((t) => (
                   <tr key={t.range} className="border-b border-line-soft last:border-0">
                     <td className="h-14 pl-6">
                       <p className="text-fg">{t.range}</p>
@@ -150,7 +150,7 @@ export function PricingSection() {
                       </p>
                     </td>
                     <td className="px-3 pr-6 sm:pr-3">
-                      <span className={cn("font-mono text-[18px] font-medium nums", i === 0 ? "text-fg" : "text-ice-300")}>
+                      <span className="font-mono text-[18px] font-medium text-fg nums">
                         {formatPercent(t.rate * 100)}
                       </span>
                     </td>
@@ -162,11 +162,11 @@ export function PricingSection() {
               </tbody>
             </table>
           </div>
-          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-t border-line bg-azure-500/[0.04] px-6 py-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-t border-line px-6 py-4">
             <p className="text-[13px] text-fg-2">
               Демо-проект ArcticMC: <span className="font-mono text-fg nums">{formatMoney(arctic)}</span> за 30 дней
             </p>
-            <p className="font-mono text-[13px] text-ice-300 nums">ставка {formatPercent(feeRateFor(arctic) * 100)}</p>
+            <p className="font-mono text-[13px] text-fg-3 nums">ставка {formatPercent(feeRateFor(arctic) * 100)}</p>
           </div>
         </div>
 
@@ -188,7 +188,7 @@ export function PricingSection() {
 
             <dt className="border-t border-line-soft pt-2.5 text-fg">На руки</dt>
             <dd className="border-t border-line-soft pt-2.5 text-right font-mono text-fg-2 nums">{range(hi.net, lo.net)}</dd>
-            <dd className="border-t border-line-soft pt-2.5 text-right font-mono font-medium text-ice-300 nums">{formatMoney(EXAMPLE - ours)}</dd>
+            <dd className="border-t border-line-soft pt-2.5 text-right font-mono font-medium text-fg nums">{formatMoney(EXAMPLE - ours)}</dd>
           </dl>
           <div className="mt-auto border-t border-line px-6 py-4">
             <p className="text-[13.5px] text-fg">

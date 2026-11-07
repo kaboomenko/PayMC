@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GAME_LIST } from "@/lib/games";
@@ -20,6 +20,7 @@ const FILTERS: { value: Filter; label: string }[] = [
 export function GamesTable() {
   const [filter, setFilter] = React.useState<Filter>("all");
   const [open, setOpen] = React.useState<string | null>("minecraft");
+  const reduce = useReducedMotion();
 
   const rows = GAME_LIST.filter((g) => filter === "all" || GAME_INSTALL[g.id].via.includes(filter));
   const count = (f: Filter) => GAME_LIST.filter((g) => f === "all" || GAME_INSTALL[g.id].via.includes(f)).length;
@@ -123,9 +124,9 @@ export function GamesTable() {
                       {isOpen ? (
                         <motion.div
                           id={`game-${g.id}`}
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
+                          initial={reduce ? false : { opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0 }}
                           transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                           className="overflow-hidden border-b border-line-soft bg-surface-2/50"
                         >

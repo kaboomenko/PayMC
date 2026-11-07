@@ -20,7 +20,7 @@ export function KpiTiles({ data }: { data: OverviewPulseData }) {
       {bundle.kpis.map((k) => (
         <div
           key={k.id}
-          className="group relative flex flex-col overflow-hidden rounded-xl border border-line bg-surface p-3.5 shadow-raise transition-colors hover:border-line-strong sm:p-4"
+          className="group relative flex flex-col overflow-hidden rounded-xl border border-line bg-surface p-4 shadow-raise transition-colors hover:border-line-strong sm:p-5"
         >
           <p className={cn(STAT_LABEL, "line-clamp-2 min-h-[2.6em] sm:min-h-0")}>{k.label}</p>
           <div className="mt-2 flex flex-col items-start gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-2">
@@ -28,7 +28,8 @@ export function KpiTiles({ data }: { data: OverviewPulseData }) {
             <Change value={k.delta} unit={k.deltaUnit} />
           </div>
           <p className="mt-1.5 truncate font-mono text-[11px] text-fg-4 nums">
-            {k.sub ? k.sub : <>было {k.prev}</>}
+            было {k.prev}
+            {k.sub ? <> · {k.sub}</> : null}
           </p>
           <p className="mt-3 border-t border-line-soft pt-2 text-[11px] leading-snug text-fg-4">{k.caption}</p>
         </div>

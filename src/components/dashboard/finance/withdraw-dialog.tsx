@@ -173,7 +173,7 @@ export function WithdrawDialog({
                 <dd className="font-mono font-medium text-fg nums">{formatMoney(net)}</dd>
               </div>
               <div className="flex items-center gap-1.5 pt-0.5 text-[12px] text-fg-3">
-                <Zap className="size-3.5 text-ice-300" />
+                <Zap className="size-3.5 text-fg-3" />
                 Придёт за 1–3 минуты по СБП, даже ночью и в выходные
               </div>
             </dl>

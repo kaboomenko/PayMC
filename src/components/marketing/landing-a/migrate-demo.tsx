@@ -165,7 +165,7 @@ export function MigrateDemo({ className }: { className?: string }) {
 
         <div className="min-w-0 p-4 sm:p-5">
           <p className="flex items-center gap-2 text-[13px] text-fg">
-            <HowIcon className="size-3.5 text-azure-300" />
+            <HowIcon className="size-3.5 text-fg-3" />
             {source.how === "API-ключ" ? "Подключение по API-ключу" : source.how === "Выгрузка" ? "Файл выгрузки" : "CSV по шаблону"}
           </p>
           <p className="mt-1 text-[12.5px] leading-snug text-fg-3">{typo(source.hint)}</p>
@@ -217,8 +217,8 @@ function ImportLog({ source }: { source: Source }) {
       </div>
       <div className="mx-4 mt-2.5 h-px bg-white/[0.06] sm:mx-5">
         <div
-          className={cn("h-px transition-[width] duration-300 ease-out", done ? "bg-ok" : "bg-ice-400")}
-          style={{ width: `${(shown / total) * 100}%` }}
+          className={cn("h-px w-full origin-left transition-transform duration-200 ease-[var(--ease-snappy)]", done ? "bg-ok" : "bg-ice-400")}
+          style={{ transform: `scaleX(${shown / total})` }}
         />
       </div>
       <ol className="min-h-[188px] space-y-1 px-4 py-3 font-mono text-[12px] leading-[1.6] sm:px-5" aria-live="polite">

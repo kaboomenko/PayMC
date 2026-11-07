@@ -126,7 +126,7 @@ export function ServersSplit({ servers }: { servers: AnalyticsData["splits"]["se
   );
 }
 
-const HOLD_TONE: Record<string, string> = { "без холда": "text-ice-300", "холд 24 ч": "text-fg-3", "до 3 дней": "text-warn" };
+const HOLD_TONE: Record<string, string> = { "без холда": "text-fg-2", "холд 24 ч": "text-fg-3", "до 3 дней": "text-warn" };
 
 export function MethodsSplit({ methods }: { methods: AnalyticsData["splits"]["methods"] }) {
   const max = Math.max(...methods.map((m) => m.amount), 1);
@@ -141,12 +141,12 @@ export function MethodsSplit({ methods }: { methods: AnalyticsData["splits"]["me
                 {m.label} <span className={cn("ml-1 font-mono text-[11px]", HOLD_TONE[m.settlement] ?? "text-fg-4")}>{m.settlement}</span>
               </span>
               <span className="flex shrink-0 items-baseline gap-2.5 font-mono nums">
-                <span className="text-[11.5px] text-fg-3">{formatPercent(m.share * 100)}</span>
+                <span className="text-[11.5px] text-fg-3">{formatPercent(m.share * 100, { fixed: true })}</span>
                 <span className="w-[76px] text-right text-[12.5px] text-fg">{formatMoney(m.amount)}</span>
               </span>
             </div>
             <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/[0.04]">
-              <div className="h-full rounded-full bg-ice-400/80" style={{ width: `${(m.amount / max) * 100}%` }} />
+              <div className={cn("h-full rounded-full", m.settlement === "без холда" ? "bg-azure-500" : "bg-fg-4")} style={{ width: `${(m.amount / max) * 100}%` }} />
             </div>
           </li>
         ))}
@@ -186,7 +186,7 @@ export function CountriesTable({ countries }: { countries: AnalyticsData["splits
                   </TD>
                   <TD className="h-10">
                     <span className="block text-fg">{c.label}</span>
-                    <span className={cn("block text-[11px]", c.key === "RU" ? "text-fg-4" : "text-ice-300/80")}>{c.rails}</span>
+                    <span className="block text-[11px] text-fg-4">{c.rails}</span>
                   </TD>
                   <TD className="h-10 text-right font-mono text-fg nums">{formatMoney(c.amount)}</TD>
                   <TD className="h-10 text-right font-mono text-fg-3 nums">{formatPercent(c.share * 100)}</TD>
@@ -386,7 +386,7 @@ export function InsightsPanel({ insights, heat }: { insights: AnalyticsData["ins
             <span
               className={cn(
                 "mt-0.5 font-mono text-[11px] nums",
-                it.tone === "warn" ? "text-warn" : it.tone === "ice" ? "text-ice-300" : "text-azure-300",
+                it.tone === "warn" ? "text-warn" : "text-fg-4",
               )}
             >
               {String(i + 1).padStart(2, "0")}

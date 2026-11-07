@@ -124,7 +124,7 @@ export function CommandBuilder({ className }: { className?: string }) {
       <div className="grid md:grid-cols-[230px_minmax(0,1fr)]">
         {/* actions */}
         <div role="radiogroup" aria-label="Что выдать" className="border-b border-line-soft p-1.5 md:border-r md:border-b-0">
-          <p className="label-mono px-2.5 pt-1.5 pb-2 text-fg-4">Что выдать</p>
+          <p className="label-mono px-2.5 pt-3.5 pb-2 text-fg-4">Что выдать</p>
           {actions.map((t) => {
             const active = t.id === action.id;
             return (
@@ -235,7 +235,7 @@ export function CommandBuilder({ className }: { className?: string }) {
               </p>
             ) : action.requireOnline ? (
               <p className="flex items-start gap-2 text-[12.5px] text-fg-3">
-                <UserRound className="mt-0.5 size-3.5 shrink-0 text-ice-300" />
+                <UserRound className="mt-0.5 size-3.5 shrink-0 text-fg-4" />
                 Нужен игрок онлайн. Если он не в сети, команда подождёт в очереди и выполнится при входе.
               </p>
             ) : (

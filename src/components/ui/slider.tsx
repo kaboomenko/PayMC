@@ -14,7 +14,7 @@ export function Slider({ className, ...props }: React.ComponentProps<typeof S.Ro
       {Array.from({ length: count }).map((_, i) => (
         <S.Thumb
           key={i}
-          className="block size-4 rounded-full border-2 border-white bg-azure-500 shadow-[0_0_0_4px_rgb(51_119_255/0.2),0_2px_6px_rgb(0_0_0/0.5)] transition-shadow outline-none hover:shadow-[0_0_0_6px_rgb(51_119_255/0.25)] focus-visible:shadow-[0_0_0_6px_rgb(51_119_255/0.35)]"
+          className="block size-4 rounded-full border-2 border-white bg-azure-500 shadow-[0_2px_6px_rgb(0_0_0/0.5)] transition-shadow outline-none hover:shadow-[0_0_0_4px_rgb(148_166_204/0.16),0_2px_6px_rgb(0_0_0/0.5)] focus-visible:shadow-[0_0_0_6px_rgb(51_119_255/0.35)]"
         />
       ))}
     </S.Root>

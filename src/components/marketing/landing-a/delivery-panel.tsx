@@ -384,7 +384,6 @@ function TraceRow({
     >
       {!last ? <span aria-hidden className="absolute top-[22px] bottom-0 left-[9.5px] w-px bg-line" /> : null}
       <span className={cn("relative z-10 mt-0.5 flex size-5 items-center justify-center rounded-full border", cls)}>
-        {pending ? <span aria-hidden className="absolute inset-0 animate-ping rounded-full bg-ice-400/20 motion-reduce:hidden" /> : null}
         <Icon className="size-2.5" strokeWidth={2.75} />
       </span>
       <div className="min-w-0">

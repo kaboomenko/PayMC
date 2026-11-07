@@ -244,7 +244,7 @@ function Funnel({ reached, clicked, converted }: { reached: number; clicked: num
             <span className="truncate text-fg-3">{r.label}</span>
             <span className="h-1.5 overflow-hidden rounded-full bg-white/[0.05]">
               <span
-                className={cn("block h-full rounded-full", i === 2 ? "bg-ice-400" : "bg-azure-500/80")}
+                className={cn("block h-full rounded-full", i === 2 ? "bg-azure-500" : "bg-fg-4/60")}
                 style={{ width: `${Math.max(2, w)}%` }}
               />
             </span>

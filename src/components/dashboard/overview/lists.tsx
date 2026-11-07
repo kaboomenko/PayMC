@@ -40,13 +40,10 @@ export function RecentOrders({ orders, now, salesLastHour }: { orders: RecentOrd
           {orders.map((o, i) => {
             const live = o.status === "delivering" && i === 0;
             return (
-              <li key={o.id} className="relative">
+              <li key={o.id}>
                 <Link
                   href={`/dashboard/orders?id=${o.id}`}
-                  className={cn(
-                    "grid grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-x-3 px-4 py-2.5 transition-colors hover:bg-white/[0.025] sm:grid-cols-[28px_minmax(0,1fr)_auto_96px] sm:px-5",
-                    live && "bg-azure-500/[0.045]",
-                  )}
+                  className="grid grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-x-3 px-4 py-2.5 transition-colors hover:bg-white/[0.025] sm:grid-cols-[28px_minmax(0,1fr)_auto_96px] sm:px-5"
                 >
                   <PixelAvatar name={o.playerName} size={28} />
                   <span className="min-w-0">
@@ -68,11 +65,6 @@ export function RecentOrders({ orders, now, salesLastHour }: { orders: RecentOrd
                     <span className="font-mono text-[11px] text-fg-4 nums">{formatRelative(o.createdAt, now)}</span>
                   </span>
                 </Link>
-                {live ? (
-                  <span aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-px overflow-hidden">
-                    <span className="block h-full w-full animate-shimmer bg-[linear-gradient(90deg,transparent,rgb(92_152_255/0.9),transparent)] bg-[length:40%_100%] bg-no-repeat" />
-                  </span>
-                ) : null}
               </li>
             );
           })}

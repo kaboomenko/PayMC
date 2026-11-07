@@ -29,7 +29,10 @@ export function Progress({
       aria-valuemax={max}
       className={cn("relative w-full overflow-hidden rounded-full bg-white/[0.06]", size === "sm" ? "h-1" : "h-1.5", className)}
     >
-      <div className={cn("h-full rounded-full transition-[width] duration-500 ease-out", bar)} style={{ width: `${pct}%` }} />
+      <div
+        className={cn("h-full w-full rounded-full transition-transform duration-200 ease-[var(--ease-snappy)]", bar)}
+        style={{ transform: `translateX(-${100 - pct}%)` }}
+      />
     </div>
   );
 }

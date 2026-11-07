@@ -91,7 +91,7 @@ function DiffLine({ kind, n, text, scope, variants }: { kind: "add" | "del"; n: 
       <span aria-hidden className="hidden pr-2 text-right text-fg-4 select-none nums sm:block">{add ? "" : n}</span>
       <span aria-hidden className="hidden pr-2 text-right text-fg-4 select-none nums sm:block">{add ? n : ""}</span>
       <span aria-hidden className={cn("pl-2 select-none sm:pl-0", add ? "text-ok" : "text-bad")}>{add ? "+" : "−"}</span>
-      <span className={cn("py-[3px] pr-3.5", add ? "text-fg" : "text-fg-3")}>
+      <span className={cn("py-1 pr-3.5", add ? "text-fg" : "text-fg-3")}>
         <span className="sr-only">{add ? "Стало: " : "Было: "}</span>
         {segments(text).map((s, i) =>
           s.em ? (

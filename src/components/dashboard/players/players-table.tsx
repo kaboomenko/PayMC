@@ -84,7 +84,7 @@ export function PlayersTable({ rows, empty }: { rows: PlayerRow[]; empty: React.
                 <TD className="text-center">
                   {p.telegram ? (
                     <Tooltip content={`Telegram привязан · ${p.telegram}`}>
-                      <span className="inline-flex text-ice-300" aria-label={`Telegram ${p.telegram}`}>
+                      <span className="inline-flex text-fg-3" aria-label={`Telegram ${p.telegram}`}>
                         <Send className="size-3.5" />
                       </span>
                     </Tooltip>

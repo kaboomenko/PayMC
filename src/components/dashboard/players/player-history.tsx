@@ -45,7 +45,7 @@ export function PlayerHistory({ rows, total, allHref }: { rows: PlayerOrderRow[]
                 initial={o.manual && !reduce ? { opacity: 0, backgroundColor: "rgba(51,119,255,0.16)" } : false}
                 animate={{ opacity: 1, backgroundColor: "rgba(51,119,255,0)" }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1], backgroundColor: { duration: 0.6 } }}
               >
                 {o.manual ? (
                   <div className="px-4 py-3">
@@ -91,7 +91,7 @@ export function PlayerHistory({ rows, total, allHref }: { rows: PlayerOrderRow[]
                     initial={o.manual && !reduce ? { opacity: 0, backgroundColor: "rgba(51,119,255,0.16)" } : false}
                     animate={{ opacity: 1, backgroundColor: "rgba(51,119,255,0)" }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1], backgroundColor: { duration: 0.6 } }}
                     className="border-b border-line-soft last:border-0"
                   >
                     <td className="h-11 px-3 pl-5 whitespace-nowrap">

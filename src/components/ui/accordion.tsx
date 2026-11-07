@@ -33,7 +33,7 @@ export function AccordionTrigger({ className, children, ...props }: React.Compon
 export function AccordionContent({ className, children, ...props }: React.ComponentProps<typeof A.Content>) {
   return (
     <A.Content
-      className="overflow-hidden data-[state=closed]:animate-[accordion-up_0.2s_ease-out] data-[state=open]:animate-[accordion-down_0.25s_var(--ease-snappy)]"
+      className="overflow-hidden data-[state=open]:animate-[fade-up_0.2s_var(--ease-snappy)]"
       {...props}
     >
       <div className={cn("pr-12 pb-5 text-[15px] leading-relaxed text-fg-2", className)}>{children}</div>

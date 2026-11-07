@@ -273,32 +273,34 @@ function SheetInner({
         ) : null}
 
         {/* health */}
-        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line">
-          <Health label="Онлайн · 24 ч" value={`${formatNumber(s.online)} / ${formatNumber(s.maxOnline)}`}>
-            <Sparkline data={s.onlineHistory} width={120} height={28} tone="azure" />
-          </Health>
-          <Health
-            label="TPS · 24 ч"
-            value={s.status === "offline" ? "—" : formatNumber(s.tps ?? 20, 1)}
-            valueClass={s.status === "offline" ? "text-fg-4" : (s.tps ?? 20) >= 19 ? "text-fg" : (s.tps ?? 20) >= 17 ? "text-warn" : "text-bad"}
-          >
-            <Sparkline data={s.tpsHistory} width={120} height={28} tone={s.status === "online" ? "ok" : s.status === "degraded" ? "muted" : "bad"} />
-          </Health>
-          <Health
-            label="Задержка · 24 ч"
-            value={s.status === "offline" ? "—" : formatDuration(s.latencyMs)}
-            valueClass={s.status === "offline" ? "text-fg-4" : s.latencyMs > 300 ? "text-warn" : "text-fg"}
-          >
-            <Sparkline data={s.latencyHistory} width={120} height={28} tone="ice" />
-          </Health>
-          <Health label="Аптайм · 30 дн" value={formatPercent(s.uptime30d, { digits: 2 })}>
-            <UptimeStrip days={s.uptimeDays} tall className="w-[120px]" />
-          </Health>
+        <div>
+          <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line">
+            <Health label="Онлайн · 24 ч" value={`${formatNumber(s.online)} / ${formatNumber(s.maxOnline)}`}>
+              <Sparkline data={s.onlineHistory} width={120} height={28} tone="azure" />
+            </Health>
+            <Health
+              label="TPS · 24 ч"
+              value={s.status === "offline" ? "—" : formatNumber(s.tps ?? 20, 1)}
+              valueClass={s.status === "offline" ? "text-fg-4" : (s.tps ?? 20) >= 19 ? "text-fg" : (s.tps ?? 20) >= 17 ? "text-warn" : "text-bad"}
+            >
+              <Sparkline data={s.tpsHistory} width={120} height={28} tone={s.status === "offline" ? "bad" : "muted"} />
+            </Health>
+            <Health
+              label="Задержка · 24 ч"
+              value={s.status === "offline" ? "—" : formatDuration(s.latencyMs)}
+              valueClass={s.status === "offline" ? "text-fg-4" : s.latencyMs > 300 ? "text-warn" : "text-fg"}
+            >
+              <Sparkline data={s.latencyHistory} width={120} height={28} tone="muted" />
+            </Health>
+            <Health label="Аптайм · 30 дн" value={formatPercent(s.uptime30d, { digits: 2 })}>
+              <UptimeStrip days={s.uptimeDays} tall className="w-[120px]" />
+            </Health>
+          </div>
+          <p className="mt-2 text-xs text-fg-4">
+            {connectionMeta[s.connection].label} PayMC {s.agentVersion} · {connectionMeta[s.connection].description.toLowerCase()} · на связи{" "}
+            {s.status === "offline" ? `в ${formatTime(s.lastSeenAt)}` : formatRelative(s.lastSeenAt, now)}
+          </p>
         </div>
-        <p className="-mt-3 text-xs text-fg-4">
-          {connectionMeta[s.connection].label} PayMC {s.agentVersion} · {connectionMeta[s.connection].description.toLowerCase()} · на связи{" "}
-          {s.status === "offline" ? `в ${formatTime(s.lastSeenAt)}` : formatRelative(s.lastSeenAt, now)}
-        </p>
 
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList variant="pill">

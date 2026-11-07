@@ -9,7 +9,7 @@ export function Checkbox({ className, ...props }: React.ComponentProps<typeof C.
   return (
     <C.Root
       className={cn(
-        "peer flex size-4 shrink-0 items-center justify-center rounded-xs border border-line-strong bg-surface-2 transition-colors outline-none data-[state=checked]:border-azure-500 data-[state=checked]:bg-azure-500 data-[state=indeterminate]:border-azure-500 data-[state=indeterminate]:bg-azure-500 disabled:opacity-40",
+        "peer flex size-4 shrink-0 items-center justify-center rounded-xs border border-line-strong bg-surface-2 transition-colors hover:border-fg-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-azure-400 data-[state=checked]:border-azure-500 data-[state=checked]:bg-azure-500 data-[state=indeterminate]:border-azure-500 data-[state=indeterminate]:bg-azure-500 disabled:opacity-40",
         className,
       )}
       {...props}

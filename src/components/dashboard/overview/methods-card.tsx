@@ -49,7 +49,7 @@ export function MethodsCard({ methods }: { methods: MethodSlice[] }) {
               <span className="h-1.5 overflow-hidden rounded-full bg-white/[0.05]">
                 <span className={cn("block h-full rounded-full", i === 0 ? "bg-azure-500" : "bg-fg-4")} style={{ width: `${Math.max(2, share * 100)}%` }} />
               </span>
-              <span className="text-right font-mono text-xs text-fg-2 nums">{formatPercent(share * 100, { digits: share < 0.1 ? 1 : 0 })}</span>
+              <span className="text-right font-mono text-xs text-fg-2 nums">{formatPercent(share * 100, { digits: share < 0.1 ? 1 : 0, fixed: true })}</span>
               <span className="text-right font-mono text-xs text-fg-4 nums">{formatMoney(m.amount)}</span>
             </li>
           );

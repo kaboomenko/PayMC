@@ -89,7 +89,7 @@ export function RevenueOnlineChart({
               <span
                 className="absolute flex h-[18px] items-center gap-1.5 whitespace-nowrap rounded-sm border border-line bg-surface-2 px-1.5 text-[11px] text-fg-2"
                 style={{ left: e.left, bottom: e.lane === 0 ? 12 : 32 - 2 }}
-                title={e.range}
+                title={e.uplift !== null ? `${e.range} · к среднему дню за 2 недели до` : e.range}
               >
                 {e.title}
                 {e.uplift !== null ? (
@@ -270,7 +270,7 @@ export function CategoryDonut({ items }: { items: { label: string; amount: numbe
         <tbody>
           {items.map((c, i) => (
             <tr key={c.label}>
-              <td className="py-[3px] pr-2">
+              <td className="py-1 pr-2">
                 <span className="flex min-w-0 items-center gap-2">
                   <span aria-hidden className="size-2 shrink-0 rounded-[2px]" style={{ background: color(i) }} />
                   <span className="text-fg-2" title={`${c.label}: ${formatMoney(c.amount)}`}>
@@ -278,8 +278,8 @@ export function CategoryDonut({ items }: { items: { label: string; amount: numbe
                   </span>
                 </span>
               </td>
-              <td className="py-[3px] text-right font-mono whitespace-nowrap text-fg nums">{formatPercent(c.share * 100, { digits: c.share < 0.01 ? 1 : 0 })}</td>
-              <td className={cn("py-[3px] pl-3 text-right font-mono whitespace-nowrap nums", c.lineShare > c.share * 1.25 ? "text-ice-300" : "text-fg-3")}>
+              <td className="py-1 text-right font-mono whitespace-nowrap text-fg nums">{formatPercent(c.share * 100, { digits: c.share < 0.01 ? 1 : 0 })}</td>
+              <td className={cn("py-1 pl-3 text-right font-mono whitespace-nowrap nums", c.lineShare > c.share * 1.25 ? "text-ice-300" : "text-fg-3")}>
                 {formatPercent(c.lineShare * 100, { digits: c.lineShare < 0.01 ? 1 : 0 })}
               </td>
             </tr>

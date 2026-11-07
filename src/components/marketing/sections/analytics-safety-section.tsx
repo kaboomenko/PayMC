@@ -4,6 +4,7 @@ import { formatDate, formatDateShort, formatMoney, formatNumber, formatPercent, 
 import { cn } from "@/lib/utils";
 import { Section, SectionHeading } from "@/components/marketing/section";
 import { Delta } from "@/components/ui/delta";
+import { Change } from "@/components/dashboard/overview/bits";
 import { RevenueChart, type RevenuePoint } from "@/components/marketing/landing-b/revenue-chart";
 import { RulesCheck } from "@/components/marketing/landing-b/rules-check";
 
@@ -59,7 +60,9 @@ export function AnalyticsSafetySection() {
     {
       label: "Игроки → покупатели",
       value: formatPercent(k.conversion),
-      delta: pct(k.conversion, k.conversionPrev),
+      // a rate changes in percentage points, as on the dashboard
+      delta: k.conversion - k.conversionPrev,
+      unit: "pp" as const,
       note: `${formatNumber(k.buyers)} покупателей за 30 дней. Считаем по уникальным игрокам, а не по визитам витрины.`,
     },
     {
@@ -85,9 +88,10 @@ export function AnalyticsSafetySection() {
           <div className="flex flex-wrap items-start justify-between gap-4 px-5 pt-5">
             <div>
               <p className="label-mono text-fg-4">ArcticMC · 30 дней</p>
-              <p className="mt-1.5 flex items-baseline gap-2.5 font-mono text-[26px] font-medium tracking-[-0.02em] text-fg nums">
+              <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2.5 gap-y-1 font-mono text-[26px] font-medium tracking-[-0.02em] text-fg nums">
                 {formatMoney(k.revenue)}
-                <Delta value={pct(k.revenue, k.revenuePrev)} />
+                <Delta value={pct(k.revenue, k.revenuePrev)} className="tracking-normal" />
+                <span className="text-[11px] font-normal tracking-normal text-fg-4">к прошлым 30 дням</span>
               </p>
             </div>
             <ul className="flex items-center gap-4 pt-1 text-[12px] text-fg-3">
@@ -121,9 +125,16 @@ export function AnalyticsSafetySection() {
           {metrics.map((m) => (
             <div key={m.label} className="flex flex-col bg-surface px-5 py-4">
               <dt className="label-mono text-fg-4">{m.label}</dt>
-              <dd className="mt-2 flex items-baseline gap-2.5">
+              <dd className="mt-2 flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
                 <span className="font-mono text-[24px] font-medium tracking-[-0.02em] text-fg nums">{m.value}</span>
-                {m.delta !== null ? <Delta value={m.delta} /> : <span className="font-mono text-[11px] text-fg-4">середина</span>}
+                {m.delta !== null ? (
+                  <>
+                    <Change value={m.delta} unit={m.unit} />
+                    <span className="font-mono text-[11px] text-fg-4">к прошлым 30 дням</span>
+                  </>
+                ) : (
+                  <span className="font-mono text-[11px] text-fg-4">середина</span>
+                )}
               </dd>
               <p className="mt-1.5 text-[12.5px] leading-snug text-fg-3">{typo(m.note)}</p>
             </div>
@@ -150,7 +161,7 @@ export function AnalyticsSafetySection() {
               {riskRows.map((r) => {
                 const tone = riskTone(r.risk);
                 return (
-                  <li key={r.name} className="grid grid-cols-[minmax(0,1fr)_64px_28px] items-center gap-2 font-mono text-[11px]">
+                  <li key={r.name} className="grid grid-cols-[minmax(0,1fr)_64px_28px] items-center gap-x-2 gap-y-1 font-mono text-[11px]">
                     <span className="truncate text-fg-2">{r.name}</span>
                     <span className="h-1 overflow-hidden rounded-full bg-white/[0.06]">
                       <span
@@ -159,7 +170,7 @@ export function AnalyticsSafetySection() {
                       />
                     </span>
                     <span className={cn("text-right nums", tone === "ok" ? "text-ok" : tone === "warn" ? "text-warn" : "text-bad")}>{r.risk}</span>
-                    <span className="col-span-3 -mt-1 text-[11px] text-fg-4">{r.verdict}</span>
+                    <span className="col-span-3 text-[11px] text-fg-4">{r.verdict}</span>
                   </li>
                 );
               })}

@@ -31,8 +31,8 @@ export function SiteHeader() {
   return (
     <header
       className={cn(
-        "fixed inset-x-0 top-0 z-40 transition-[background-color,border-color,backdrop-filter] duration-300",
-        scrolled ? "border-b border-line-soft bg-canvas/75 backdrop-blur-xl" : "border-b border-transparent",
+        "fixed inset-x-0 top-0 z-40 transition-colors duration-200",
+        scrolled ? "border-b border-line-soft bg-canvas/95" : "border-b border-transparent",
       )}
     >
       <div className="container-page flex h-16 items-center gap-8">

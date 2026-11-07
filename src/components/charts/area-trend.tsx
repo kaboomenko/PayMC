@@ -44,7 +44,7 @@ export function AreaTrend({
   return (
     <div className={className} style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 8, right: 4, bottom: 0, left: showYAxis ? 0 : 4 }}>
+        <AreaChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: showYAxis ? 0 : 4 }}>
           <defs>
             {series.map((s) => (
               <linearGradient key={s.key} id={`${uid}-${s.key}`} x1="0" y1="0" x2="0" y2="1">

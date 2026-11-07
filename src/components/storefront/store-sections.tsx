@@ -108,12 +108,9 @@ export function GoalWidget({ goal }: { goal: NonNullable<StoreData["goal"]> }) {
         <span className="text-[26px] leading-none font-semibold tracking-[-0.03em] text-fg">{formatNumber(goal.raised)}</span>
         <span className="text-[13px] text-fg-3">из {formatMoney(goal.target)}</span>
       </p>
-      <div className="mt-3 grid grid-cols-[repeat(24,minmax(0,1fr))] gap-[3px]" role="progressbar" aria-valuenow={goal.raised} aria-valuemax={goal.target} aria-label="Прогресс цели">
+      <div className="mt-3 grid grid-cols-[repeat(24,minmax(0,1fr))] gap-0.5" role="progressbar" aria-valuenow={goal.raised} aria-valuemax={goal.target} aria-label="Прогресс цели">
         {Array.from({ length: segments }, (_, i) => (
-          <span
-            key={i}
-            className={cn("h-2.5 rounded-[2px]", i < lit ? "bg-(--st-accent)" : "bg-white/[0.07]", i === lit - 1 && "shadow-[0_0_10px_var(--st-accent-ring)]")}
-          />
+          <span key={i} className={cn("h-2.5 rounded-[2px]", i < lit ? "bg-(--st-accent)" : "bg-white/[0.07]")} />
         ))}
       </div>
       <div className="mt-2.5 flex items-center justify-between text-xs text-fg-3">
@@ -150,17 +147,6 @@ export function ServersCard({ servers }: { servers: StoreServer[] }) {
 
 export function RecentTicker({ items, now }: { items: StorePurchase[]; now: number }) {
   if (items.length === 0) return null;
-  const row = (dup: boolean) =>
-    items.map((p) => (
-      <li key={`${dup ? "d" : "o"}-${p.id}`} aria-hidden={dup || undefined} className="flex shrink-0 items-center gap-2 pr-7 text-[12.5px]">
-        <PixelAvatar name={p.player} size={18} />
-        <span className="font-mono text-fg">{p.player}</span>
-        {p.gift ? <Gift className="size-3 text-(--st-accent-text)" aria-label="подарок" /> : null}
-        <span className="text-fg-3">купил</span>
-        <span className="text-fg-2">{p.product}</span>
-        <span className="font-mono text-[11px] text-fg-4">{formatRelative(p.at, now)}</span>
-      </li>
-    ));
   return (
     <div className="flex items-center overflow-hidden rounded-(--st-r-card) border border-white/[0.08] bg-surface/60">
       <p className="label-mono flex h-11 shrink-0 items-center gap-2 border-r border-white/[0.06] px-3.5 text-fg-2">
@@ -168,10 +154,18 @@ export function RecentTicker({ items, now }: { items: StorePurchase[]; now: numb
         <span className="hidden @md:inline">Только что купили</span>
         <span className="@md:hidden">Купили</span>
       </p>
-      <div className="group/ticker min-w-0 flex-1 overflow-hidden mask-fade-x">
-        <ul className="flex w-max animate-marquee items-center py-3 pl-4 group-hover/ticker:[animation-play-state:paused]">
-          {row(false)}
-          {row(true)}
+      <div className="min-w-0 flex-1 overflow-x-auto scrollbar-none [mask-image:linear-gradient(to_right,black_calc(100%_-_28px),transparent)]">
+        <ul className="flex w-max items-center py-3 pl-4">
+          {items.map((p) => (
+            <li key={p.id} className="flex shrink-0 items-center gap-2 pr-7 text-[12.5px]">
+              <PixelAvatar name={p.player} size={18} />
+              <span className="font-mono text-fg">{p.player}</span>
+              {p.gift ? <Gift className="size-3 text-(--st-accent-text)" aria-label="подарок" /> : null}
+              <span className="text-fg-3">купил</span>
+              <span className="text-fg-2">{p.product}</span>
+              <span className="font-mono text-[11px] text-fg-4">{formatRelative(p.at, now)}</span>
+            </li>
+          ))}
         </ul>
       </div>
     </div>

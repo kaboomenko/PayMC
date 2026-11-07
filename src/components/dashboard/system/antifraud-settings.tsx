@@ -168,7 +168,7 @@ export function AntifraudSettings({ blocked, now }: { blocked: BlockedPayment[];
         <section className="rounded-xl border border-line bg-surface shadow-raise">
           <header className="flex items-center justify-between border-b border-line-soft px-5 py-3.5">
             <h2 className="text-sm font-semibold text-fg">Последние отклонённые</h2>
-            <ShieldCheck className="size-4 text-ice-300" />
+            <ShieldCheck className="size-4 text-fg-3" />
           </header>
           <ul>
             {blocked.map((b) => (

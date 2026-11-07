@@ -1,6 +1,5 @@
 import { cn } from "@/lib/utils";
 import { Section } from "@/components/marketing/section";
-import { StatusDot } from "@/components/ui/status-dot";
 
 const RELEASES = [
   { date: "04.11", title: "Импорт из других платформ", text: "Товары, команды и история покупок — из CSV или по API, за вечер" },
@@ -21,8 +20,6 @@ export function ChangelogStrip() {
         </p>
         <div className="flex flex-wrap items-center gap-2">
           <span className="inline-flex h-7 items-center gap-2 rounded-full border border-line bg-surface px-3 text-[12.5px] text-fg-2">
-            <StatusDot tone="ok" className="size-1.5" />
-            Все системы работают
             <span className="font-mono text-[11.5px] text-fg-3 nums">цель доступности 99,98&nbsp;%</span>
           </span>
         </div>

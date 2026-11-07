@@ -231,7 +231,7 @@ export function SplitEditor({
               {draft.map((r, i) => (
                 <div
                   key={r.id}
-                  className={cn("h-full transition-[width] duration-200 ease-[var(--ease-snappy)] not-last:border-r not-last:border-surface", SEGMENT[i % SEGMENT.length])}
+                  className={cn("h-full not-last:border-r not-last:border-surface", SEGMENT[i % SEGMENT.length])}
                   style={{ width: `${(Math.min(r.pct, 100) / Math.max(sum, 100)) * 100}%` }}
                 />
               ))}

@@ -17,7 +17,7 @@ export function DialogContent({
 }: React.ComponentProps<typeof D.Content> & { hideClose?: boolean }) {
   return (
     <D.Portal>
-      <D.Overlay className="fixed inset-0 z-50 bg-canvas/70 backdrop-blur-[2px] data-[state=open]:animate-[fade-up_0.2s_ease-out]" />
+      <D.Overlay className="fixed inset-0 z-50 bg-canvas/70 backdrop-blur-[2px] data-[state=open]:animate-[fade-in_0.2s_var(--ease-snappy)]" />
       <D.Content
         className={cn(
           "fixed top-1/2 left-1/2 z-50 w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl border border-line-strong bg-surface shadow-pop outline-none",

@@ -18,7 +18,7 @@ export function SheetContent({
 }: React.ComponentProps<typeof D.Content> & { side?: "right" | "left" }) {
   return (
     <D.Portal>
-      <D.Overlay className="fixed inset-0 z-50 bg-canvas/60 data-[state=open]:animate-[fade-up_0.15s_ease-out]" />
+      <D.Overlay className="fixed inset-0 z-50 bg-canvas/60 data-[state=open]:animate-[fade-in_0.15s_var(--ease-snappy)]" />
       <D.Content
         className={cn(
           "fixed top-0 bottom-0 z-50 flex w-full max-w-[560px] flex-col border-line-strong bg-surface shadow-pop outline-none",

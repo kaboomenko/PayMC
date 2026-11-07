@@ -373,9 +373,9 @@ function CheckoutFlow({
                   {gift ? (
                     <motion.div
                       key="friend"
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
+                      initial={reduce ? false : { opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
                       transition={{ duration: 0.2 }}
                       className="overflow-hidden"
                     >
@@ -579,7 +579,7 @@ function CheckoutFlow({
                   <dt className="text-fg">{method === "mobile" ? "Итого без комиссии" : "Итого"}</dt>
                   <dd className="font-mono text-[20px] font-semibold tracking-[-0.02em] text-fg nums">
                     {formatMoney(total)}
-                    {isSub && !discount ? <span className="text-[13px] font-normal text-fg-3">/мес</span> : null}
+                    {isSub && !discount ? <span className="text-[13px] font-normal tracking-normal text-fg-3">/мес</span> : null}
                   </dd>
                 </div>
               </dl>

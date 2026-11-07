@@ -18,7 +18,7 @@ export function SubscriptionTile({ price, subscribers, nextCharge }: { price: nu
           </div>
           <p className="shrink-0 font-mono text-[18px] font-medium tracking-[-0.02em] text-fg nums">
             {formatMoney(price)}
-            <span className="text-[12px] text-fg-3">/мес</span>
+            <span className="text-[12px] tracking-normal text-fg-3">/мес</span>
           </p>
         </div>
         <dl className="space-y-1.5 px-3.5 py-3 text-[12px]">
@@ -33,7 +33,7 @@ export function SubscriptionTile({ price, subscribers, nextCharge }: { price: nu
         </dl>
         <label className="flex cursor-pointer items-center justify-between gap-3 border-t border-line-soft px-3.5 py-2.5 text-[12.5px] text-fg-2">
           <span className="flex items-center gap-1.5">
-            <Repeat className="size-3.5 text-azure-300" /> Автопродление
+            <Repeat className="size-3.5 text-fg-3" /> Автопродление
           </span>
           <Switch size="sm" checked={auto} onCheckedChange={setAuto} aria-label="Автопродление Frost+" />
         </label>

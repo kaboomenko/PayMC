@@ -51,11 +51,11 @@ export function SetupSection() {
             <span
               className={cn(
                 "relative z-10 mt-1 block size-[15px] shrink-0 rounded-full border-2 lg:mt-0",
-                i === STEPS.length - 1 ? "border-ice-300 bg-ice-400/25" : "border-azure-400 bg-canvas",
+                i === STEPS.length - 1 ? "border-fg-2 bg-canvas" : "border-line-strong bg-canvas",
               )}
             />
             <div className="lg:mt-5">
-              <p className="font-mono text-[13px] text-azure-300 nums">{s.t}</p>
+              <p className="font-mono text-[13px] text-fg-3 nums">{s.t}</p>
               <p className="mt-1 text-[16px] font-medium text-fg">{s.title}</p>
               <p className="mt-1 max-w-[260px] text-[13.5px] leading-relaxed text-fg-3">{typo(s.text)}</p>
             </div>
@@ -94,7 +94,7 @@ export function SetupSection() {
             ))}
             <p className="mt-0.5 text-fg">
               <span className="text-fg-4">&gt; </span>
-              <span className="animate-blink">▌</span>
+              <span>▌</span>
             </p>
           </div>
         </div>

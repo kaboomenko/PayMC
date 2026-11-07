@@ -56,7 +56,7 @@ export function Topbar({
   const crumbs = buildCrumbs(pathname, item?.label, data.search);
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-line-soft bg-canvas px-4 lg:px-6">
+    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-line-soft bg-canvas px-4 sm:px-6 lg:px-8">
       <Button variant="ghost" size="icon-sm" className="-ml-1 lg:hidden" aria-label="Меню" onClick={onOpenMenu}>
         <Menu />
       </Button>

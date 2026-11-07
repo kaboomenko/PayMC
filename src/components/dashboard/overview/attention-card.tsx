@@ -132,11 +132,11 @@ export function AttentionCard({ data, now }: { data: AttentionData; now: number 
       {data.awaiting ? (
         <Link
           href="/dashboard/orders?view=awaiting"
-          className="mt-auto flex items-start gap-2.5 border-t border-line bg-ice-400/[0.03] px-4 py-3 text-xs leading-snug text-fg-3 transition-colors hover:text-fg-2 sm:px-5"
+          className="mt-auto flex items-start gap-2.5 border-t border-line px-4 py-3 text-xs leading-snug text-fg-3 transition-colors hover:text-fg-2 sm:px-5"
         >
-          <Clock3 className="mt-px size-3.5 shrink-0 text-ice-300" />
+          <Clock3 className="mt-px size-3.5 shrink-0 text-fg-3" />
           <span>
-            <span className="font-mono text-ice-200 nums">{data.awaiting}</span>{" "}
+            <span className="font-mono text-fg-2 nums">{data.awaiting}</span>{" "}
             {plural(data.awaiting, ["заказ ждёт", "заказа ждут", "заказов ждут"])} входа игрока — это нормально, выдадим автоматически
           </span>
         </Link>
